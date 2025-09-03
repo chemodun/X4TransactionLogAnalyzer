@@ -6,14 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>..\docs\images\logo.ico</ApplicationIcon>
-  <!-- Fallbacks; primary values come from Directory.Build.props -->
-  <Product>$(Product)</Product>
-  <Company>$(Company)</Company>
-  <Authors>$(Authors)</Authors>
-  <Version>$(Version)</Version>
-  <FileVersion>$(FileVersion)</FileVersion>
-  <AssemblyVersion>$(AssemblyVersion)</AssemblyVersion>
-  <InformationalVersion>$(InformationalVersion)</InformationalVersion>
+    <Product>X4 Player Ship Trade Analyzer</Product>
+    <Authors>Chem O`Dun</Authors>
+    <Company>$(Authors)</Company>
+    <Copyright>$(Authors)</Copyright>
+    <!-- Optional metadata -->
+    <RepositoryUrl>https://github.com/chemodun/X4PlayerShipTradeAnalyzer</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <!-- Fallbacks; primary values come from Directory.Build.props -->
+    <Version>$(Version)</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.2.3" />
