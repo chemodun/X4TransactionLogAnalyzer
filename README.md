@@ -1,1 +1,1 @@
-# X4TransactionLogAnalyzer
+# X4PlayerShipTradeAnalyzer
