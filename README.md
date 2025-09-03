@@ -30,11 +30,10 @@ The app runs locally and reads only your X4 files. Nothing is uploaded.
 
 1) Get the app
    - Recommended: download the latest Windows build from the project’s Releases page:
-      - [Project Releases](https://github.com/chemodun/X4MagicTripLogAnalyzer/releases)
+      - [Project Releases](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/releases)
 
 2) Start it
-   - Unzip the downloaded archive (if zipped) and run `X4PlayerShipTradeAnalyzer.exe`.
-   - If Windows reports a missing runtime, install ".NET 8 Desktop Runtime" from Microsoft and try again.
+   - Unzip the downloaded archive and run `X4PlayerShipTradeAnalyzer.exe` inside the folder `X4PlayerShipTradeAnalyzer`.
 
 ## First-time setup (Configuration tab)
 
