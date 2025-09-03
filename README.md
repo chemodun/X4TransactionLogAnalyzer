@@ -92,3 +92,7 @@ The app runs locally and reads only your X4 files. Nothing is uploaded.
 - Author: Chem O`Dun
 - Based on idea implemented in [X4MagicTripLogAnalyzer by Magic Trip](https://github.com/magictripgames/X4MagicTripLogAnalyzer)
 - Not affiliated with Egosoft. "X4: Foundations" is a trademark of its respective owner.
+
+## Acknowledgements
+
+- Thanks to all members of the [X4 modding channel](https://discord.com/channels/337098290917146624/502057640877228042) on [Egosoft Discord](https://discord.com/invite/zhs8sRpd3m). And especially to `UniTrader` and `Forleyor`.
