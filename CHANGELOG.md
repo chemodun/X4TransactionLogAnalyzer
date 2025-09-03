@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.1.0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.0.0...v1.1.0) (2025-09-03)
+
+
+### Features
+
+* **ConfigurationViewModel:** include cluster sector names in readiness check ([569813d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/569813d01327876b9a71c11399abdc4f99354278))
+* **GameData:** enhance data handling for cluster sectors ([569813d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/569813d01327876b9a71c11399abdc4f99354278))
+* **images:** add title360 image ([493cde1](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/493cde193cf880df7f4af61be54744819a06dc1d))
+* **MainWindow:** display cluster sector names count ([569813d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/569813d01327876b9a71c11399abdc4f99354278))
+* **ProgressUpdate:** extend progress tracking metrics ([569813d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/569813d01327876b9a71c11399abdc4f99354278))
+* **ProgressWindow:** add cluster sector names processing display ([569813d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/569813d01327876b9a71c11399abdc4f99354278))
+* **Ship:** add Sector property to ShipTransaction class ([569813d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/569813d01327876b9a71c11399abdc4f99354278))
+* **ShipsTransactionsModel:** update SQL query to include sector ([569813d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/569813d01327876b9a71c11399abdc4f99354278))
+
+
+### Miscellaneous Chores
+
+* **images:** update logo.ico file ([87b3bfe](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/87b3bfe1f1bb30bb7c40523cedc286325a3b6040))
+* **src/Directory.Build.props:** create new Directory.Build.props file ([8f74b47](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/8f74b47a0e7bf2a911f9c434b2221b990ec8a271))
+
+
+### Documentation
+
+* **bbcode:** Update bbcode files ([312dc06](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/312dc06cb928392a0f4ac054ffdd00abb734068b))
+* **images:** add new image files for documentation ([7663950](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/7663950401a1b90220f973f0651d38b1f5b6d398))
+* **README.md:** add acknowledgements section ([bad73de](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/bad73deab5e105a172a33616eb87268cdc3688eb))
+* **README.md:** fix last line ([286defa](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/286defa11cd9f1a574561dd08f7efbe33be979a8))
+
 ## [1.0.0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v0.1.0...v1.0.0) (2025-09-03)
 
 
