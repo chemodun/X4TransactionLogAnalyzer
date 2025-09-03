@@ -1,0 +1,89 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="X4PlayerShipTradeAnalyzer.Views.ProgressWindow"
+        Width="420" Height="300"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Title="Working..."
+        SystemDecorations="BorderOnly">
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>   <!-- Message -->
+        <RowDefinition Height="12"/>     <!-- Spacer -->
+        <RowDefinition Height="Auto"/>   <!-- Top line -->
+        <RowDefinition Height="Auto"/>      <!-- Counters grid -->
+        <RowDefinition Height="Auto"/>   <!-- Bottom line -->
+        <RowDefinition Height="12"/>     <!-- Spacer -->
+        <RowDefinition Height="Auto"/>   <!-- Progress bar -->
+    </Grid.RowDefinitions>
+
+    <!-- Message -->
+    <TextBlock x:Name="MessageText"
+               Grid.Row="0"
+               TextWrapping="Wrap"
+               FontWeight="SemiBold"
+               Text="Loading, please wait..."/>
+
+    <!-- Top delimiter -->
+    <Border Grid.Row="2"
+            Height="1"
+            Background="Gray"
+            HorizontalAlignment="Stretch"
+            Margin="0,4"/>
+
+    <!-- Counters grid -->
+    <Grid Grid.Row="3"
+          ColumnDefinitions="Auto,12,*"
+          RowDefinitions="Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6">
+
+        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="LblCurrentPackage" Text="Package:"/>
+        <TextBlock Grid.Row="0" Grid.Column="2" x:Name="CurrentPackage"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" x:Name="LblProcessedFiles" Text="Processed files:"/>
+        <TextBlock Grid.Row="2" Grid.Column="2" x:Name="ProcessedFiles"/>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" x:Name="LblLanguages" Text="Languages:"/>
+        <TextBlock Grid.Row="4" Grid.Column="2" x:Name="Languages"/>
+
+        <TextBlock Grid.Row="6" Grid.Column="0" x:Name="LblCurrentPage" Text="Current page:"/>
+        <TextBlock Grid.Row="6" Grid.Column="2" x:Name="CurrentPage"/>
+
+        <TextBlock Grid.Row="8" Grid.Column="0" x:Name="LblTItemsInPage" Text="T items in page:"/>
+        <TextBlock Grid.Row="8" Grid.Column="2" x:Name="TItemsInPage"/>
+
+        <TextBlock Grid.Row="10" Grid.Column="0" x:Name="LblStoredTItems" Text="Stored T items:"/>
+        <TextBlock Grid.Row="10" Grid.Column="2" x:Name="StoredTItems"/>
+
+        <TextBlock Grid.Row="12" Grid.Column="0" x:Name="LblWaresProcessed" Text="Wares processed:"/>
+        <TextBlock Grid.Row="12" Grid.Column="2" x:Name="WaresProcessed"/>
+
+        <TextBlock Grid.Row="14" Grid.Column="0" x:Name="LblFactionsProcessed" Text="Factions processed:"/>
+        <TextBlock Grid.Row="14" Grid.Column="2" x:Name="FactionsProcessed"/>
+
+        <!-- Save loading counters -->
+        <TextBlock Grid.Row="2" Grid.Column="0" x:Name="LblElementsProcessed" Text="Elements processed:"/>
+        <TextBlock Grid.Row="2" Grid.Column="2" x:Name="ElementsProcessed"/>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" x:Name="LblStationsProcessed" Text="Stations processed:"/>
+        <TextBlock Grid.Row="4" Grid.Column="2" x:Name="StationsProcessed"/>
+
+        <TextBlock Grid.Row="6" Grid.Column="0" x:Name="LblShipsProcessed" Text="Ships processed:"/>
+        <TextBlock Grid.Row="6" Grid.Column="2" x:Name="ShipsProcessed"/>
+
+        <TextBlock Grid.Row="8" Grid.Column="0" x:Name="LblTradesProcessed" Text="Trades processed:"/>
+        <TextBlock Grid.Row="8" Grid.Column="2" x:Name="TradesProcessed"/>
+    </Grid>
+
+    <!-- Bottom delimiter -->
+    <Border Grid.Row="4"
+            Height="1"
+            Background="Gray"
+            HorizontalAlignment="Stretch"
+            Margin="0,4"/>
+
+    <!-- Progress bar -->
+    <ProgressBar Grid.Row="6"
+                 IsIndeterminate="True"
+                 Height="8"/>
+  </Grid>
+</Window>

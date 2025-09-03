@@ -34,6 +34,7 @@ jobs:
       - name: Compress to zip
         run: |
           cp README.md X4PlayerShipTradeAnalyzer
+          rm ./X4PlayerShipTradeAnalyzer/X4PlayerShipTradeAnalyzer.pdb
           7z a -tzip X4PlayerShipTradeAnalyzer.zip X4PlayerShipTradeAnalyzer
         shell: powershell
 

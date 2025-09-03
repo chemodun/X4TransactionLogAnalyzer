@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "X4PlayerShipTradeAnalyzer (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "X4PlayerShipTradeAnalyzerBuild",
+            "program": "${workspaceFolder}/src/bin/Debug/net8.0/X4PlayerShipTradeAnalyzer.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        }
+    ]
+}

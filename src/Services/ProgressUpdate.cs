@@ -1,0 +1,20 @@
+namespace X4PlayerShipTradeAnalyzer.Services;
+
+public sealed class ProgressUpdate
+{
+  public string? Status { get; init; }
+  public string? CurrentPackage { get; init; }
+  public int? ProcessedFiles { get; init; }
+  public int? Languages { get; init; }
+  public int? CurrentPage { get; init; }
+  public int? TItemsInPage { get; init; }
+  public int? StoredTItems { get; init; }
+  public int? WaresProcessed { get; init; }
+  public int? FactionsProcessed { get; init; }
+
+  // Save import metrics
+  public int? ElementsProcessed { get; init; }
+  public int? StationsProcessed { get; init; }
+  public int? ShipsProcessed { get; init; }
+  public int? TradesProcessed { get; init; }
+}

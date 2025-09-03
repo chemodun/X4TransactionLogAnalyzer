@@ -1,0 +1,307 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:X4PlayerShipTradeAnalyzer.ViewModels"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:conv="clr-namespace:X4PlayerShipTradeAnalyzer.Converters"
+  xmlns:mdv="clr-namespace:MarkdownViewer.Core.Controls;assembly=MarkdownViewer.Core"
+    x:Class="X4PlayerShipTradeAnalyzer.Views.MainWindow"
+  Width="1200" Height="800"
+  Title="X4 Player Ship Trade Analyzer">
+  <Window.Resources>
+    <conv:NullToUnsetBrushConverter x:Key="NullToUnsetBrush" />
+    <conv:ZeroToRedBrushConverter x:Key="ZeroToRed" />
+  </Window.Resources>
+  <Window.Styles>
+    <Style Selector="TextBlock.rightAligned">
+      <Setter Property="TextAlignment" Value="Right"/>
+      <Setter Property="HorizontalAlignment" Value="Right"/>
+      <Setter Property="Padding" Value="4"/>
+    </Style>
+  </Window.Styles>
+
+  <Design.DataContext>
+    <vm:MainViewModel baseDir="."/>
+  </Design.DataContext>
+
+  <TabControl Grid.Row="1" x:Name="MainTabs" SelectionChanged="MainTabs_SelectionChanged">
+    <TabItem Header="Ships transactions" x:Name="ShipsTransactionsTab">
+      <Grid DataContext="{Binding ShipsTransactions}">
+          <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+              <RowDefinition Height="28" />
+              <RowDefinition />
+          </Grid.RowDefinitions>
+          <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+              <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
+              <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
+            </StackPanel>
+          </Border>
+          <!-- Row 0, Column 1: summary values -->
+          <Border Grid.Row="0" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Time in Service:"/>
+                <TextBlock Text="{Binding TimeInService}" FontWeight="Bold"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Items Traded:"/>
+                <TextBlock Text="{Binding ItemsTraded}" FontWeight="Bold"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Total Estimated Profit:"/>
+                <TextBlock Text="{Binding TotalEstimatedProfit}" FontWeight="Bold"/>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+
+            <ListBox ItemsSource="{Binding ShipList}"
+                    SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
+                    Margin="8" Width="300">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding ShipName}" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+          </Border>
+          <Border Grid.Row="1" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+
+            <DataGrid ItemsSource="{Binding FilteredTransactions}"
+                      AutoGenerateColumns="False"
+                      Margin="8">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
+                <DataGridTextColumn Header="Station" Binding="{Binding Station}" Width="400"/>
+                <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
+                <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="240"/>
+                <DataGridTemplateColumn Header="Price" Width="100">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Price}" Classes="rightAligned" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Quantity" Width="100">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Quantity}" Classes="rightAligned" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Total" Width="100">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Total}" Classes="rightAligned" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Estimated Profit" Width="140">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding EstimatedProfit}" Classes="rightAligned" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+
+          </Border>
+      </Grid>
+
+    </TabItem>
+
+    <TabItem Header="Ships Graphs" x:Name="ShipsGraphsTab">
+      <Grid DataContext="{Binding ShipsGraphs}">
+          <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+              <RowDefinition Height="28" />
+              <RowDefinition />
+          </Grid.RowDefinitions>
+          <!-- Filters row -->
+          <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+              <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
+              <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
+            </StackPanel>
+          </Border>
+          <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <ListBox ItemsSource="{Binding ShipList}"
+                Margin="8" Width="300"
+                DoubleTapped="ShipGraphsList_DoubleTapped">
+                      <ListBox.ItemTemplate>
+                        <DataTemplate>
+              <TextBlock Text="{Binding ShipName}"
+                 FontWeight="{Binding FontWeight}"
+                 Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Border>
+          <Border Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" BorderBrush="Gray" BorderThickness="0" Padding="8">
+            <lvc:CartesianChart Series="{Binding Series}"
+                                XAxes="{Binding XAxes}"
+                                YAxes="{Binding YAxes}"/>
+          </Border>
+      </Grid>
+    </TabItem>
+    <TabItem Header="Wares Stats" x:Name="WaresStatsTab">
+      <Grid DataContext="{Binding WaresStats}">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="28" />
+          <RowDefinition />
+        </Grid.RowDefinitions>
+        <!-- Filters row -->
+        <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+            <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
+            <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
+          </StackPanel>
+        </Border>
+        <!-- Chart + custom legend -->
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
+          <Grid ColumnDefinitions="* , Auto" >
+            <lvc:CartesianChart Grid.Column="0"
+                                Series="{Binding Series}"
+                                XAxes="{Binding XAxes}"
+                                YAxes="{Binding YAxes}"
+                                LegendPosition="Hidden"/>
+
+            <!-- Custom legend: ware color + name -->
+            <ScrollViewer Grid.Column="1" Margin="12,0,0,0" Width="280" VerticalScrollBarVisibility="Auto">
+              <ItemsControl ItemsSource="{Binding Legend}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4">
+                      <Border Width="16" Height="16" Background="{Binding Brush}" CornerRadius="2"/>
+                      <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Grid>
+        </Border>
+      </Grid>
+    </TabItem>
+    <TabItem Header="Configuration" x:Name="ConfigurationTab">
+      <Grid DataContext="{Binding Configuration}" Margin="12">
+        <Grid.RowDefinitions>
+          <!-- Game folder row -->
+          <RowDefinition Height="Auto"/>
+          <!-- Small gap below game folder -->
+          <RowDefinition Height="8"/>
+          <!-- Game-data statistics row -->
+          <RowDefinition Height="Auto"/>
+          <!-- Big separation between blocks -->
+          <RowDefinition Height="32"/>
+          <!-- Game save path row -->
+          <RowDefinition Height="Auto"/>
+          <!-- Small gap below save path -->
+          <RowDefinition Height="8"/>
+          <!-- Save-data statistics row -->
+          <RowDefinition Height="Auto"/>
+          <!-- Gap before theme selector -->
+          <RowDefinition Height="8"/>
+          <!-- Theme selector row -->
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="160"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="12"/>
+          <!-- New column for Load Only Game Language checkbox -->
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="12"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Wares + Language statistics row (each stat on its own line) -->
+        <Border Grid.Row="2" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="0 0 0 8">
+          <StackPanel Orientation="Vertical" Spacing="6">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Languages:" />
+              <TextBlock Text="{Binding LanguagesCount}" FontWeight="Bold" Foreground="{Binding LanguagesCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Texts ( " Foreground="{Binding CurrentLanguageTextCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="Language Id: "/>
+              <TextBlock Text="{Binding CurrentLanguageId}" FontWeight="Bold" Foreground="{Binding CurrentLanguageId, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="):" Foreground="{Binding CurrentLanguageTextCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding CurrentLanguageTextCount}" FontWeight="Bold" Foreground="{Binding CurrentLanguageTextCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Wares:" Foreground="{Binding WaresCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding WaresCount}" FontWeight="Bold" Foreground="{Binding WaresCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Factions:" Foreground="{Binding FactionsCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding FactionsCount}" FontWeight="Bold" Foreground="{Binding FactionsCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Game Folder (X4.exe) -->
+        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="Game Folder"/>
+        <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding GameFolderExePath}"/>
+        <Button Grid.Row="0" Grid.Column="2" Content="Set" Click="SetGameFolder_Click"/>
+        <CheckBox Grid.Row="0" Grid.Column="4" Content="Load Only Game Language" IsChecked="{Binding LoadOnlyGameLanguage, Mode=TwoWay}" VerticalAlignment="Center"/>
+        <Button Grid.Row="0" Grid.Column="6" Content="Load Game Data" IsEnabled="{Binding CanReloadGameData}" Click="ReloadGameData_Click"/>
+
+  <!-- Theme selector -->
+  <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Text="Theme"/>
+  <ComboBox Grid.Row="8" Grid.Column="1" Width="200"
+      SelectedItem="{Binding AppTheme, Mode=TwoWay}">
+    <x:String>System</x:String>
+    <x:String>Light</x:String>
+    <x:String>Dark</x:String>
+  </ComboBox>
+
+        <!-- Save-data statistics table (each stat on its own line) -->
+        <Border Grid.Row="6" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="8 0 0 8">
+                <StackPanel Orientation="Vertical" Spacing="6">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Player ships:" Foreground="{Binding PlayerShipsCount, Converter={StaticResource ZeroToRed}}"/>
+                    <TextBlock Text="{Binding PlayerShipsCount}" FontWeight="Bold" Foreground="{Binding PlayerShipsCount, Converter={StaticResource ZeroToRed}}"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Stations:" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
+                    <TextBlock Text="{Binding StationsCount}" FontWeight="Bold" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Trades:" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
+                    <TextBlock Text="{Binding TradesCount}" FontWeight="Bold" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <!-- Game Save Path -->
+        <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Game Save Path"/>
+        <TextBlock Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding GameSavePath}"/>
+        <Button Grid.Row="4" Grid.Column="2" Content="Set" Click="SetSaveFolder_Click"/>
+        <!-- Keep columns aligned by skipping checkbox column and spacer in this row -->
+        <Button Grid.Row="4" Grid.Column="6" Content="Load Save Data" IsEnabled="{Binding CanReloadSaveData}" Click="ReloadSaveData_Click"/>
+      </Grid>
+    </TabItem>
+
+    <TabItem Header="Readme" x:Name="ReadmeTab">
+      <Grid>
+        <ScrollViewer Margin="8" VerticalScrollBarVisibility="Auto">
+          <mdv:MarkdownViewer x:Name="ReadmeViewer"
+                               MarkdownText="Loading README.md..."
+                               IsEnabled="True"/>
+        </ScrollViewer>
+      </Grid>
+    </TabItem>
+  </TabControl>
+</Window>
