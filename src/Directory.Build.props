@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Centralized version for release-please to update -->
+    <Version>1.0.0</Version> <!-- x-release-please-version -->
+  </PropertyGroup>
+</Project>
