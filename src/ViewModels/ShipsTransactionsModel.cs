@@ -173,12 +173,11 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
           Station = txReader["station"].ToString() ?? string.Empty,
           Operation = txReader["operation"].ToString() ?? string.Empty,
           Product = txReader["ware_name"].ToString() ?? string.Empty,
-          Price = Convert.ToDecimal(txReader["price"]).ToString("N2"),
+          Price = Convert.ToDecimal(txReader["price"]),
           VolumeValue = Convert.ToInt32(txReader["volume"]),
-          Quantity = Convert.ToInt32(txReader["volume"]).ToString("N0"),
-          Total = Convert.ToDecimal(txReader["trade_sum"]).ToString("N2"),
-          ProfitValue = Convert.ToDecimal(txReader["profit"]),
-          EstimatedProfit = Convert.ToDecimal(txReader["profit"]).ToString("N2"),
+          Quantity = Convert.ToInt32(txReader["volume"]),
+          Total = Convert.ToDecimal(txReader["trade_sum"]),
+          EstimatedProfit = Convert.ToDecimal(txReader["profit"]),
         }
       );
     }
@@ -200,7 +199,7 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
         {
           itemsTraded += tx.VolumeValue;
         }
-        estimatedProfit += tx.ProfitValue;
+        estimatedProfit += tx.EstimatedProfit ?? 0;
       }
       // update summaries
       if (shipTx.Count > 0)

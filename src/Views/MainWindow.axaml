@@ -81,31 +81,31 @@
                 <DataGridTextColumn Header="Station" Binding="{Binding Station}" Width="400"/>
                 <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
                 <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="240"/>
-                <DataGridTemplateColumn Header="Price" Width="100">
+                <DataGridTemplateColumn Header="Price" SortMemberPath="Price" Width="100">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                      <TextBlock Text="{Binding Price}" Classes="rightAligned" />
+                      <TextBlock Text="{Binding Price, StringFormat=N2}" Classes="rightAligned" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Quantity" Width="100">
+                <DataGridTemplateColumn Header="Quantity" SortMemberPath="Quantity" Width="100">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                      <TextBlock Text="{Binding Quantity}" Classes="rightAligned" />
+                      <TextBlock Text="{Binding Quantity, StringFormat=N0}" Classes="rightAligned" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Total" Width="100">
+                <DataGridTemplateColumn Header="Total" SortMemberPath="Total" Width="100">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                      <TextBlock Text="{Binding Total}" Classes="rightAligned" />
+                      <TextBlock Text="{Binding Total, StringFormat=N2}" Classes="rightAligned" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Estimated Profit" Width="140">
+                <DataGridTemplateColumn Header="Estimated Profit" SortMemberPath="EstimatedProfit" Width="140">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                      <TextBlock Text="{Binding EstimatedProfit}" Classes="rightAligned" />
+                      <TextBlock Text="{Binding EstimatedProfit, StringFormat=N2}" Classes="rightAligned" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

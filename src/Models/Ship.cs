@@ -13,13 +13,12 @@ public class ShipTransaction
   // raw numeric fields for aggregation
   public long RawTimeMs { get; set; }
   public int VolumeValue { get; set; }
-  public decimal ProfitValue { get; set; }
   public string? Time { get; set; }
   public string? Station { get; set; }
   public string? Operation { get; set; }
   public string? Product { get; set; }
-  public string? Price { get; set; }
-  public string? Quantity { get; set; }
-  public string? Total { get; set; }
-  public string? EstimatedProfit { get; set; }
+  public decimal? Price { get; set; }
+  public int? Quantity { get; set; }
+  public decimal? Total { get; set; }
+  public decimal? EstimatedProfit { get; set; }
 }
