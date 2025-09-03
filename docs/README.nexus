@@ -1,1 +1,131 @@
-[size=4][u]X4PlayerShipTradeAnalyzer[/u][/size]
+[size=4][u]X4 Player Ship Trade Analyzer[/u][/size]
+
+A simple, fast desktop tool for X4: Foundations players to understand their trading performance. Point it at your game folder and a save file and get clear insights into:
+[list]
+[*] Which wares make you the most profit
+[*] How each of your ships has been trading over time
+[*] Totals for price, quantity, and estimated profit per transaction
+[/list]
+The app runs locally and reads only your X4 files. Nothing is uploaded.
+
+[size=3][u][b]Key features[/b][/u][/size]
+[list]
+[*] Ships transactions: A detailed table of every trade in your save
+[list]
+[*] Columns: Time, Station, Operation (Buy/Sell), Product, Price, Quantity, Total, Estimated Profit
+[/list]
+[*] Filters for ware type: Container and Solid
+[*] Ships graphs: Compare ships visually
+[list]
+[*] Interactive chart per ship; double-click a ship in the list to toggle it on/off
+[*] Same Container/Solid filters apply
+[/list]
+[*] Wares stats: See what actually makes money
+[list]
+[*] Single-series histogram with per-ware colors and tooltips
+[*] Custom legend shows color + ware name for quick scanning
+[/list]
+[*] Configuration (first-run setup)
+[list]
+[*] Set Game Folder (your X4.exe location)
+[*] Choose a save file (.xml.gz)
+[*] Optional theme: System, Light, or Dark
+[*] Quick stats to confirm data loaded (wares, factions, ships, stations, trades, language)
+[/list]
+[*] Built-in Readme: A “Readme” tab mirrors this guide inside the app
+[/list]
+[size=3][u][b]Download and run[/b][/u][/size]
+
+1) Get the app
+[list][list]
+[*] Recommended: download the latest Windows build from the project’s Releases page:
+[list]
+[*] [url=https://github.com/chemodun/X4MagicTripLogAnalyzer/releases]Project Releases[/url]
+[/list]
+[/list]
+[/list]
+2) Start it
+[list][list]
+[*] Unzip the downloaded archive (if zipped) and run [b]X4PlayerShipTradeAnalyzer.exe[/b].
+[*] If Windows reports a missing runtime, install ".NET 8 Desktop Runtime" from Microsoft and try again.
+[/list]
+[/list]
+[size=3][u][b]First-time setup (Configuration tab)[/b][/u][/size]
+
+1) Game Folder
+[list][list]
+[*] Click Set next to “Game Folder” and select your X4.exe. Typical paths:
+[list]
+[*] Steam: [b]C:\Program Files (x86)\Steam\steamapps\common\X4 Foundations\X4.exe[/b]
+[*] GOG/Epic: wherever you installed X4
+[/list]
+[/list]
+[/list]
+2) Save file
+[list][list]
+[*] Click Set next to “Game Save Path” and choose a save [b].xml.gz[/b]. Typical path:
+[list]
+[*] Steam: [b]%USERPROFILE%\Documents\Egosoft\X4\<player-id>\save\quicksave.xml.gz[/b]
+[*] GOG/Epic: [b]%USERPROFILE%\Documents\Egosoft\X4\save\quicksave.xml.gz[/b]
+[/list]
+[/list]
+[/list]
+3) Load data
+[list][list]
+[*] Click “Reload Data” for the Game Folder to import base game data (wares, factions, etc.).
+[*] Click “Reload Data” for the Save Path to import your transactions.
+[*] When data is present, the other tabs become enabled.
+[/list]
+[/list]
+4) Optional settings
+[list][list]
+[*] Load Only Game Language: speeds up loading by using your game language only.
+[*] Theme: System, Light, or Dark.
+[/list]
+[/list]
+[size=3][u][b]Using the app[/b][/u][/size]
+[list]
+[*] Ships transactions tab
+[list]
+[*] Browse trades with totals and estimated profit.
+[/list]
+[*] Toggle “Container”/“Solid” to filter quickly.
+[*] Ships graphs tab
+[list]
+[*] Visualize activity and compare ships.
+[*] Double-click a ship in the list to show/hide it on the chart.
+[/list]
+[*] Wares stats tab
+[list]
+[*] Histogram of profit by ware with a color legend.
+[*] Hover bars to see ware name and profit.
+[/list]
+[*] Readme tab
+[list]
+[*] Shows this guide inside the app for quick reference.
+[/list]
+[/list]
+[size=3][u][b]Tips & troubleshooting[/b][/u][/size]
+[list]
+[*] I see zeros / tabs are disabled
+[list]
+[*] Make sure you set both Game Folder (X4.exe) and a valid save [b].xml.gz[/b], then press both Reload buttons.
+[/list]
+[*] Save not found
+[list]
+[*] Check [b]%USERPROFILE%\Documents\Egosoft\X4\<player-id>\save\[/b] for [b]quicksave.xml.gz[/b] or any [b]*.xml.gz[/b] save.
+[/list]
+[*] Loading takes a while
+[list]
+[*] Large saves can take a minute. A small progress window appears during import.
+[/list]
+[*] Nothing uploads anywhere
+[list]
+[*] The app reads your local files only and keeps all analysis on your machine.
+[/list]
+[/list]
+[size=3][u][b]Credits[/b][/u][/size]
+[list]
+[*] Author: Chem O`Dun
+[*] Not affiliated with Egosoft. "X4: Foundations" is a trademark of its respective owner.
+[/list]
