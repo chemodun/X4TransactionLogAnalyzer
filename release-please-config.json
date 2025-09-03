@@ -1,6 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-  "packages": {"." : {"release-type": "simple"}},
+  "packages": {
+    ".": {
+      "release-type": "simple"
+    }
+  },
+  "extra-files": [
+    "Directory.Build.props"
+  ],
   "pull-request-title-pattern": "build${scope}: release${component} ${version}",
   "include-component-in-tag": true,
   "include-v-in-tag": true,
