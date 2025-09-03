@@ -1,6 +1,6 @@
 # X4 Player Ship Trade Analyzer
 
-A simple, fast desktop tool for X4: Foundations players to understand their trading performance. Point it at your game folder and a save file and get clear insights into:
+A simple, fast desktop tool for X4: Foundations players to understand their ship's trading performance. Point it at your game folder and a save file and get clear insights into:
 
 - Which wares make you the most profit
 - How each of your ships has been trading over time
@@ -90,4 +90,5 @@ The app runs locally and reads only your X4 files. Nothing is uploaded.
 ## Credits
 
 - Author: Chem O`Dun
+- Based on idea implemented in [X4MagicTripLogAnalyzer by Magic Trip](https://github.com/magictripgames/X4MagicTripLogAnalyzer)
 - Not affiliated with Egosoft. "X4: Foundations" is a trademark of its respective owner.
