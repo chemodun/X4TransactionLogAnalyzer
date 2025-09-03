@@ -11,9 +11,11 @@ public sealed class ProgressUpdate
   public int? StoredTItems { get; init; }
   public int? WaresProcessed { get; init; }
   public int? FactionsProcessed { get; init; }
+  public int? ClusterSectorNamesProcessed { get; init; }
 
   // Save import metrics
   public int? ElementsProcessed { get; init; }
+  public int? SectorsProcessed { get; init; }
   public int? StationsProcessed { get; init; }
   public int? ShipsProcessed { get; init; }
   public int? TradesProcessed { get; init; }

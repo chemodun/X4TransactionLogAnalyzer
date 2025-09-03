@@ -197,7 +197,7 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
     // Load transactions
     var txCmd = new SQLiteCommand(
       AppendWhereOnFilters(
-        "SELECT id, time, station, operation, ware_name, price, volume, trade_sum, profit FROM player_ships_transactions_log"
+        "SELECT id, time, sector, station, operation, ware_name, price, volume, trade_sum, profit FROM player_ships_transactions_log"
       ),
       conn
     );
@@ -212,6 +212,7 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
           ShipId = Convert.ToInt32(txReader["id"]),
           RawTimeMs = ms,
           Time = $"-{(int)span.TotalHours:D2}:{span.Minutes:D2}:{span.Seconds:D2}",
+          Sector = txReader["sector"].ToString() ?? string.Empty,
           Station = txReader["station"].ToString() ?? string.Empty,
           Operation = txReader["operation"].ToString() ?? string.Empty,
           Product = txReader["ware_name"].ToString() ?? string.Empty,

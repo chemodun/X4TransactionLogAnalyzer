@@ -93,6 +93,7 @@
                       Margin="8">
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
+                <DataGridTextColumn Header="Sector" Binding="{Binding Sector}" Width="180"/>
                 <DataGridTextColumn Header="Station" Binding="{Binding Station}" Width="400"/>
                 <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
                 <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="240"/>
@@ -262,6 +263,10 @@
             <StackPanel Orientation="Horizontal" Spacing="6">
               <TextBlock Text="Factions:" Foreground="{Binding FactionsCount, Converter={StaticResource ZeroToRed}}"/>
               <TextBlock Text="{Binding FactionsCount}" FontWeight="Bold" Foreground="{Binding FactionsCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Cluster/Sector names:" Foreground="{Binding ClusterSectorNamesCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding ClusterSectorNamesCount}" FontWeight="Bold" Foreground="{Binding ClusterSectorNamesCount, Converter={StaticResource ZeroToRed}}"/>
             </StackPanel>
           </StackPanel>
         </Border>

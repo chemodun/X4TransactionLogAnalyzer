@@ -84,7 +84,9 @@ public partial class ProgressWindow : Window
     Set("StoredTItems", update.StoredTItems);
     Set("WaresProcessed", update.WaresProcessed);
     Set("FactionsProcessed", update.FactionsProcessed);
+    Set("ClusterSectorNamesProcessed", update.ClusterSectorNamesProcessed);
     Set("ElementsProcessed", update.ElementsProcessed);
+    Set("SectorsProcessed", update.SectorsProcessed);
     Set("StationsProcessed", update.StationsProcessed);
     Set("ShipsProcessed", update.ShipsProcessed);
     Set("TradesProcessed", update.TradesProcessed);
@@ -131,11 +133,15 @@ public partial class ProgressWindow : Window
       "WaresProcessed",
       "LblFactionsProcessed",
       "FactionsProcessed",
+      "LblClusterSectorNamesProcessed",
+      "ClusterSectorNamesProcessed",
     };
     string[] saveLabels = new[]
     {
       "LblElementsProcessed",
       "ElementsProcessed",
+      "LblSectorsProcessed",
+      "SectorsProcessed",
       "LblStationsProcessed",
       "StationsProcessed",
       "LblShipsProcessed",

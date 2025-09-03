@@ -14,6 +14,7 @@ public class ShipTransaction
   public long RawTimeMs { get; set; }
   public int VolumeValue { get; set; }
   public string? Time { get; set; }
+  public string? Sector { get; set; }
   public string? Station { get; set; }
   public string? Operation { get; set; }
   public string? Product { get; set; }

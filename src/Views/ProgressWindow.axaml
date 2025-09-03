@@ -32,9 +32,9 @@
             Margin="0,4"/>
 
     <!-- Counters grid -->
-    <Grid Grid.Row="3"
-          ColumnDefinitions="Auto,12,*"
-          RowDefinitions="Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6">
+        <Grid Grid.Row="3"
+                  ColumnDefinitions="Auto,12,*"
+                  RowDefinitions="Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6,Auto,6">
 
         <TextBlock Grid.Row="0" Grid.Column="0" x:Name="LblCurrentPackage" Text="Package:"/>
         <TextBlock Grid.Row="0" Grid.Column="2" x:Name="CurrentPackage"/>
@@ -60,18 +60,24 @@
         <TextBlock Grid.Row="14" Grid.Column="0" x:Name="LblFactionsProcessed" Text="Factions processed:"/>
         <TextBlock Grid.Row="14" Grid.Column="2" x:Name="FactionsProcessed"/>
 
+        <TextBlock Grid.Row="16" Grid.Column="0" x:Name="LblClusterSectorNamesProcessed" Text="Cluster/Sector names processed:"/>
+        <TextBlock Grid.Row="16" Grid.Column="2" x:Name="ClusterSectorNamesProcessed"/>
+
         <!-- Save loading counters -->
         <TextBlock Grid.Row="2" Grid.Column="0" x:Name="LblElementsProcessed" Text="Elements processed:"/>
         <TextBlock Grid.Row="2" Grid.Column="2" x:Name="ElementsProcessed"/>
 
-        <TextBlock Grid.Row="4" Grid.Column="0" x:Name="LblStationsProcessed" Text="Stations processed:"/>
-        <TextBlock Grid.Row="4" Grid.Column="2" x:Name="StationsProcessed"/>
+        <TextBlock Grid.Row="4" Grid.Column="0" x:Name="LblSectorsProcessed" Text="Sectors processed:"/>
+        <TextBlock Grid.Row="4" Grid.Column="2" x:Name="SectorsProcessed"/>
 
-        <TextBlock Grid.Row="6" Grid.Column="0" x:Name="LblShipsProcessed" Text="Ships processed:"/>
-        <TextBlock Grid.Row="6" Grid.Column="2" x:Name="ShipsProcessed"/>
+        <TextBlock Grid.Row="6" Grid.Column="0" x:Name="LblStationsProcessed" Text="Stations processed:"/>
+        <TextBlock Grid.Row="6" Grid.Column="2" x:Name="StationsProcessed"/>
 
-        <TextBlock Grid.Row="8" Grid.Column="0" x:Name="LblTradesProcessed" Text="Trades processed:"/>
-        <TextBlock Grid.Row="8" Grid.Column="2" x:Name="TradesProcessed"/>
+        <TextBlock Grid.Row="8" Grid.Column="0" x:Name="LblShipsProcessed" Text="Ships processed:"/>
+        <TextBlock Grid.Row="8" Grid.Column="2" x:Name="ShipsProcessed"/>
+
+        <TextBlock Grid.Row="10" Grid.Column="0" x:Name="LblTradesProcessed" Text="Trades processed:"/>
+        <TextBlock Grid.Row="10" Grid.Column="2" x:Name="TradesProcessed"/>
     </Grid>
 
     <!-- Bottom delimiter -->

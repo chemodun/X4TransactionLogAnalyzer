@@ -89,7 +89,12 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
   public bool CanReloadSaveData => !string.IsNullOrWhiteSpace(GameSavePath) && GameDataStatsReady;
 
   private bool GameDataStatsReady =>
-    WaresCount > 0 && FactionsCount > 0 && LanguagesCount > 0 && CurrentLanguageId > 0 && CurrentLanguageTextCount > 0;
+    WaresCount > 0
+    && FactionsCount > 0
+    && ClusterSectorNamesCount > 0
+    && LanguagesCount > 0
+    && CurrentLanguageId > 0
+    && CurrentLanguageTextCount > 0;
 
   // Stats
   private int _waresCount;
@@ -154,6 +159,20 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
       if (_factionsCount != value)
       {
         _factionsCount = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private int _clusterSectorNamesCount;
+  public int ClusterSectorNamesCount
+  {
+    get => _clusterSectorNamesCount;
+    private set
+    {
+      if (_clusterSectorNamesCount != value)
+      {
+        _clusterSectorNamesCount = value;
         OnPropertyChanged();
       }
     }
@@ -258,6 +277,7 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
       StationsCount = gameData.Stats.StationsCount;
       TradesCount = gameData.Stats.TradesCount;
       FactionsCount = gameData.Stats.FactionsCount;
+      ClusterSectorNamesCount = gameData.Stats.ClusterSectorNamesCount;
       LanguagesCount = gameData.Stats.LanguagesCount;
       CurrentLanguageTextCount = gameData.Stats.CurrentLanguageTextCount;
       CurrentLanguageId = gameData.Stats.CurrentLanguageId;

@@ -31,6 +31,20 @@ public sealed class GameDataStats : INotifyPropertyChanged
     }
   }
 
+  int _clusterSectorNamesCount;
+  public int ClusterSectorNamesCount
+  {
+    get => _clusterSectorNamesCount;
+    set
+    {
+      if (_clusterSectorNamesCount != value)
+      {
+        _clusterSectorNamesCount = value;
+        OnPropertyChanged(nameof(ClusterSectorNamesCount));
+      }
+    }
+  }
+
   int _factionsCount;
   public int FactionsCount
   {
@@ -136,7 +150,7 @@ public sealed class GameDataStats : INotifyPropertyChanged
 
 public sealed class GameData
 {
-  private static readonly List<string> nameIndex = new()
+  private static readonly List<string> _nameIndex = new()
   {
     "",
     " I",
@@ -184,6 +198,7 @@ public sealed class GameData
   private int _waresProcessed;
   private int _factionsProcessed;
   private int _processedFiles;
+  private int _clusterSectorNamesProcessed;
 
   public SQLiteConnection Connection
   {
@@ -403,6 +418,7 @@ CREATE TABLE component (
     type    TEXT NOT NULL,
     class   TEXT NOT NULL,
     owner   TEXT NOT NULL,
+    sector  TEXT NOT NULL,
     name    TEXT NOT NULL,
     nameindex TEXT NOT NULL,
     code    TEXT NOT NULL
@@ -440,6 +456,10 @@ CREATE TABLE faction (
     name       TEXT NOT NULL,
     shortname  TEXT NOT NULL,
     prefixname TEXT NOT NULL
+);
+CREATE TABLE cluster_sector_name (
+    macro      TEXT PRIMARY KEY,
+    name       TEXT NOT NULL
 );
 CREATE INDEX idx_component_type           ON component(type);
 CREATE INDEX idx_component_type_owner     ON component(type, owner);
@@ -504,6 +524,7 @@ FROM (
       cp.code   AS counterpart_code,
       cp.name   AS counterpart_name,
       cp.owner  AS counterpart_faction,
+      sn.name   AS sector,
       CASE
         WHEN cp.owner = 'player'
           THEN cp.name || ' (' || cp.code || ')'
@@ -530,6 +551,8 @@ FROM (
     ON cp.id = t.buyer
   LEFT JOIN faction AS f
     ON f.id = cp.owner
+  LEFT JOIN cluster_sector_name AS sn
+    ON cp.sector = sn.macro
   JOIN ware AS w
     ON w.id = t.ware
   WHERE ship.type = 'ship'
@@ -545,6 +568,7 @@ UNION ALL
       cp.code   AS counterpart_code,
       cp.name   AS counterpart_name,
       cp.owner  AS counterpart_faction,
+      sn.name   AS sector,
       CASE
         WHEN cp.owner = 'player'
           THEN cp.name || ' (' || cp.code || ')'
@@ -571,6 +595,8 @@ UNION ALL
     ON cp.id = t.seller
   LEFT JOIN faction AS f
     ON f.id = cp.owner
+  LEFT JOIN cluster_sector_name AS sn
+    ON cp.sector = sn.macro
   JOIN ware AS w
     ON w.id = t.ware
   WHERE ship.type = 'ship'
@@ -632,9 +658,11 @@ ORDER BY full_name, time
     ClearTableText();
     ClearTableWare();
     ClearTableFaction();
+    ClearTableClusterSectorName();
     _waresProcessed = 0;
     _factionsProcessed = 0;
     _processedFiles = 0;
+    _clusterSectorNamesProcessed = 0;
     // dlcPathList.Prepend(string.Empty); // base game first
     foreach (var dlcRelPath in dlcPathList)
     {
@@ -655,6 +683,8 @@ ORDER BY full_name, time
         progress?.Invoke(new ProgressUpdate { Status = "Parsing texts..." });
         LoadTextsFromGameT(contentExtractor, progress);
       }
+      progress?.Invoke(new ProgressUpdate { Status = "Parsing map defaults..." });
+      LoadMapDefaultsXml(contentExtractor, progress);
       progress?.Invoke(new ProgressUpdate { Status = "Parsing wares..." });
       LoadWaresXml(contentExtractor, progress);
       progress?.Invoke(new ProgressUpdate { Status = "Parsing factions..." });
@@ -1192,6 +1222,21 @@ ORDER BY full_name, time
     }
   }
 
+  private void ClearTableClusterSectorName()
+  {
+    ReOpenConnection();
+    using (var deleteCmd = _conn.CreateCommand())
+    {
+      deleteCmd.CommandText = @"DELETE FROM cluster_sector_name;";
+      deleteCmd.ExecuteNonQuery();
+    }
+    using (var vacuumCmd = _conn.CreateCommand())
+    {
+      vacuumCmd.CommandText = "VACUUM;";
+      vacuumCmd.ExecuteNonQuery();
+    }
+  }
+
   private void LoadFactionsXml(ContentExtractor contentExtractor, Action<ProgressUpdate>? progress = null)
   {
     const string file = "libraries/factions.xml";
@@ -1260,6 +1305,98 @@ ORDER BY full_name, time
     }
   }
 
+  private void LoadMapDefaultsXml(ContentExtractor contentExtractor, Action<ProgressUpdate>? progress = null)
+  {
+    const string file = "libraries/mapdefaults.xml";
+    ReOpenConnection();
+
+    List<CatEntry> catEntries = contentExtractor.GetFilesByMask(file);
+    string[] files = catEntries.Select(e => e.FilePath).ToArray();
+    if (files.Length == 0)
+    {
+      return;
+    }
+    try
+    {
+      CatEntry entry = catEntries.Last(e => e.FilePath == file);
+      using var cs = ContentExtractor.OpenEntryStream(entry);
+      SQLiteTransaction txn = _conn.BeginTransaction();
+
+      using var cmd = new SQLiteCommand("INSERT OR IGNORE INTO cluster_sector_name(macro, name) VALUES (@macro, @name)", _conn, txn);
+      cmd.Parameters.Add("@macro", System.Data.DbType.String);
+      cmd.Parameters.Add("@name", System.Data.DbType.String);
+
+      var settings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+      using var xr = XmlReader.Create(cs, settings);
+
+      Dictionary<string, string> namesCache = new();
+      HashSet<int> processedPageIds = new();
+
+      while (xr.Read())
+      {
+        if (xr.NodeType != XmlNodeType.Element || !string.Equals(xr.Name, "dataset", StringComparison.Ordinal))
+          continue;
+
+        string macro = xr.GetAttribute("macro") ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(macro))
+        {
+          // skip entries without macro
+          continue;
+        }
+
+        string resolvedName = macro; // default fallback
+
+        if (!xr.IsEmptyElement)
+        {
+          int depth = xr.Depth;
+          while (xr.Read())
+          {
+            if (xr.NodeType == XmlNodeType.Element && string.Equals(xr.Name, "identification", StringComparison.Ordinal))
+            {
+              string nameAttr = xr.GetAttribute("name") ?? string.Empty;
+              if (!string.IsNullOrEmpty(nameAttr))
+              {
+                resolvedName = GetTextItem(nameAttr, ref namesCache, ref processedPageIds, alternate: macro);
+              }
+            }
+            else if (
+              xr.NodeType == XmlNodeType.EndElement
+              && string.Equals(xr.Name, "dataset", StringComparison.Ordinal)
+              && xr.Depth == depth
+            )
+            {
+              break;
+            }
+          }
+        }
+
+        cmd.Parameters["@macro"].Value = macro.ToLowerInvariant();
+        cmd.Parameters["@name"].Value = resolvedName;
+        cmd.ExecuteNonQuery();
+
+        _clusterSectorNamesProcessed++;
+        if (_clusterSectorNamesProcessed % 10 == 0)
+        {
+          progress?.Invoke(new ProgressUpdate { ClusterSectorNamesProcessed = _clusterSectorNamesProcessed });
+        }
+      }
+
+      // Final report for this file/package
+      progress?.Invoke(new ProgressUpdate { ClusterSectorNamesProcessed = _clusterSectorNamesProcessed });
+      txn.Commit();
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine("Error loading mapdefaults.xml: " + ex.Message);
+      return;
+    }
+    finally
+    {
+      _processedFiles++;
+      progress?.Invoke(new ProgressUpdate { ProcessedFiles = _processedFiles });
+    }
+  }
+
   public void ImportSaveGame(Action<ProgressUpdate>? progress = null)
   {
     // Prefer external SaveGamesFolder from configuration; fallback to local GameData copy
@@ -1290,7 +1427,7 @@ ORDER BY full_name, time
     SQLiteTransaction txn = _conn.BeginTransaction();
 
     using var insertComp = new SQLiteCommand(
-      "INSERT OR IGNORE INTO component(id, type, class, owner, name, nameindex, code) VALUES (@id,@type,@class,@owner,@name,@nameindex,@code)",
+      "INSERT OR IGNORE INTO component(id, type, class, owner, sector, name, nameindex, code) VALUES (@id,@type,@class,@owner,@sector,@name,@nameindex,@code)",
       _conn,
       txn
     );
@@ -1298,6 +1435,7 @@ ORDER BY full_name, time
     insertComp.Parameters.Add("@type", System.Data.DbType.String);
     insertComp.Parameters.Add("@class", System.Data.DbType.String);
     insertComp.Parameters.Add("@owner", System.Data.DbType.String);
+    insertComp.Parameters.Add("@sector", System.Data.DbType.String);
     insertComp.Parameters.Add("@name", System.Data.DbType.String);
     insertComp.Parameters.Add("@nameindex", System.Data.DbType.String);
     insertComp.Parameters.Add("@code", System.Data.DbType.String);
@@ -1316,6 +1454,7 @@ ORDER BY full_name, time
 
     long elementsProcessed = 0;
     int compCount = 0,
+      sectorCount = 0,
       stationsProcessed = 0,
       shipsProcessed = 0,
       tradeCount = 0;
@@ -1335,6 +1474,7 @@ ORDER BY full_name, time
     bool timeProcessed = false;
     bool detectNameViaProduction = false;
     int gameTime = 0;
+    string currentSector = string.Empty;
     Dictionary<string, string> factoryBaseNames = new();
     HashSet<int> processedPageIds = new();
 
@@ -1401,6 +1541,17 @@ ORDER BY full_name, time
 
           string componentClass = xr.GetAttribute("class") ?? string.Empty;
 
+          if (componentClass == "sector")
+          {
+            currentSector = xr.GetAttribute("macro") ?? string.Empty;
+            sectorCount++;
+            if (sectorCount % 10 == 0)
+            {
+              progress?.Invoke(new ProgressUpdate { SectorsProcessed = sectorCount });
+            }
+            continue;
+          }
+
           if (!(componentClass == "station") && !componentClass.StartsWith("ship_"))
           {
             continue;
@@ -1445,9 +1596,10 @@ ORDER BY full_name, time
           insertComp.Parameters["@id"].Value = id;
           insertComp.Parameters["@type"].Value = type;
           insertComp.Parameters["@class"].Value = componentClass;
+          insertComp.Parameters["@sector"].Value = currentSector ?? string.Empty;
           insertComp.Parameters["@owner"].Value = owner;
           insertComp.Parameters["@code"].Value = code;
-          insertComp.Parameters["@nameindex"].Value = GameData.nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
+          insertComp.Parameters["@nameindex"].Value = _nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
           if (!string.IsNullOrEmpty(name))
           {
             insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
@@ -1574,6 +1726,8 @@ ORDER BY full_name, time
       Stats.WaresCount = TableExists("ware") ? ExecuteScalarInt("SELECT COUNT(1) FROM ware") : 0;
       // factions count if table exists
       Stats.FactionsCount = TableExists("faction") ? ExecuteScalarInt("SELECT COUNT(1) FROM faction") : 0;
+      // cluster/sector names count if table exists
+      Stats.ClusterSectorNamesCount = TableExists("cluster_sector_name") ? ExecuteScalarInt("SELECT COUNT(1) FROM cluster_sector_name") : 0;
 
       // languages present in text table
       if (TableExists("text"))

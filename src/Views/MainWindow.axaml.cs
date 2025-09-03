@@ -103,6 +103,7 @@ public partial class MainWindow : Window
     var s = GameData.Stats;
     return s.WaresCount == 0
       || s.FactionsCount == 0
+      || s.ClusterSectorNamesCount == 0
       || s.PlayerShipsCount == 0
       || s.StationsCount == 0
       || s.TradesCount == 0
