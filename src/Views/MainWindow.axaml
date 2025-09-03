@@ -273,32 +273,32 @@
         <CheckBox Grid.Row="0" Grid.Column="4" Content="Load Only Game Language" IsChecked="{Binding LoadOnlyGameLanguage, Mode=TwoWay}" VerticalAlignment="Center"/>
         <Button Grid.Row="0" Grid.Column="6" Content="Load Game Data" IsEnabled="{Binding CanReloadGameData}" Click="ReloadGameData_Click"/>
 
-  <!-- Theme selector -->
-  <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Text="Theme"/>
-  <ComboBox Grid.Row="8" Grid.Column="1" Width="200"
-      SelectedItem="{Binding AppTheme, Mode=TwoWay}">
-    <x:String>System</x:String>
-    <x:String>Light</x:String>
-    <x:String>Dark</x:String>
-  </ComboBox>
+        <!-- Theme selector -->
+        <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Text="Theme"/>
+        <ComboBox Grid.Row="8" Grid.Column="1" Width="200"
+            SelectedItem="{Binding AppTheme, Mode=TwoWay}">
+          <x:String>System</x:String>
+          <x:String>Light</x:String>
+          <x:String>Dark</x:String>
+        </ComboBox>
 
         <!-- Save-data statistics table (each stat on its own line) -->
         <Border Grid.Row="6" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="8 0 0 8">
-                <StackPanel Orientation="Vertical" Spacing="6">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="Player ships:" Foreground="{Binding PlayerShipsCount, Converter={StaticResource ZeroToRed}}"/>
-                    <TextBlock Text="{Binding PlayerShipsCount}" FontWeight="Bold" Foreground="{Binding PlayerShipsCount, Converter={StaticResource ZeroToRed}}"/>
-                  </StackPanel>
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="Stations:" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
-                    <TextBlock Text="{Binding StationsCount}" FontWeight="Bold" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
-                  </StackPanel>
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="Trades:" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
-                    <TextBlock Text="{Binding TradesCount}" FontWeight="Bold" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
-                  </StackPanel>
-                </StackPanel>
-              </Border>
+          <StackPanel Orientation="Vertical" Spacing="6">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Player ships:" Foreground="{Binding PlayerShipsCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding PlayerShipsCount}" FontWeight="Bold" Foreground="{Binding PlayerShipsCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Stations:" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding StationsCount}" FontWeight="Bold" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Trades:" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding TradesCount}" FontWeight="Bold" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
 
               <!-- Game Save Path -->
         <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Game Save Path"/>
