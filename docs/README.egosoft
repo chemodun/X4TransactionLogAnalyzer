@@ -25,7 +25,7 @@ The app runs locally and reads only your X4 files. Nothing is uploaded.
 [*] Single-series histogram with per-ware colors and tooltips
 [*] Custom legend shows color + ware name for quick scanning
 [/list]
-[*] Configuration (first-run setup)
+[*] Configuration (first-run setup and updates from save files)
 [list]
 [*] Set Game Folder (your X4.exe location)
 [*] Choose a save file (.xml.gz)
@@ -38,9 +38,9 @@ The app runs locally and reads only your X4 files. Nothing is uploaded.
 
 1) Get the app
 [list][list]
-[*] Recommended: download the latest Windows build from the project’s Releases page:
+[*] Recommended: Download the latest Windows build from the [url=https://www.nexusmods.com/]Nexus Mods[/url]:
 [list]
-[*] [url=https://github.com/chemodun/X4PlayerShipTradeAnalyzer/releases]Project Releases[/url]
+[*] [url=https://next.nexusmods.com/profile/ChemODun/mods?gameId=2659]Chem O`Dun[/url] → [url=https://www.nexusmods.com/x4foundations/mods/1801]X4 Player Ship Trade Analyzer[/url]
 [/list]
 [/list]
 [/list]
