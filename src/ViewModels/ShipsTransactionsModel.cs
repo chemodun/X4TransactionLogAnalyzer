@@ -116,6 +116,48 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
     }
   }
 
+  private string tripTimeMin = "-";
+  public string TripTimeMin
+  {
+    get => tripTimeMin;
+    private set
+    {
+      if (tripTimeMin != value)
+      {
+        tripTimeMin = value;
+        OnPropertyChanged(nameof(TripTimeMin));
+      }
+    }
+  }
+
+  private string tripTimeAvg = "-";
+  public string TripTimeAvg
+  {
+    get => tripTimeAvg;
+    private set
+    {
+      if (tripTimeAvg != value)
+      {
+        tripTimeAvg = value;
+        OnPropertyChanged(nameof(TripTimeAvg));
+      }
+    }
+  }
+
+  private string tripTimeMax = "-";
+  public string TripTimeMax
+  {
+    get => tripTimeMax;
+    private set
+    {
+      if (tripTimeMax != value)
+      {
+        tripTimeMax = value;
+        OnPropertyChanged(nameof(TripTimeMax));
+      }
+    }
+  }
+
   public ShipsTransactionsModel()
   {
     LoadData();
@@ -192,13 +234,24 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
       var shipTx = allTransactions.Where(t => t.ShipId == (SelectedShip?.ShipId)).ToList();
       long itemsTraded = 0;
       decimal estimatedProfit = 0;
+      List<long> tripsTimes = new();
+      string lastOperation = string.Empty;
+      string lastWare = string.Empty;
+      long lastTimeMs = 0;
       foreach (var tx in shipTx)
       {
         FilteredTransactions.Add(tx);
         if (tx.Operation == "sell")
         {
           itemsTraded += tx.VolumeValue;
+          if (lastOperation == "buy" && lastWare == tx.Product)
+          {
+            tripsTimes.Add(Math.Abs(tx.RawTimeMs - lastTimeMs));
+          }
         }
+        lastOperation = tx.Operation ?? string.Empty;
+        lastWare = tx.Product ?? string.Empty;
+        lastTimeMs = tx.RawTimeMs;
         estimatedProfit += tx.EstimatedProfit ?? 0;
       }
       // update summaries
@@ -210,6 +263,9 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
         TimeInService = $"{(int)dur.TotalHours:N0}:{dur.Minutes:D2}:{dur.Seconds:D2}";
         ItemsTraded = itemsTraded.ToString("N0");
         TotalEstimatedProfit = estimatedProfit.ToString("N2");
+        TripTimeMin = tripsTimes.Count > 0 ? TimeSpan.FromMilliseconds(tripsTimes.Min()).ToString(@"hh\:mm\:ss") : "-";
+        TripTimeAvg = tripsTimes.Count > 0 ? TimeSpan.FromMilliseconds(tripsTimes.Average()).ToString(@"hh\:mm\:ss") : "-";
+        TripTimeMax = tripsTimes.Count > 0 ? TimeSpan.FromMilliseconds(tripsTimes.Max()).ToString(@"hh\:mm\:ss") : "-";
       }
     }
     else
@@ -217,6 +273,9 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
       TimeInService = "-";
       ItemsTraded = "0";
       TotalEstimatedProfit = "0";
+      TripTimeMin = "-";
+      TripTimeAvg = "-";
+      TripTimeMax = "-";
     }
   }
 

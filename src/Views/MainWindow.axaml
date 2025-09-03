@@ -45,16 +45,31 @@
           <Border Grid.Row="0" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Time in Service:"/>
-                <TextBlock Text="{Binding TimeInService}" FontWeight="Bold"/>
+                <TextBlock Text="Total Estimated Profit:"/>
+                <TextBlock Text="{Binding TotalEstimatedProfit}" FontWeight="Bold"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="Items Traded:"/>
                 <TextBlock Text="{Binding ItemsTraded}" FontWeight="Bold"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Total Estimated Profit:"/>
-                <TextBlock Text="{Binding TotalEstimatedProfit}" FontWeight="Bold"/>
+                <TextBlock Text="Time in Service:"/>
+                <TextBlock Text="{Binding TimeInService}" FontWeight="Bold"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Elapsed Time (Buy→Sell):"/>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Min:"/>
+                  <TextBlock Text="{Binding TripTimeMin}" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Avg:"/>
+                  <TextBlock Text="{Binding TripTimeAvg}" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Max:"/>
+                  <TextBlock Text="{Binding TripTimeMax}" FontWeight="Bold"/>
+                </StackPanel>
               </StackPanel>
             </StackPanel>
           </Border>
