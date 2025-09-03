@@ -19,7 +19,7 @@ The app runs locally and reads only your X4 files. Nothing is uploaded.
 - Wares stats: See what actually makes money
   - Single-series histogram with per-ware colors and tooltips
   - Custom legend shows color + ware name for quick scanning
-- Configuration (first-run setup)
+- Configuration (first-run setup and updates from save files)
   - Set Game Folder (your X4.exe location)
   - Choose a save file (.xml.gz)
   - Optional theme: System, Light, or Dark
@@ -29,8 +29,8 @@ The app runs locally and reads only your X4 files. Nothing is uploaded.
 ## Download and run
 
 1) Get the app
-   - Recommended: download the latest Windows build from the project’s Releases page:
-      - [Project Releases](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/releases)
+   - Recommended: Download the latest Windows build from the [Nexus Mods](https://www.nexusmods.com/):
+      - [Chem O`Dun](https://next.nexusmods.com/profile/ChemODun/mods?gameId=2659) → [X4 Player Ship Trade Analyzer](https://www.nexusmods.com/x4foundations/mods/1801)
 
 2) Start it
    - Unzip the downloaded archive and run `X4PlayerShipTradeAnalyzer.exe` inside the folder `X4PlayerShipTradeAnalyzer`.
