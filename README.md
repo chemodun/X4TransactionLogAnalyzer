@@ -1,5 +1,7 @@
 # X4 Player Ship Trade Analyzer
 
+![Title](https://raw.githubusercontent.com/chemodun/X4PlayerShipTradeAnalyzer/refs/heads/main/docs/images/title360.jpg)
+
 A simple, fast desktop tool for X4: Foundations players to understand their ship's trading performance. Point it at your game folder and a save file and get clear insights into:
 
 - Which wares make you the most profit
@@ -7,6 +9,8 @@ A simple, fast desktop tool for X4: Foundations players to understand their ship
 - Totals for price, quantity, and estimated profit per transaction
 
 The app runs locally and reads only your X4 files. Nothing is uploaded.
+
+**Nothing is MODDED!**
 
 ## Key features
 
@@ -72,6 +76,10 @@ The app runs locally and reads only your X4 files. Nothing is uploaded.
 
 - Readme tab
   - Shows this guide inside the app for quick reference.
+
+## Video
+
+There is short video available on [YouTube](https://www.youtube.com/watch?v=EBRmOO3SDUA) demonstrating the app's features and usage.
 
 ## Tips & troubleshooting
 
