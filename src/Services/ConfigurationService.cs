@@ -10,11 +10,7 @@ public sealed class ConfigurationService
   public static ConfigurationService Instance => _lazy.Value;
 
   private readonly string _configPath;
-  private JsonSerializerOptions _jsonSerializerOptions = new()
-  {
-    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    WriteIndented = true
-  };
+  private JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 
   private ConfigurationService()
   {
@@ -50,7 +46,7 @@ public sealed class ConfigurationService
       if (!File.Exists(_configPath))
         return;
       var json = File.ReadAllText(_configPath);
-      var dto = JsonSerializer.Deserialize<PersistedConfig>(json);
+      var dto = JsonSerializer.Deserialize<PersistedConfig>(json, _jsonSerializerOptions);
       GameFolderExePath = dto?.GameFolderExePath;
       GameSavePath = dto?.GameSavePath;
       LoadOnlyGameLanguage = dto?.LoadOnlyGameLanguage ?? true; // default to true for backward compatibility

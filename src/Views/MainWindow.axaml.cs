@@ -7,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using X4PlayerShipTradeAnalyzer.Services;
@@ -148,20 +149,19 @@ public partial class MainWindow : Window
   {
     if (DataContext is not MainViewModel vm)
       return;
-    var dlg = new OpenFileDialog
+
+    var options = new FilePickerOpenOptions
     {
       Title = "Select X4.exe",
       AllowMultiple = false,
-      Filters =
-      {
-        new FileDialogFilter { Name = "X4 Executable", Extensions = { "exe" } },
-      },
+      FileTypeFilter = new[] { new FilePickerFileType("X4 Executable") { Patterns = new[] { "X4.exe", "X4" } } },
     };
-    var res = await dlg.ShowAsync(this);
-    if (res != null && res.Length > 0)
+
+    var files = await this.StorageProvider.OpenFilePickerAsync(options);
+    if (files.Count > 0)
     {
-      var selectedPath = res[0];
-      var folderPath = System.IO.Path.GetDirectoryName(selectedPath);
+      var selectedFile = files[0];
+      var folderPath = Path.GetDirectoryName(selectedFile.Path.LocalPath);
       if (!string.IsNullOrWhiteSpace(folderPath) && vm.Configuration != null)
       {
         vm.Configuration.GameFolderExePath = folderPath;
@@ -169,27 +169,26 @@ public partial class MainWindow : Window
     }
   }
 
-  // Configuration: Set Save Folder (select folder)
+  // Configuration: Set Save Folder (select xml.gz)
   private async void SetSaveFolder_Click(object? sender, RoutedEventArgs e)
   {
     if (DataContext is not MainViewModel vm)
       return;
-    var dlg = new OpenFileDialog
+
+    var options = new FilePickerOpenOptions
     {
       Title = "Select xml.gz",
       AllowMultiple = false,
-      Filters =
-      {
-        new FileDialogFilter { Name = "X4 Save Game", Extensions = { "xml.gz" } },
-      },
+      FileTypeFilter = new[] { new FilePickerFileType("X4 Save Game") { Patterns = new[] { "*.xml.gz" } } },
     };
-    var res = await dlg.ShowAsync(this);
-    if (res != null && res.Length > 0)
+
+    var files = await this.StorageProvider.OpenFilePickerAsync(options);
+    if (files.Count > 0)
     {
-      var selectedPath = res[0];
-      if (!string.IsNullOrWhiteSpace(selectedPath) && vm?.Configuration != null)
+      var selectedFile = files[0];
+      if (!string.IsNullOrWhiteSpace(selectedFile.Path.LocalPath) && vm.Configuration != null)
       {
-        vm.Configuration.GameSavePath = selectedPath;
+        vm.Configuration.GameSavePath = selectedFile.Path.LocalPath;
       }
     }
   }
