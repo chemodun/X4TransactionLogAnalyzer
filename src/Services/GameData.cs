@@ -1615,49 +1615,57 @@ ORDER BY full_name, time
         }
         if (tradeEntries && xr.Name == "log")
         {
-          long seller = ParseId(xr.GetAttribute("seller") ?? string.Empty);
-          if (seller <= 0)
-          {
+          if (xr.GetAttribute("type") != "trade")
             continue;
-          }
-          long buyer = ParseId(xr.GetAttribute("buyer") ?? string.Empty);
-          if (buyer <= 0)
+          try
           {
-            continue;
+            long seller = ParseId(xr.GetAttribute("seller") ?? string.Empty);
+            if (seller <= 0)
+            {
+              continue;
+            }
+            long buyer = ParseId(xr.GetAttribute("buyer") ?? string.Empty);
+            if (buyer <= 0)
+            {
+              continue;
+            }
+            int time = NormalizeTime(xr.GetAttribute("time") ?? string.Empty);
+            if (time <= 0)
+            {
+              continue;
+            }
+            string ware = xr.GetAttribute("ware") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(ware))
+            {
+              continue;
+            }
+            long price = long.Parse(xr.GetAttribute("price") ?? string.Empty, CultureInfo.InvariantCulture);
+            if (price <= 0)
+            {
+              continue;
+            }
+            long volume = long.Parse(xr.GetAttribute("v") ?? string.Empty, CultureInfo.InvariantCulture);
+            if (volume <= 0)
+            {
+              continue;
+            }
+            insertTrade.Parameters["@seller"].Value = seller;
+            insertTrade.Parameters["@buyer"].Value = buyer;
+            insertTrade.Parameters["@ware"].Value = ware;
+            insertTrade.Parameters["@price"].Value = price;
+            insertTrade.Parameters["@volume"].Value = volume;
+            insertTrade.Parameters["@time"].Value = time - gameTime;
+            insertTrade.ExecuteNonQuery();
+            tradeCount++;
+            if (tradeCount % 100 == 0)
+            {
+              progress?.Invoke(new ProgressUpdate { TradesProcessed = tradeCount });
+            }
           }
-          int time = NormalizeTime(xr.GetAttribute("time") ?? string.Empty);
-          if (time <= 0)
+          catch
           {
-            continue;
+            // skip malformed trade entries
           }
-          string ware = xr.GetAttribute("ware") ?? string.Empty;
-          if (string.IsNullOrWhiteSpace(ware))
-          {
-            continue;
-          }
-          long price = long.Parse(xr.GetAttribute("price") ?? string.Empty, CultureInfo.InvariantCulture);
-          if (price <= 0)
-          {
-            continue;
-          }
-          long volume = long.Parse(xr.GetAttribute("v") ?? string.Empty, CultureInfo.InvariantCulture);
-          if (volume <= 0)
-          {
-            continue;
-          }
-          insertTrade.Parameters["@seller"].Value = seller;
-          insertTrade.Parameters["@buyer"].Value = buyer;
-          insertTrade.Parameters["@ware"].Value = ware;
-          insertTrade.Parameters["@price"].Value = price;
-          insertTrade.Parameters["@volume"].Value = volume;
-          insertTrade.Parameters["@time"].Value = time - gameTime;
-          insertTrade.ExecuteNonQuery();
-          tradeCount++;
-          if (tradeCount % 100 == 0)
-          {
-            progress?.Invoke(new ProgressUpdate { TradesProcessed = tradeCount });
-          }
-
           continue;
         }
         if (detectNameViaProduction && xr.Name == "production")
@@ -1674,19 +1682,21 @@ ORDER BY full_name, time
         }
       }
 
-      if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "universe")
+      if (xr.NodeType == XmlNodeType.EndElement)
       {
-        connectionsProcessed = true;
-      }
-
-      if ((compCount + tradeCount) % _batchSize == 0)
-      {
-        txn.Commit();
-        txn.Dispose();
-        txn = _conn.BeginTransaction();
-        // rebind commands to the new transaction
-        insertComp.Transaction = txn;
-        insertTrade.Transaction = txn;
+        if ((compCount > 0 || tradeCount > 0) && (compCount + tradeCount) % _batchSize == 0)
+        {
+          txn.Commit();
+          txn.Dispose();
+          txn = _conn.BeginTransaction();
+          // rebind commands to the new transaction
+          insertComp.Transaction = txn;
+          insertTrade.Transaction = txn;
+        }
+        if (xr.Name == "universe")
+        {
+          connectionsProcessed = true;
+        }
       }
     }
 
