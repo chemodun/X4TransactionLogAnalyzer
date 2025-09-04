@@ -46,7 +46,7 @@ jobs:
           git config user.name "Chem O'Dun"
           git config user.email "chemodun@gmail.com"
           for file_changed in ${CHANGED_FILES}; do
-            for conversion_type in egosoft nexus; do
+            for conversion_type in egosoft nexus steam; do
               echo "Converting $file_changed to $conversion_type"
               python3 markdown-to-bbcode-simple/markdown_to_bbcode.py -t $conversion_type -o "docs" "$file_changed"
               if [[ $? -ne 0 ]]; then
