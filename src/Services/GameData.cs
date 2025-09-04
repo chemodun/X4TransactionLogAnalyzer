@@ -688,6 +688,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
       {
         SetDBSchemaVersion(_dbSchemaVersion);
       }
+      ClearTablesTradeAndComponent();
     }
   }
 
@@ -1489,6 +1490,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
 
   private Dictionary<string, string> GetWareComponentNamesDict()
   {
+    ReOpenConnection();
     var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     using var cmd = _conn.CreateCommand();
     cmd.CommandText = "SELECT component_macro, text FROM ware WHERE component_macro IS NOT NULL AND component_macro != ''";
@@ -1505,29 +1507,31 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     return dict;
   }
 
+  private void ClearTablesTradeAndComponent()
+  {
+    ReOpenConnection();
+    // 2) Refine all values and write to DB
+    using (var deleteCmd = _conn.CreateCommand())
+    {
+      deleteCmd.CommandText = @"DELETE FROM trade; DELETE FROM component;";
+      deleteCmd.ExecuteNonQuery();
+    }
+    using (var vacuumCmd = _conn.CreateCommand())
+    {
+      vacuumCmd.CommandText = "VACUUM;";
+      vacuumCmd.ExecuteNonQuery();
+    }
+  }
+
   public void ImportSaveGame(Action<ProgressUpdate>? progress = null)
   {
     // Prefer external SaveGamesFolder from configuration; fallback to local GameData copy
     string savePath = ConfigurationService.Instance.GameSavePath ?? string.Empty;
     if (string.IsNullOrWhiteSpace(savePath) || !File.Exists(savePath))
       return;
+
+    ClearTablesTradeAndComponent();
     ReOpenConnection();
-    if (_conn == null)
-      throw new InvalidOperationException("Database connection is not initialized.");
-
-    // Clear existing data (outside a transaction is fine for SQLite here)
-    using (var cmd = _conn.CreateCommand())
-    {
-      cmd.CommandText = @"DELETE FROM trade; DELETE FROM component;";
-      cmd.ExecuteNonQuery();
-    }
-
-    // Reclaim space after delete
-    using (var vacuumCmd = _conn.CreateCommand())
-    {
-      vacuumCmd.CommandText = "VACUUM;";
-      vacuumCmd.ExecuteNonQuery();
-    }
 
     var factoryNames = GetFactoryNamesDict();
 
