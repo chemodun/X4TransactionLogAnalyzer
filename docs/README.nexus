@@ -142,12 +142,12 @@ There is short video available on YouTube
 [/list]
 [size=3][u][b]Change log[/b][/u][/size]
 [list]
-[*] 2.0.0 (2025-09-06)
+[*] 2.0.0 (2025-09-05)
 [list]
 [*] Fixed:
 [list]
 [*] Station wasn't loaded if has Player ships docked
-[*] Ships names not loaded, if player ships wasn't renamed
+[*] Ships names not loaded, if player ships weren't renamed
 [/list]
 [*] Implemented:
 [list]
