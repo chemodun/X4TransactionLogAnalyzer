@@ -1840,6 +1840,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
               insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(product, out var n) ? n : product;
               insertComp.ExecuteNonQuery();
               itemsForTransaction++;
+              stationsProcessed++;
               detectNameViaProduction = false;
               currentStation = null;
             }
@@ -1878,10 +1879,14 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
           {
             tradeEntries = false;
             tradesProcessed = true;
+            progress?.Invoke(new ProgressUpdate { TradesProcessed = tradeCount });
           }
           if (!connectionsProcessed && xr.Name == "universe")
           {
             connectionsProcessed = true;
+            progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
+            progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
+            progress?.Invoke(new ProgressUpdate { SectorsProcessed = sectorCount });
           }
         }
       }
