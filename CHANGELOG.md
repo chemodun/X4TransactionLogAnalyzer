@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.2.0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.1.3...v1.2.0) (2025-09-04)
+
+
+### Features
+
+* **GameData:** add GetWareComponentNamesDict method for ware component mapping ([e91c28f](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/e91c28f9c576fb648b9b903e11efa557af14b02d))
+* **GameData:** implement database schema versioning and version 1 - ware table extended by component_macro field ([d8dbc0c](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/d8dbc0c1b22b983570d03dbda376f3e106ed105a))
+
+
+### Bug Fixes
+
+* **GameData:** clear trade and component tables in case of schema update ([5d14b2f](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/5d14b2f36467924f70e4995da9d919310bca6c84))
+* **GameData:** station with docked player ships was skipped ([162fd50](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/162fd501d6a3d134f46085ba588b5152bd4070e0))
+* **GameData:** update progress tracking for processed stations and trades ([94bb136](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/94bb1362a41cd406e3fb8cd970d8d0843a86ccce))
+
+
+### Code Refactoring
+
+* **Component:** introduce GameComponent model ([162fd50](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/162fd501d6a3d134f46085ba588b5152bd4070e0))
+
+
+### Documentation
+
+* **README.md:** add change log for version 2.0.0 ([e2ee9b9](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/e2ee9b93efd96d051da90f730e7e1f0b135a2b5c))
+* **README.md:** update installation instructions for Linux support ([e2ee9b9](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/e2ee9b93efd96d051da90f730e7e1f0b135a2b5c))
+
 ## [1.1.3](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.1.2...v1.1.3) (2025-09-04)
 
 
