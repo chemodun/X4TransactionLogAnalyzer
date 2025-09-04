@@ -42,22 +42,30 @@ The app runs locally and reads only your X4 files. Nothing is uploaded. [b]Nothi
 
 1) Get the app
 [list][list]
-[*] Recommended: Download the latest Windows build from the [url=https://www.nexusmods.com/]Nexus Mods[/url]:
+[*] Recommended: Download the latest Windows or Linux build from the [url=https://www.nexusmods.com/]Nexus Mods[/url]:
 [list]
 [*] [url=https://next.nexusmods.com/profile/ChemODun/mods?gameId=2659]Chem O`Dun[/url] → [url=https://www.nexusmods.com/x4foundations/mods/1801]X4 Player Ship Trade Analyzer[/url]
 [/list]
 [/list]
 [/list]
-2) Start it
+2) Install and run
 [list][list]
-[*] Unzip the downloaded archive and run [b]X4PlayerShipTradeAnalyzer.exe[/b] inside the folder [b]X4PlayerShipTradeAnalyzer[/b].
+[*] Windows:
+[list]
+[*] Unzip the downloaded [b]X4PlayerShipTradeAnalyzer-win_?.?.?.zip[/b] and run [b]X4PlayerShipTradeAnalyzer.exe[/b] inside the folder [b]X4PlayerShipTradeAnalyzer[/b].
+[/list]
+[*] Linux:
+[list]
+[*] Unzip [b]X4PlayerShipTradeAnalyzer-linux_?.?.?.zip[/b] and then extract [b]X4PlayerShipTradeAnalyzer[/b] folder from [b]X4PlayerShipTradeAnalyzer-linux_?.?.?.tar.gz[/b].
+[*] Run executable [b]X4PlayerShipTradeAnalyzer[/b].
+[/list]
 [/list]
 [/list]
 [size=130][u]First-time setup (Configuration tab)[/u][/size]
 
 1) Game Folder
 [list][list]
-[*] Click Set next to “Game Folder” and select your X4.exe. Typical paths:
+[*] Click Set next to “Game Folder” and select your X4.exe. Typical paths for Windows:
 [list]
 [*] Steam: [b]C:\Program Files (x86)\Steam\steamapps\common\X4 Foundations\X4.exe[/b]
 [*] GOG/Epic: wherever you installed X4
@@ -66,7 +74,7 @@ The app runs locally and reads only your X4 files. Nothing is uploaded. [b]Nothi
 [/list]
 2) Save file
 [list][list]
-[*] Click Set next to “Game Save Path” and choose a save [b].xml.gz[/b]. Typical path:
+[*] Click Set next to “Game Save Path” and choose a save [b].xml.gz[/b]. Typical path for Windows:
 [list]
 [*] Steam: [b]%USERPROFILE%\Documents\Egosoft\X4\<player-id>\save\quicksave.xml.gz[/b]
 [*] GOG/Epic: [b]%USERPROFILE%\Documents\Egosoft\X4\save\quicksave.xml.gz[/b]
@@ -133,6 +141,22 @@ There is short video available on [url=https://www.youtube.com/watch?v=EBRmOO3SD
 [/list]
 [size=130][u]Change log[/u][/size]
 [list]
+[*] 2.0.0 (2025-09-06)
+[list]
+[*] Fixed:
+[list]
+[*] Station wasn't loaded if has Player ships docked
+[*] Ships names not loaded, if player ships wasn't renamed
+[/list]
+[*] Implemented:
+[list]
+[*] Database schema updates
+[/list]
+[*] Warnings:
+[list]
+[*] This is a breaking change. Will force to make re-import your game data and save file after updating.
+[/list]
+[/list]
 [*] 1.1.3 (2025-09-04)
 [list]
 [*] Fixed:
