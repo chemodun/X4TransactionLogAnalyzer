@@ -316,11 +316,7 @@
 
     <TabItem Header="Readme" x:Name="ReadmeTab">
       <Grid>
-        <ScrollViewer Margin="8" VerticalScrollBarVisibility="Auto">
-          <mdv:MarkdownViewer x:Name="ReadmeViewer"
-                               MarkdownText="Loading README.md..."
-                               IsEnabled="True"/>
-        </ScrollViewer>
+        <ScrollViewer Margin="8" VerticalScrollBarVisibility="Auto" x:Name="ReadmeScrollViewer"/>
       </Grid>
     </TabItem>
   </TabControl>

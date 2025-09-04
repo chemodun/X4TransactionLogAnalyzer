@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using X4PlayerShipTradeAnalyzer.Services;
 using X4PlayerShipTradeAnalyzer.Views;
 
@@ -308,5 +309,16 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
     {
       app.RequestedThemeVariant = ThemeVariant.Default; // follow OS
     }
+
+    // After switching theme, refresh README to ensure viewer picks up the new theme
+    try
+    {
+      if (app.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime life && life.MainWindow is MainWindow win)
+      {
+        // Ensure on UI thread
+        Dispatcher.UIThread.Post(win.LoadReadme);
+      }
+    }
+    catch { }
   }
 }

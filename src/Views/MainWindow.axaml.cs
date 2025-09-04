@@ -11,6 +11,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using MarkdownViewer.Core.Controls;
 using X4PlayerShipTradeAnalyzer.Services;
 using X4PlayerShipTradeAnalyzer.ViewModels;
 
@@ -290,28 +291,30 @@ public partial class MainWindow : Window
         break;
       case "ReadmeTab":
         // ensure content is present
-        LoadReadme();
+        // LoadReadme();
         break;
     }
   }
 
-  private void LoadReadme()
+  public void LoadReadme()
   {
     try
     {
-      var md = this.FindControl<Control>("ReadmeViewer");
-      if (md is null)
-        return;
+      // Remove any existing viewer
+      var scroll = this.FindControl<ScrollViewer>("ReadmeScrollViewer");
+      if (scroll == null)
+        return; // UI not ready yet
+
       var exeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
-      var readmePath = System.IO.Path.Combine(exeDir, "README.md");
-      if (System.IO.File.Exists(readmePath))
+      var readmePath = Path.Combine(exeDir, "README.md");
+
+      if (File.Exists(readmePath))
       {
-        // MarkdownViewer.Core exposes MarkdownText (string). Use reflection to avoid hard ref.
-        if (md is Avalonia.Controls.Control c)
-        {
-          var prop = c.GetType().GetProperty("MarkdownText");
-          prop?.SetValue(c, System.IO.File.ReadAllText(readmePath));
-        }
+        // Create a new MarkdownViewer instance
+        var viewer = new MarkdownViewer.Core.Controls.MarkdownViewer { MarkdownText = File.ReadAllText(readmePath), IsEnabled = true };
+
+        // Insert into the ScrollViewer
+        scroll.Content = viewer;
       }
     }
     catch { }
