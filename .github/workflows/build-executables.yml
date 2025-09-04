@@ -41,11 +41,23 @@ jobs:
           7z a -tzip X4PlayerShipTradeAnalyzer_$ver.zip X4PlayerShipTradeAnalyzer
         shell: pwsh
 
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+      - name: Attach Windows package to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: win-zip
-          path: X4PlayerShipTradeAnalyzer_${{ env.VERSION }}.zip
+          files: |
+            X4PlayerShipTradeAnalyzer_${{ env.VERSION }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
+
+      - name: VirusTotal scan Windows package
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          update_release_body: true
+          request_rate: 4
+          vt_api_key: ${{ secrets.VT_API_KEY }}
+          github_token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
+          files: |
+            X4PlayerShipTradeAnalyzer_${{ env.VERSION }}.zip
 
   build-linux:
     runs-on: ubuntu-latest
@@ -75,39 +87,15 @@ jobs:
           rm -f ./X4PlayerShipTradeAnalyzer/X4PlayerShipTradeAnalyzer.pdb || true
           tar -czf X4PlayerShipTradeAnalyzer_${ver}.tar.gz X4PlayerShipTradeAnalyzer
 
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-tar
-          path: X4PlayerShipTradeAnalyzer_${{ env.VERSION }}.tar.gz
-
-  release-and-scan:
-    runs-on: ubuntu-latest
-    needs: [build-windows, build-linux]
-    if: ${{ github.event_name == 'release' }}
-    steps:
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          run-id: ${{ github.event.workflow_run.id }}
-          name: win-zip
-
-      - name: Download Linux artifact
-        uses: actions/download-artifact@v4
-        with:
-          run-id: ${{ github.event.workflow_run.id }}
-          name: linux-tar
-
-      - name: Attach archives to release
+      - name: Attach Linux package to release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            X4PlayerShipTradeAnalyzer_${{ env.VERSION }}.zip
             X4PlayerShipTradeAnalyzer_${{ env.VERSION }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
 
-      - name: VirusTotal scan
+      - name: VirusTotal scan Linux package
         uses: crazy-max/ghaction-virustotal@v4
         with:
           update_release_body: true
@@ -115,5 +103,4 @@ jobs:
           vt_api_key: ${{ secrets.VT_API_KEY }}
           github_token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
           files: |
-            X4PlayerShipTradeAnalyzer_${{ env.VERSION }}.zip
             X4PlayerShipTradeAnalyzer_${{ env.VERSION }}.tar.gz
