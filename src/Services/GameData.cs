@@ -199,6 +199,7 @@ public sealed class GameData
   private int _factionsProcessed;
   private int _processedFiles;
   private int _clusterSectorNamesProcessed;
+  private long _dbSchemaVersion = 1;
 
   public SQLiteConnection Connection
   {
@@ -219,8 +220,17 @@ public sealed class GameData
     _conn = CreateConnection();
     if (needsCreate)
     {
-      CreateSchema();
+      CreateDBSchema();
+      SetDBSchemaVersion(_dbSchemaVersion);
       SetInitialValues();
+    }
+    else
+    {
+      long currentVersion = GetDBSchemaVersion();
+      if (currentVersion < _dbSchemaVersion)
+      {
+        UpdateDBSchema(currentVersion);
+      }
     }
     RefreshStats();
   }
@@ -245,6 +255,27 @@ public sealed class GameData
     {
       _conn = CreateConnection();
     }
+  }
+
+  private long GetDBSchemaVersion()
+  {
+    ReOpenConnection();
+    using var cmd = _conn.CreateCommand();
+    cmd.CommandText = "PRAGMA user_version;";
+    var result = cmd.ExecuteScalar();
+    if (result is long l)
+    {
+      return l;
+    }
+    return 0;
+  }
+
+  private void SetDBSchemaVersion(long version)
+  {
+    ReOpenConnection();
+    using var cmd = _conn.CreateCommand();
+    cmd.CommandText = $"PRAGMA user_version = {version};";
+    cmd.ExecuteNonQuery();
   }
 
   /// <summary>
@@ -405,7 +436,7 @@ public sealed class GameData
     return result;
   }
 
-  private void CreateSchema()
+  private void CreateDBSchema()
   {
     using var cmd = _conn.CreateCommand();
     cmd.CommandText =
@@ -442,6 +473,7 @@ CREATE TABLE ware (
     price_min  INTEGER NOT NULL,
     price_avg  INTEGER NOT NULL,
     price_max  INTEGER NOT NULL,
+    component_macro TEXT NOT NULL,
     text       TEXT NOT NULL
 );
 CREATE TABLE text (
@@ -469,6 +501,7 @@ CREATE INDEX idx_trade_buyer_time         ON trade(buyer, time);
 CREATE INDEX idx_trade_ware               ON trade(ware);
 CREATE INDEX idx_trade_seller_time_ware   ON trade(seller, time, ware);
 CREATE INDEX idx_trade_buyer_time_ware    ON trade(buyer, time, ware);
+CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
 CREATE INDEX idx_text_language_page       ON text(language, page);
 CREATE INDEX idx_text_language_page_id    ON text(language, page, id);
 CREATE INDEX idx_text_id                  ON text(id);
@@ -605,6 +638,57 @@ UNION ALL
 ORDER BY full_name, time
 ";
     cmd.ExecuteNonQuery();
+  }
+
+  private void UpdateDBSchema(long currentVersion)
+  {
+    // Placeholder for future schema updates
+    if (currentVersion < _dbSchemaVersion)
+    {
+      try
+      {
+        if (currentVersion == 0)
+        {
+          using (var deleteCmd = _conn.CreateCommand())
+          {
+            deleteCmd.CommandText = @"DROP TABLE IF EXISTS ware;";
+            deleteCmd.ExecuteNonQuery();
+          }
+          using (var vacuumCmd = _conn.CreateCommand())
+          {
+            vacuumCmd.CommandText = "VACUUM;";
+            vacuumCmd.ExecuteNonQuery();
+          }
+          using var cmd = _conn.CreateCommand();
+          cmd.CommandText =
+            @"CREATE TABLE ware (
+  id         TEXT PRIMARY KEY,
+  name       TEXT NOT NULL,
+  group_of   TEXT NOT NULL,
+  transport  TEXT NOT NULL,
+  volume     INTEGER NOT NULL,
+  price_min  INTEGER NOT NULL,
+  price_avg  INTEGER NOT NULL,
+  price_max  INTEGER NOT NULL,
+  component_macro TEXT NOT NULL,
+  text       TEXT NOT NULL
+);
+CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
+";
+          cmd.ExecuteNonQuery();
+          // Perform schema updates here
+        }
+      }
+      catch (Exception ex)
+      {
+        // Log or handle the exception as needed
+        Console.WriteLine($"Error updating DB schema from version {currentVersion} to {_dbSchemaVersion}: {ex.Message}");
+      }
+      finally
+      {
+        SetDBSchemaVersion(_dbSchemaVersion);
+      }
+    }
   }
 
   private void SetInitialValues()
@@ -1119,7 +1203,7 @@ ORDER BY full_name, time
       SQLiteTransaction txn = _conn.BeginTransaction();
 
       using var cmd = new SQLiteCommand(
-        "INSERT OR IGNORE INTO ware(id, name, group_of, transport, volume, price_min, price_avg, price_max, text) VALUES (@id,@name,@group_of,@transport,@volume,@price_min,@price_avg,@price_max,@text)",
+        "INSERT OR IGNORE INTO ware(id, name, group_of, transport, volume, price_min, price_avg, price_max, component_macro, text) VALUES (@id,@name,@group_of,@transport,@volume,@price_min,@price_avg,@price_max,@component_macro,@text)",
         _conn,
         txn
       );
@@ -1131,6 +1215,7 @@ ORDER BY full_name, time
       cmd.Parameters.Add("@price_min", System.Data.DbType.Int64);
       cmd.Parameters.Add("@price_avg", System.Data.DbType.Int64);
       cmd.Parameters.Add("@price_max", System.Data.DbType.Int64);
+      cmd.Parameters.Add("@component_macro", System.Data.DbType.String);
       cmd.Parameters.Add("@text", System.Data.DbType.String);
 
       var settings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
@@ -1138,23 +1223,23 @@ ORDER BY full_name, time
 
       Dictionary<string, string> wareNames = new();
       HashSet<int> processedPageIds = new();
-
       while (xr.Read())
       {
         if (xr.NodeType != XmlNodeType.Element || xr.Name != "ware")
           continue;
         string id = xr.GetAttribute("id") ?? string.Empty;
-        string name = (xr.GetAttribute("name") ?? string.Empty);
+        string name = xr.GetAttribute("name") ?? string.Empty;
         if (string.IsNullOrWhiteSpace(id) || string.IsNullOrEmpty(name))
           continue;
 
-        string group = (xr.GetAttribute("group") ?? string.Empty);
-        string transport = (xr.GetAttribute("transport") ?? string.Empty);
+        string group = xr.GetAttribute("group") ?? string.Empty;
+        string transport = xr.GetAttribute("transport") ?? string.Empty;
         long volume = 0;
         long.TryParse(xr.GetAttribute("volume") ?? "0", NumberStyles.Any, CultureInfo.InvariantCulture, out volume);
         long min = 0,
           avg = 0,
           max = 0;
+        string wareComponent = string.Empty;
         if (!xr.IsEmptyElement)
         {
           var depth = xr.Depth;
@@ -1165,6 +1250,10 @@ ORDER BY full_name, time
               long.TryParse(xr.GetAttribute("min") ?? "0", NumberStyles.Any, CultureInfo.InvariantCulture, out min);
               long.TryParse(xr.GetAttribute("average") ?? "0", NumberStyles.Any, CultureInfo.InvariantCulture, out avg);
               long.TryParse(xr.GetAttribute("max") ?? "0", NumberStyles.Any, CultureInfo.InvariantCulture, out max);
+            }
+            else if (xr.NodeType == XmlNodeType.Element && xr.Name == "component")
+            {
+              wareComponent = xr.GetAttribute("ref") ?? string.Empty;
             }
             else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "ware" && xr.Depth == depth)
             {
@@ -1181,6 +1270,7 @@ ORDER BY full_name, time
         cmd.Parameters["@price_min"].Value = min * 100;
         cmd.Parameters["@price_avg"].Value = avg * 100;
         cmd.Parameters["@price_max"].Value = max * 100;
+        cmd.Parameters["@component_macro"].Value = wareComponent;
         cmd.Parameters["@text"].Value = GetTextItem(name, ref wareNames, ref processedPageIds, alternate: id);
 
         cmd.ExecuteNonQuery();
