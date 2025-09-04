@@ -97,6 +97,9 @@ There is short video available on [YouTube](https://www.youtube.com/watch?v=EBRm
 
 ## Change log
 
+- 1.1.3 (2025-09-04)
+  - Fixed:
+    - Linux executable building
 - 1.1.2 (2025-09-04)
   - Fixed:
     - Issue with stations load, introduced in 1.1.1
