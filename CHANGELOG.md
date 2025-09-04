@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.2](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.1.1...v1.1.2) (2025-09-04)
+
+
+### Bug Fixes
+
+* **GameData:** handle malformed production entries gracefully ([3ac4af3](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/3ac4af3a70e15d9ad5d9a66f3caec4770addba89))
+
+
+### Documentation
+
+* **bbcode:** Update bbcode files ([2ddd721](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/2ddd721d2190950fde73fcbc482955f240a9cdb7))
+* **README:** update change log for version 1.1.2 ([ff8bd66](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/ff8bd66afdf750c40ae85364d3799f0915fd00cf))
+
 ## [1.1.1](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.1.0...v1.1.1) (2025-09-04)
 
 
