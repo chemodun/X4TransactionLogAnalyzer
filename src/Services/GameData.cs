@@ -1511,20 +1511,31 @@ ORDER BY full_name, time
         {
           if (detectNameViaProduction && xr.Name == "component" && xr.GetAttribute("class") == "production")
           {
-            string macro = xr.GetAttribute("macro") ?? string.Empty;
-            if (!string.IsNullOrWhiteSpace(macro))
+            try
             {
-              var macroParts = macro.Split('_');
-              if (macroParts.Length == 4)
+              string macro = xr.GetAttribute("macro") ?? string.Empty;
+              if (!string.IsNullOrWhiteSpace(macro))
               {
-                insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(macroParts[2], out var n) ? n : macro;
+                var macroParts = macro.Split('_');
+                if (macroParts.Length == 4)
+                {
+                  insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(macroParts[2], out var n) ? n : macro;
+                }
+                else
+                {
+                  insertComp.Parameters["@name"].Value = macro;
+                }
+                insertComp.ExecuteNonQuery();
+                itemsForTransaction++;
+                detectNameViaProduction = false;
               }
-              else
-              {
-                insertComp.Parameters["@name"].Value = macro;
-              }
-              insertComp.ExecuteNonQuery();
-              itemsForTransaction++;
+            }
+            catch
+            {
+              // skip malformed production entries
+            }
+            finally
+            {
               detectNameViaProduction = false;
             }
             continue;
@@ -1550,60 +1561,67 @@ ORDER BY full_name, time
           {
             continue;
           }
-          long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
-          if (id <= 0)
+          try
           {
-            continue;
-          }
-          if (componentClass == "station")
-          {
-            stationsProcessed++;
-            if (stationsProcessed % 50 == 0)
+            long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
+            if (id <= 0)
             {
-              progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
+              continue;
+            }
+            if (componentClass == "station")
+            {
+              stationsProcessed++;
+              if (stationsProcessed % 50 == 0)
+              {
+                progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
+              }
+            }
+            else
+            {
+              shipsProcessed++;
+              if (shipsProcessed % 50 == 0)
+              {
+                progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
+              }
+            }
+            string type = componentClass == "station" ? "station" : "ship";
+            string owner = xr.GetAttribute("owner") ?? "";
+            if (type == "ship" && owner != "player")
+            {
+              continue;
+            }
+            string name = xr.GetAttribute("name") ?? "";
+            if (string.IsNullOrWhiteSpace(name))
+            {
+              name = xr.GetAttribute("basename") ?? "";
+            }
+            string code = xr.GetAttribute("code") ?? "";
+            if (string.IsNullOrWhiteSpace(code))
+            {
+              continue;
+            }
+            insertComp.Parameters["@id"].Value = id;
+            insertComp.Parameters["@type"].Value = type;
+            insertComp.Parameters["@class"].Value = componentClass;
+            insertComp.Parameters["@sector"].Value = currentSector ?? string.Empty;
+            insertComp.Parameters["@owner"].Value = owner;
+            insertComp.Parameters["@code"].Value = code;
+            insertComp.Parameters["@nameindex"].Value = _nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
+            if (!string.IsNullOrEmpty(name))
+            {
+              insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
+              insertComp.ExecuteNonQuery();
+              itemsForTransaction++;
+              detectNameViaProduction = false;
+            }
+            else
+            {
+              detectNameViaProduction = true;
             }
           }
-          else
+          catch
           {
-            shipsProcessed++;
-            if (shipsProcessed % 50 == 0)
-            {
-              progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
-            }
-          }
-          string type = componentClass == "station" ? "station" : "ship";
-          string owner = xr.GetAttribute("owner") ?? "";
-          if (type == "ship" && owner != "player")
-          {
-            continue;
-          }
-          string name = xr.GetAttribute("name") ?? "";
-          if (string.IsNullOrWhiteSpace(name))
-          {
-            name = xr.GetAttribute("basename") ?? "";
-          }
-          string code = xr.GetAttribute("code") ?? "";
-          if (string.IsNullOrWhiteSpace(code))
-          {
-            continue;
-          }
-          insertComp.Parameters["@id"].Value = id;
-          insertComp.Parameters["@type"].Value = type;
-          insertComp.Parameters["@class"].Value = componentClass;
-          insertComp.Parameters["@sector"].Value = currentSector ?? string.Empty;
-          insertComp.Parameters["@owner"].Value = owner;
-          insertComp.Parameters["@code"].Value = code;
-          insertComp.Parameters["@nameindex"].Value = _nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
-          if (!string.IsNullOrEmpty(name))
-          {
-            insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
-            insertComp.ExecuteNonQuery();
-            itemsForTransaction++;
-            detectNameViaProduction = false;
-          }
-          else
-          {
-            detectNameViaProduction = true;
+            // skip malformed component entries
           }
           continue;
         }
@@ -1665,12 +1683,23 @@ ORDER BY full_name, time
         }
         if (detectNameViaProduction && xr.Name == "production")
         {
-          string product = xr.GetAttribute("originalproduct") ?? string.Empty;
-          if (!string.IsNullOrWhiteSpace(product))
+          try
           {
-            insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(product, out var n) ? n : product;
-            insertComp.ExecuteNonQuery();
-            itemsForTransaction++;
+            string product = xr.GetAttribute("originalproduct") ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(product))
+            {
+              insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(product, out var n) ? n : product;
+              insertComp.ExecuteNonQuery();
+              itemsForTransaction++;
+              detectNameViaProduction = false;
+            }
+          }
+          catch
+          {
+            // skip malformed production entries
+          }
+          finally
+          {
             detectNameViaProduction = false;
           }
           continue;
