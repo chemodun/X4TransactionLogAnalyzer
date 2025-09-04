@@ -71,7 +71,7 @@ jobs:
         run: dotnet restore
 
       - name: Build Linux Executable
-        run: dotnet publish ./X4PlayerShipTradeAnalyzer.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true -o ./X4PlayerShipTradeAnalyzer
+        run: dotnet publish ./src/X4PlayerShipTradeAnalyzer.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true -o ./X4PlayerShipTradeAnalyzer
 
       - name: Make executable
         run: chmod +x ./X4PlayerShipTradeAnalyzer/X4PlayerShipTradeAnalyzer
