@@ -101,10 +101,10 @@ There is short video available on [YouTube](https://www.youtube.com/watch?v=EBRm
 
 ## Change log
 
-- 2.0.0 (2025-09-06)
+- 2.0.0 (2025-09-05)
   - Fixed:
     - Station wasn't loaded if has Player ships docked
-    - Ships names not loaded, if player ships wasn't renamed
+    - Ships names not loaded, if player ships weren't renamed
   - Implemented:
     - Database schema updates
   - Warnings:
