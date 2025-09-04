@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.1.1](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.1.0...v1.1.1) (2025-09-04)
+
+
+### Features
+
+* **images:** add new images for documentation ([220a494](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/220a494befcd18798efa2697bc86a638906b0fcd))
+
+
+### Bug Fixes
+
+* **GameData:** enhance error handling for production and component entries ([77c2c53](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/77c2c53099f04f030fdb84224fe41def48124d0c))
+* **GameData:** improve trade entry parsing and error handling ([3dd57c4](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/3dd57c4ee96f4c2d7bda9bdef2ed60e1972e703f))
+* **GameData:** refactor trade processing logic for clarity and accuracy ([5a16cb3](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/5a16cb3b694143c3babd8eb56370002bbe5d0d42))
+* **MarkdownViewer:** recreate MarkdownViewer on theme change as workaround of issue with code block rendering ([d2955c4](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/d2955c4b48e131c5bdc1e4f7ffc525165447cc35))
+
+
+### Miscellaneous Chores
+
+* release 1.1.1 to reflect only fixes ([4a88f46](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/4a88f46a4450384cbe6c4b96d13dd0db6354b98a))
+
+
+### Documentation
+
+* **bbcode:** Update bbcode files ([a09e803](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/a09e80391adedc63784e91af2f6e22aebf6e68fe))
+* **README:** add change log for version updates ([f54a386](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/f54a386a254b4f23059f178d380a555482d51b0a))
+* **README:** update important notice about trade logs ([e9901bf](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/e9901bffeb849f757c46c9f1ef6d7c99439dd579))
+* Update images ([180ac28](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/180ac282e17f4c01cd23856c5c63cdcd104e202d))
+
 ## [1.1.0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.0.0...v1.1.0) (2025-09-03)
 
 
