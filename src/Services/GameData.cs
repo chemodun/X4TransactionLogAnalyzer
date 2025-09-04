@@ -1453,7 +1453,7 @@ ORDER BY full_name, time
     insertTrade.Parameters.Add("@time", System.Data.DbType.Int64);
 
     long elementsProcessed = 0;
-    int compCount = 0,
+    int itemsForTransaction = 0,
       sectorCount = 0,
       stationsProcessed = 0,
       shipsProcessed = 0,
@@ -1507,12 +1507,6 @@ ORDER BY full_name, time
           insertTrade.Transaction = txn;
           continue;
         }
-        if (!tradesProcessed && xr.Name == "entries" && xr.GetAttribute("type") == "money")
-        {
-          tradeEntries = false;
-          tradesProcessed = true;
-          continue;
-        }
         if (!connectionsProcessed && xr.Name == "component")
         {
           if (detectNameViaProduction && xr.Name == "component" && xr.GetAttribute("class") == "production")
@@ -1530,7 +1524,7 @@ ORDER BY full_name, time
                 insertComp.Parameters["@name"].Value = macro;
               }
               insertComp.ExecuteNonQuery();
-              compCount++;
+              itemsForTransaction++;
               detectNameViaProduction = false;
             }
             continue;
@@ -1604,7 +1598,7 @@ ORDER BY full_name, time
           {
             insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
             insertComp.ExecuteNonQuery();
-            compCount++;
+            itemsForTransaction++;
             detectNameViaProduction = false;
           }
           else
@@ -1657,6 +1651,7 @@ ORDER BY full_name, time
             insertTrade.Parameters["@time"].Value = time - gameTime;
             insertTrade.ExecuteNonQuery();
             tradeCount++;
+            itemsForTransaction++;
             if (tradeCount % 100 == 0)
             {
               progress?.Invoke(new ProgressUpdate { TradesProcessed = tradeCount });
@@ -1675,7 +1670,7 @@ ORDER BY full_name, time
           {
             insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(product, out var n) ? n : product;
             insertComp.ExecuteNonQuery();
-            compCount++;
+            itemsForTransaction++;
             detectNameViaProduction = false;
           }
           continue;
@@ -1684,7 +1679,11 @@ ORDER BY full_name, time
 
       if (xr.NodeType == XmlNodeType.EndElement)
       {
-        if ((compCount > 0 || tradeCount > 0) && (compCount + tradeCount) % _batchSize == 0)
+        if (
+          (itemsForTransaction > 0) && (itemsForTransaction % _batchSize == 0)
+          || !connectionsProcessed && xr.Name == "universe"
+          || (!tradesProcessed && tradeEntries && tradeCount > 0 && xr.Name == "entries")
+        )
         {
           txn.Commit();
           txn.Dispose();
@@ -1692,10 +1691,19 @@ ORDER BY full_name, time
           // rebind commands to the new transaction
           insertComp.Transaction = txn;
           insertTrade.Transaction = txn;
-        }
-        if (xr.Name == "universe")
-        {
-          connectionsProcessed = true;
+          if (itemsForTransaction > 0)
+          {
+            itemsForTransaction = 0;
+          }
+          if (tradeCount > 0 && tradeEntries && xr.Name == "entries")
+          {
+            tradeEntries = false;
+            tradesProcessed = true;
+          }
+          if (!connectionsProcessed && xr.Name == "universe")
+          {
+            connectionsProcessed = true;
+          }
         }
       }
     }
@@ -1714,7 +1722,9 @@ ORDER BY full_name, time
       }
     );
 
-    Console.WriteLine($"Imported {compCount} components, {tradeCount} trades. Time spent: {DateTime.Now - startTime}");
+    Console.WriteLine(
+      $"Imported {shipsProcessed} ships, {stationsProcessed} stations, {tradeCount} trades. Time spent: {DateTime.Now - startTime}"
+    );
     RefreshStats();
   }
 
