@@ -1477,6 +1477,7 @@ ORDER BY full_name, time
     string currentSector = string.Empty;
     Dictionary<string, string> factoryBaseNames = new();
     HashSet<int> processedPageIds = new();
+    GameComponent? currentStation = null;
 
     while (xr.Read())
     {
@@ -1509,8 +1510,9 @@ ORDER BY full_name, time
         }
         if (!connectionsProcessed && xr.Name == "component")
         {
-          if (detectNameViaProduction && xr.Name == "component" && xr.GetAttribute("class") == "production")
+          if (detectNameViaProduction && xr.Name == "component" && xr.GetAttribute("class") == "production" && currentStation != null)
           {
+            // Use production macro to detect station name
             string macro = xr.GetAttribute("macro") ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(macro))
             {
@@ -1519,18 +1521,33 @@ ORDER BY full_name, time
                 var macroParts = macro.Split('_');
                 if (macroParts.Length == 4)
                 {
-                  insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(macroParts[2], out var n) ? n : macro;
+                  currentStation.Name = factoryNames.TryGetValue(macroParts[2], out var n) ? n : macro;
                 }
                 else
                 {
-                  insertComp.Parameters["@name"].Value = macro;
+                  currentStation.Name = macro;
                 }
+                // Insert the station now
+                insertComp.Parameters["@id"].Value = currentStation.Id;
+                insertComp.Parameters["@type"].Value = currentStation.Type;
+                insertComp.Parameters["@class"].Value = currentStation.ComponentClass;
+                insertComp.Parameters["@sector"].Value = currentStation.Sector;
+                insertComp.Parameters["@owner"].Value = currentStation.Owner;
+                insertComp.Parameters["@code"].Value = currentStation.Code;
+                insertComp.Parameters["@nameindex"].Value = currentStation.NameIndex;
+                insertComp.Parameters["@name"].Value = currentStation.Name;
                 insertComp.ExecuteNonQuery();
                 itemsForTransaction++;
+                stationsProcessed++;
+                if (stationsProcessed % 50 == 0)
+                {
+                  progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
+                }
               }
               finally
               {
                 detectNameViaProduction = false;
+                currentStation = null;
               }
             }
             continue;
@@ -1563,22 +1580,6 @@ ORDER BY full_name, time
             {
               continue;
             }
-            if (componentClass == "station")
-            {
-              stationsProcessed++;
-              if (stationsProcessed % 50 == 0)
-              {
-                progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
-              }
-            }
-            else
-            {
-              shipsProcessed++;
-              if (shipsProcessed % 50 == 0)
-              {
-                progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
-              }
-            }
             string type = componentClass == "station" ? "station" : "ship";
             string owner = xr.GetAttribute("owner") ?? "";
             if (type == "ship" && owner != "player")
@@ -1595,24 +1596,53 @@ ORDER BY full_name, time
             {
               continue;
             }
-            insertComp.Parameters["@id"].Value = id;
-            insertComp.Parameters["@type"].Value = type;
-            insertComp.Parameters["@class"].Value = componentClass;
-            insertComp.Parameters["@sector"].Value = currentSector ?? string.Empty;
-            insertComp.Parameters["@owner"].Value = owner;
-            insertComp.Parameters["@code"].Value = code;
-            insertComp.Parameters["@nameindex"].Value = _nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
-            if (!string.IsNullOrEmpty(name))
+            string nameIndex = _nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
+            if (componentClass == "station")
             {
-              insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
-              insertComp.ExecuteNonQuery();
-              itemsForTransaction++;
-              detectNameViaProduction = false;
+              if (string.IsNullOrEmpty(name))
+              {
+                currentStation = new GameComponent
+                {
+                  Id = id,
+                  Type = type,
+                  ComponentClass = componentClass,
+                  Owner = owner,
+                  Sector = currentSector,
+                  NameIndex = nameIndex,
+                  Code = code,
+                };
+                detectNameViaProduction = true;
+                continue;
+              }
+              else
+              {
+                detectNameViaProduction = false;
+              }
+              stationsProcessed++;
+              if (stationsProcessed % 50 == 0)
+              {
+                progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
+              }
             }
             else
             {
-              detectNameViaProduction = true;
+              shipsProcessed++;
+              if (shipsProcessed % 50 == 0)
+              {
+                progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
+              }
             }
+
+            insertComp.Parameters["@id"].Value = id;
+            insertComp.Parameters["@type"].Value = type;
+            insertComp.Parameters["@class"].Value = componentClass;
+            insertComp.Parameters["@sector"].Value = currentSector;
+            insertComp.Parameters["@owner"].Value = owner;
+            insertComp.Parameters["@code"].Value = code;
+            insertComp.Parameters["@nameindex"].Value = nameIndex;
+            insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
+            insertComp.ExecuteNonQuery();
+            itemsForTransaction++;
           }
           catch
           {
@@ -1676,17 +1706,25 @@ ORDER BY full_name, time
           }
           continue;
         }
-        if (detectNameViaProduction && xr.Name == "production")
+        if (detectNameViaProduction && xr.Name == "production" && currentStation != null)
         {
           string product = xr.GetAttribute("originalproduct") ?? string.Empty;
           if (!string.IsNullOrWhiteSpace(product))
           {
             try
             {
+              insertComp.Parameters["@id"].Value = currentStation.Id;
+              insertComp.Parameters["@type"].Value = currentStation.Type;
+              insertComp.Parameters["@class"].Value = currentStation.ComponentClass;
+              insertComp.Parameters["@sector"].Value = currentStation.Sector;
+              insertComp.Parameters["@owner"].Value = currentStation.Owner;
+              insertComp.Parameters["@code"].Value = currentStation.Code;
+              insertComp.Parameters["@nameindex"].Value = currentStation.NameIndex;
               insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(product, out var n) ? n : product;
               insertComp.ExecuteNonQuery();
               itemsForTransaction++;
               detectNameViaProduction = false;
+              currentStation = null;
             }
             catch
             {
