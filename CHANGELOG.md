@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.3](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.1.2...v1.1.3) (2025-09-04)
+
+
+### Miscellaneous Chores
+
+* release 1.1.3 to reflect ci fixes ([504e05e](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/504e05e19e2ff84c64ac491d2762f4574ba845c3))
+
+
+### Documentation
+
+* **readme:** update change log for version 1.1.3 ([8cabbc1](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/8cabbc17fa243798c4dd09a7b954b0959a5c61fb))
+
 ## [1.1.2](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.1.1...v1.1.2) (2025-09-04)
 
 
