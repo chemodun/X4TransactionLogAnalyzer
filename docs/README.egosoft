@@ -133,6 +133,13 @@ There is short video available on [url=https://www.youtube.com/watch?v=EBRmOO3SD
 [/list]
 [size=130][u]Change log[/u][/size]
 [list]
+[*] 1.1.3 (2025-09-04)
+[list]
+[*] Fixed:
+[list]
+[*] Linux executable building
+[/list]
+[/list]
 [*] 1.1.2 (2025-09-04)
 [list]
 [*] Fixed:
