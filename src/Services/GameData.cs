@@ -1487,6 +1487,24 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     }
   }
 
+  private Dictionary<string, string> GetWareComponentNamesDict()
+  {
+    var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    using var cmd = _conn.CreateCommand();
+    cmd.CommandText = "SELECT component_macro, text FROM ware WHERE component_macro IS NOT NULL AND component_macro != ''";
+    using var rdr = cmd.ExecuteReader();
+    while (rdr.Read())
+    {
+      string macro = rdr.GetString(0).ToLowerInvariant();
+      string name = rdr.GetString(1);
+      if (!dict.ContainsKey(macro))
+      {
+        dict[macro] = name;
+      }
+    }
+    return dict;
+  }
+
   public void ImportSaveGame(Action<ProgressUpdate>? progress = null)
   {
     // Prefer external SaveGamesFolder from configuration; fallback to local GameData copy
@@ -1568,6 +1586,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     Dictionary<string, string> factoryBaseNames = new();
     HashSet<int> processedPageIds = new();
     GameComponent? currentStation = null;
+    Dictionary<string, string> wareComponentNames = GetWareComponentNamesDict();
 
     while (xr.Read())
     {
@@ -1720,6 +1739,14 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
               if (shipsProcessed % 50 == 0)
               {
                 progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
+              }
+              if (string.IsNullOrEmpty(name))
+              {
+                string macro = xr.GetAttribute("macro") ?? string.Empty;
+                if (!string.IsNullOrEmpty(macro))
+                {
+                  name = wareComponentNames.TryGetValue(macro.ToLowerInvariant(), out var n) ? n : string.Empty;
+                }
               }
             }
 
