@@ -131,6 +131,35 @@ There is short video available on [url=https://www.youtube.com/watch?v=EBRmOO3SD
 [*] The app reads your local files only and keeps all analysis on your machine.
 [/list]
 [/list]
+[size=130][u]Change log[/u][/size]
+[list]
+[*] 1.1.1 (2025-09-04)
+[list]
+[*] Improved:
+[list]
+[*] Speed of game save loading
+[/list]
+[*] Fixed:
+[list]
+[*] Issue with data loading on certain save files (additional check is now performed)
+[*] Issue with displaying README after changing the Theme (issue on an element level)
+[/list]
+[/list]
+[*] 1.1.0 (2025-09-03)
+[list]
+[*] Implemented:
+[list]
+[*] Added a Station Sector column in Ships Transactions table
+[/list]
+[/list]
+[*] 1.0.0 (2025-09-02)
+[list]
+[*] Implemented:
+[list]
+[*] Initial release
+[/list]
+[/list]
+[/list]
 [size=130][u]Credits[/u][/size]
 [list]
 [*] Author: Chem O`Dun
@@ -140,4 +169,5 @@ There is short video available on [url=https://www.youtube.com/watch?v=EBRmOO3SD
 [size=130][u]Acknowledgements[/u][/size]
 [list]
 [*] Thanks to all members of the [url=https://discord.com/channels/337098290917146624/502057640877228042]X4 modding channel[/url] on [url=https://discord.com/invite/zhs8sRpd3m]Egosoft Discord[/url]. And especially to [b]UniTrader[/b] and [b]Forleyor[/b].
+[*] Thanks to [url=https://www.reddit.com/user/Breakfast-Excellent/]u/Breakfast-Excellent[/url] for the report the trade loading issue and save file for testing.
 [/list]
