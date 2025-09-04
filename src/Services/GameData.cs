@@ -1511,10 +1511,10 @@ ORDER BY full_name, time
         {
           if (detectNameViaProduction && xr.Name == "component" && xr.GetAttribute("class") == "production")
           {
-            try
+            string macro = xr.GetAttribute("macro") ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(macro))
             {
-              string macro = xr.GetAttribute("macro") ?? string.Empty;
-              if (!string.IsNullOrWhiteSpace(macro))
+              try
               {
                 var macroParts = macro.Split('_');
                 if (macroParts.Length == 4)
@@ -1527,16 +1527,11 @@ ORDER BY full_name, time
                 }
                 insertComp.ExecuteNonQuery();
                 itemsForTransaction++;
+              }
+              finally
+              {
                 detectNameViaProduction = false;
               }
-            }
-            catch
-            {
-              // skip malformed production entries
-            }
-            finally
-            {
-              detectNameViaProduction = false;
             }
             continue;
           }
@@ -1683,24 +1678,24 @@ ORDER BY full_name, time
         }
         if (detectNameViaProduction && xr.Name == "production")
         {
-          try
+          string product = xr.GetAttribute("originalproduct") ?? string.Empty;
+          if (!string.IsNullOrWhiteSpace(product))
           {
-            string product = xr.GetAttribute("originalproduct") ?? string.Empty;
-            if (!string.IsNullOrWhiteSpace(product))
+            try
             {
               insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(product, out var n) ? n : product;
               insertComp.ExecuteNonQuery();
               itemsForTransaction++;
               detectNameViaProduction = false;
             }
-          }
-          catch
-          {
-            // skip malformed production entries
-          }
-          finally
-          {
-            detectNameViaProduction = false;
+            catch
+            {
+              // skip malformed production entries
+            }
+            finally
+            {
+              detectNameViaProduction = false;
+            }
           }
           continue;
         }
