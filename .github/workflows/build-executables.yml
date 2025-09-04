@@ -3,7 +3,6 @@ name: Build Executables
 on:
   release:
     types: [published]
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -90,11 +89,13 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
+          run-id: ${{ github.event.workflow_run.id }}
           name: win-zip
 
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
+          run-id: ${{ github.event.workflow_run.id }}
           name: linux-tar
 
       - name: Attach archives to release
