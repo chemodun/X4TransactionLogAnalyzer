@@ -33,21 +33,25 @@ The app runs locally and reads only your X4 files. Nothing is uploaded. **Nothin
 ## Download and run
 
 1) Get the app
-   - Recommended: Download the latest Windows build from the [Nexus Mods](https://www.nexusmods.com/):
+   - Recommended: Download the latest Windows or Linux build from the [Nexus Mods](https://www.nexusmods.com/):
       - [Chem O`Dun](https://next.nexusmods.com/profile/ChemODun/mods?gameId=2659) → [X4 Player Ship Trade Analyzer](https://www.nexusmods.com/x4foundations/mods/1801)
 
-2) Start it
-   - Unzip the downloaded archive and run `X4PlayerShipTradeAnalyzer.exe` inside the folder `X4PlayerShipTradeAnalyzer`.
+2) Install and run
+   - Windows:
+     - Unzip the downloaded `X4PlayerShipTradeAnalyzer-win_?.?.?.zip` and run `X4PlayerShipTradeAnalyzer.exe` inside the folder `X4PlayerShipTradeAnalyzer`.
+   - Linux:
+     - Unzip `X4PlayerShipTradeAnalyzer-linux_?.?.?.zip` and then extract `X4PlayerShipTradeAnalyzer` folder from `X4PlayerShipTradeAnalyzer-linux_?.?.?.tar.gz`.
+     - Run executable `X4PlayerShipTradeAnalyzer`.
 
 ## First-time setup (Configuration tab)
 
 1) Game Folder
-   - Click Set next to “Game Folder” and select your X4.exe. Typical paths:
+   - Click Set next to “Game Folder” and select your X4.exe. Typical paths for Windows:
      - Steam: `C:\Program Files (x86)\Steam\steamapps\common\X4 Foundations\X4.exe`
      - GOG/Epic: wherever you installed X4
 
 2) Save file
-   - Click Set next to “Game Save Path” and choose a save `.xml.gz`. Typical path:
+   - Click Set next to “Game Save Path” and choose a save `.xml.gz`. Typical path for Windows:
      - Steam: `%USERPROFILE%\Documents\Egosoft\X4\<player-id>\save\quicksave.xml.gz`
      - GOG/Epic: `%USERPROFILE%\Documents\Egosoft\X4\save\quicksave.xml.gz`
 
@@ -97,6 +101,14 @@ There is short video available on [YouTube](https://www.youtube.com/watch?v=EBRm
 
 ## Change log
 
+- 2.0.0 (2025-09-06)
+  - Fixed:
+    - Station wasn't loaded if has Player ships docked
+    - Ships names not loaded, if player ships wasn't renamed
+  - Implemented:
+    - Database schema updates
+  - Warnings:
+    - This is a breaking change. Will force to make re-import your game data and save file after updating.
 - 1.1.3 (2025-09-04)
   - Fixed:
     - Linux executable building
