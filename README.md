@@ -8,9 +8,9 @@ A simple, fast desktop tool for X4: Foundations players to understand their ship
 - How each of your ships has been trading over time
 - Totals for price, quantity, and estimated profit per transaction
 
-The app runs locally and reads only your X4 files. Nothing is uploaded.
+**Important notice**: Please be aware - trade logs are collected by game for AI pilots only.
 
-**Nothing is MODDED!**
+The app runs locally and reads only your X4 files. Nothing is uploaded. **Nothing is MODDED!**
 
 ## Key features
 
