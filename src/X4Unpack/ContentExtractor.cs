@@ -41,7 +41,7 @@ namespace X4Unpack
       InitializeCatalog(pattern, excludeSignatures);
     }
 
-    protected virtual void InitializeCatalog(string pattern = "*.cat", bool excludeSignatures = true)
+    protected virtual void InitializeCatalog(string pattern = "*.cat", bool excludeSignatures = true, bool strictMode = false)
     {
       List<string> catFiles = Directory.GetFiles(_folderPath, pattern).ToList();
       if (excludeSignatures)
@@ -49,12 +49,71 @@ namespace X4Unpack
         catFiles = catFiles.Where(f => !f.EndsWith("_sig.cat")).ToList();
       }
       catFiles.Sort();
-      foreach (var catFilePath in catFiles)
+      if (catFiles.Count > 0)
       {
-        string datFilePath = Path.ChangeExtension(catFilePath, ".dat");
-        if (File.Exists(datFilePath))
+        foreach (var catFilePath in catFiles)
         {
-          ParseCatFile(catFilePath, datFilePath);
+          string datFilePath = Path.ChangeExtension(catFilePath, ".dat");
+          if (File.Exists(datFilePath))
+          {
+            ParseCatFile(catFilePath, datFilePath);
+          }
+        }
+      }
+      else if (!strictMode)
+      {
+        // Fallback: no .cat catalogs present. Index the physical filesystem recursively.
+        BuildCatalogFromFileSystem();
+      }
+    }
+
+    private static string NormalizeKey(string path)
+    {
+      if (string.IsNullOrWhiteSpace(path))
+      {
+        return string.Empty;
+      }
+      string p = path.Replace('\\', '/');
+      // Remove leading ./ or / if present
+      if (p.StartsWith("./", StringComparison.Ordinal))
+      {
+        p = p.Substring(2);
+      }
+      if (p.StartsWith('/'))
+      {
+        p = p.Substring(1);
+      }
+      return p;
+    }
+
+    private void BuildCatalogFromFileSystem()
+    {
+      if (!Directory.Exists(_folderPath))
+      {
+        return;
+      }
+      foreach (var fullPath in Directory.EnumerateFiles(_folderPath, "*", SearchOption.AllDirectories))
+      {
+        try
+        {
+          var rel = Path.GetRelativePath(_folderPath, fullPath);
+          rel = NormalizeKey(rel);
+          var fi = new FileInfo(fullPath);
+          _catalog[rel] = new CatEntry
+          {
+            FilePath = rel,
+            FileSize = fi.Length,
+            FileOffset = 0,
+            FileDate = fi.LastWriteTime,
+            // No precomputed hash for real files; leave empty so we skip strict hash validation.
+            FileHash = string.Empty,
+            // In fallback mode, DatFilePath points directly to the physical file.
+            DatFilePath = fullPath,
+          };
+        }
+        catch
+        {
+          // Ignore files we cannot access
         }
       }
     }
@@ -92,7 +151,8 @@ namespace X4Unpack
 
     public void ExtractFile(string filePath, string outputDirectory, bool overwrite = false, bool skipHashCheck = false)
     {
-      var entry = _catalog.FirstOrDefault(e => e.Value.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase)).Value;
+      var normalized = NormalizeKey(filePath);
+      var entry = _catalog.FirstOrDefault(e => e.Value.FilePath.Equals(normalized, StringComparison.OrdinalIgnoreCase)).Value;
       if (entry != null)
       {
         ExtractEntry(entry, outputDirectory, overwrite, skipHashCheck);
@@ -105,12 +165,14 @@ namespace X4Unpack
 
     public bool FolderExists(string folderPath)
     {
-      return _catalog.Any(e => e.Key.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase));
+      var prefix = NormalizeKey(folderPath);
+      return _catalog.Any(e => e.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
     public List<CatEntry> GetFolderEntries(string folderPath)
     {
-      return _catalog.Where(e => e.Key.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase)).Select(e => e.Value).ToList();
+      var prefix = NormalizeKey(folderPath);
+      return _catalog.Where(e => e.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).Select(e => e.Value).ToList();
     }
 
     public void ExtractFolder(string folderPath, string outputDirectory, bool overwrite = false, bool skipHashCheck = false)
@@ -124,7 +186,8 @@ namespace X4Unpack
 
     public List<CatEntry> GetFilesByMask(string mask)
     {
-      var regexPattern = "^" + Regex.Escape(mask).Replace("\\*", ".*").Replace("\\?", ".") + "$";
+      var normalizedMask = NormalizeKey(mask);
+      var regexPattern = "^" + Regex.Escape(normalizedMask).Replace("\\*", ".*").Replace("\\?", ".") + "$";
       var regex = new Regex(regexPattern, RegexOptions.IgnoreCase);
 
       return _catalog.Where(e => regex.IsMatch(e.Key)).Select(e => e.Value).ToList();
@@ -266,7 +329,8 @@ namespace X4Unpack
 
       byte[] buffer = GetEntryData(entry);
 
-      if (!skipHashCheck)
+      // Skip hash check if either requested or no hash is available (filesystem fallback)
+      if (!skipHashCheck && !string.IsNullOrEmpty(entry.FileHash))
       {
         string extractedFileHash = CalculateMD5Hash(buffer);
         if (extractedFileHash != entry.FileHash)
