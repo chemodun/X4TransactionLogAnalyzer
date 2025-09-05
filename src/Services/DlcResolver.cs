@@ -62,18 +62,46 @@ namespace X4PlayerShipTradeAnalyzer.Services
       // Discover DLC folders by mask ego_dlc_*
       var dlcDirs = Directory.EnumerateDirectories(extensionsRoot, "ego_dlc_*", SearchOption.TopDirectoryOnly).ToList();
 
-      // Filter by presence of content.xml
-      var installed = new List<(string Id, string AbsPath, string RelPath, string ContentXml)>();
+      // Filter by presence of content.xml and read the <content id="..."> from the root
+      // Dependency ids in <dependency id="..."> refer to this content id, not the folder name.
+      var installed = new List<(string ContentId, string FolderName, string AbsPath, string RelPath, string ContentXml)>();
       foreach (var dir in dlcDirs)
       {
         var contentXml = Path.Combine(dir, "content.xml");
         if (!File.Exists(contentXml))
           continue;
-        var id = Path.GetFileName(dir) ?? string.Empty; // assume folder name equals content id
-        if (string.IsNullOrWhiteSpace(id))
+
+        string folderName = Path.GetFileName(dir) ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(folderName))
           continue;
-        var rel = Path.Combine("extensions", id);
-        installed.Add((id, dir, rel, contentXml));
+
+        string contentId = string.Empty;
+        try
+        {
+          var settings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+          using var xr = XmlReader.Create(contentXml, settings);
+          while (xr.Read())
+          {
+            if (xr.NodeType == XmlNodeType.Element && xr.LocalName.Equals("content", StringComparison.OrdinalIgnoreCase))
+            {
+              contentId = xr.GetAttribute("id") ?? string.Empty;
+              break;
+            }
+          }
+        }
+        catch
+        {
+          // ignore parse errors, fallback below
+        }
+
+        // Fallback: if id is missing in content.xml, use folder name to keep deterministic behavior
+        if (string.IsNullOrWhiteSpace(contentId))
+        {
+          contentId = folderName;
+        }
+
+        var rel = Path.Combine("extensions", folderName);
+        installed.Add((contentId, folderName, dir, rel, contentXml));
       }
 
       if (installed.Count == 0)
@@ -82,13 +110,13 @@ namespace X4PlayerShipTradeAnalyzer.Services
       }
 
       // Build dependency graph limited to installed set
-      var installedIds = new HashSet<string>(installed.Select(i => i.Id), StringComparer.OrdinalIgnoreCase);
+      var installedIds = new HashSet<string>(installed.Select(i => i.ContentId), StringComparer.OrdinalIgnoreCase);
       var indegree = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
       var dependents = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase); // key: prerequisite, value: list of dependents
 
       foreach (var i in installed)
       {
-        indegree[i.Id] = 0; // initialize
+        indegree[i.ContentId] = 0; // initialize
       }
 
       foreach (var i in installed)
@@ -100,7 +128,7 @@ namespace X4PlayerShipTradeAnalyzer.Services
           using var xr = XmlReader.Create(i.ContentXml, settings);
           while (xr.Read())
           {
-            if (xr.NodeType == XmlNodeType.Element && xr.Name.Equals("dependency", StringComparison.OrdinalIgnoreCase))
+            if (xr.NodeType == XmlNodeType.Element && xr.LocalName.Equals("dependency", StringComparison.OrdinalIgnoreCase))
             {
               var depId = xr.GetAttribute("id") ?? string.Empty;
               if (string.IsNullOrWhiteSpace(depId))
@@ -108,14 +136,14 @@ namespace X4PlayerShipTradeAnalyzer.Services
               // Only consider deps that are installed; optional or missing are ignored for ordering
               if (!installedIds.Contains(depId))
                 continue;
-              // record edge depId -> i.Id
+              // record edge depId -> i.ContentId
               if (!dependents.TryGetValue(depId, out var list))
               {
                 list = new List<string>();
                 dependents[depId] = list;
               }
-              list.Add(i.Id);
-              indegree[i.Id] = indegree.TryGetValue(i.Id, out var d) ? d + 1 : 1;
+              list.Add(i.ContentId);
+              indegree[i.ContentId] = indegree.TryGetValue(i.ContentId, out var d) ? d + 1 : 1;
             }
           }
         }
@@ -149,7 +177,7 @@ namespace X4PlayerShipTradeAnalyzer.Services
       {
         foreach (
           var leftover in installed
-            .Select(i => i.Id)
+            .Select(i => i.ContentId)
             .Except(order, StringComparer.OrdinalIgnoreCase)
             .OrderBy(s => s, StringComparer.OrdinalIgnoreCase)
         )
@@ -159,8 +187,11 @@ namespace X4PlayerShipTradeAnalyzer.Services
       }
 
       // Map to relative paths in that order
-      var relById = installed.ToDictionary(i => i.Id, i => i.RelPath, StringComparer.OrdinalIgnoreCase);
-      var result = order.Where(id => relById.ContainsKey(id)).Select(id => relById[id]).ToList();
+      // Map sorted content ids back to their folder relative paths
+      var relByContentId = installed
+        .GroupBy(i => i.ContentId, StringComparer.OrdinalIgnoreCase)
+        .ToDictionary(g => g.Key, g => g.First().RelPath, StringComparer.OrdinalIgnoreCase);
+      var result = order.Where(id => relByContentId.ContainsKey(id)).Select(id => relByContentId[id]).ToList();
 
       _cachedRelativePaths = result;
       return result;
