@@ -133,6 +133,73 @@
 
     </TabItem>
 
+    <TabItem Header="Ships Trades" x:Name="ShipsTradesTab">
+      <Grid DataContext="{Binding FullTrades}">
+          <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="420"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+              <RowDefinition Height="28" />
+              <RowDefinition />
+          </Grid.RowDefinitions>
+
+          <!-- Placeholder top row for future summaries -->
+          <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
+              <TextBlock Text="Ships Trades" FontWeight="Bold"/>
+            </StackPanel>
+          </Border>
+
+          <!-- Left: ships list -->
+          <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <ListBox ItemsSource="{Binding ShipList}"
+                    SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
+                    Margin="8" Width="300">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding ShipName}" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Border>
+
+      <!-- Middle: full trades grid -->
+          <Border Grid.Row="1" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <DataGrid ItemsSource="{Binding FilteredFullTrades}"
+                      SelectedItem="{Binding SelectedFullTrade, Mode=TwoWay}"
+                      AutoGenerateColumns="False"
+                      Margin="8">
+              <DataGrid.Columns>
+        <DataGridTextColumn Header="Start Time" Binding="{Binding StartTime}" Width="120"/>
+        <DataGridTextColumn Header="Ware" Binding="{Binding WareId}" Width="160"/>
+        <DataGridTextColumn Header="Bought" Binding="{Binding BoughtVolume}" Width="100"/>
+        <DataGridTextColumn Header="Sold" Binding="{Binding SoldVolume}" Width="100"/>
+        <DataGridTextColumn Header="Profit" Binding="{Binding Profit}" Width="120"/>
+        <DataGridTextColumn Header="Spent Time" Binding="{Binding SpentTime}" Width="120"/>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Border>
+
+      <!-- Right: combined steps grid -->
+          <Border Grid.Row="1" Grid.Column="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <DataGrid ItemsSource="{Binding TradeSteps}"
+                      AutoGenerateColumns="False"
+                      Margin="8">
+              <DataGrid.Columns>
+        <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="120"/>
+        <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
+        <DataGridTextColumn Header="Volume" Binding="{Binding Volume}" Width="100"/>
+        <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="100"/>
+        <DataGridTextColumn Header="Station" Binding="{Binding Counterpart}" Width="220"/>
+        <DataGridTextColumn Header="Sector" Binding="{Binding Sector}" Width="140"/>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Border>
+      </Grid>
+    </TabItem>
+
     <TabItem Header="Ships Graphs" x:Name="ShipsGraphsTab">
       <Grid DataContext="{Binding ShipsGraphs}">
           <Grid.ColumnDefinitions>

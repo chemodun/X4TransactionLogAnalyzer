@@ -25,6 +25,7 @@ public partial class MainWindow : Window
   private bool _didStartupStatsCheck;
   private TabItem? _shipsTransactionsTab;
   private TabItem? _shipsGraphsTab;
+  private TabItem? _shipsTradesTab;
   private TabItem? _waresStatsTab;
   private TabItem? _configurationTab;
   private TabItem? _readmeTab;
@@ -60,6 +61,7 @@ public partial class MainWindow : Window
     _shipsTransactionsTab = this.FindControl<TabItem>("ShipsTransactionsTab");
     _shipsGraphsTab = this.FindControl<TabItem>("ShipsGraphsTab");
     _waresStatsTab = this.FindControl<TabItem>("WaresStatsTab");
+    _shipsTradesTab = this.FindControl<TabItem>("ShipsTradesTab");
     _configurationTab = this.FindControl<TabItem>("ConfigurationTab");
     _readmeTab = this.FindControl<TabItem>("ReadmeTab");
     this.Opened += (_, __) => LoadReadme();
@@ -121,6 +123,8 @@ public partial class MainWindow : Window
       _shipsTransactionsTab.IsEnabled = dataReady;
     if (_shipsGraphsTab != null)
       _shipsGraphsTab.IsEnabled = dataReady;
+    if (_shipsTradesTab != null)
+      _shipsTradesTab.IsEnabled = dataReady;
     if (_waresStatsTab != null)
       _waresStatsTab.IsEnabled = dataReady;
     if (_configurationTab != null)

@@ -599,10 +599,12 @@ SELECT c.id AS ship_id, c.code AS ship_code, c.name AS ship_name,
        CASE WHEN t.seller = c.id THEN 1 ELSE -1 END AS direction,
        CASE WHEN t.seller = c.id THEN t.buyer ELSE t.seller END AS counterpart_id,
        cp.code AS counterpart_code,
-       cp.name AS counterpart_name
+       cp.name AS counterpart_name,
+       sn.name AS sector
 FROM trade t
 JOIN component c ON (t.seller = c.id OR t.buyer = c.id)
 LEFT JOIN component cp ON cp.id = CASE WHEN t.seller = c.id THEN t.buyer ELSE t.seller END
+LEFT JOIN cluster_sector_name AS sn ON cp.sector = sn.macro
 WHERE c.type = 'ship' AND c.owner = 'player'
 ORDER BY c.id, t.time
 ";
@@ -651,6 +653,7 @@ ORDER BY c.id, t.time
       var cpId = rdr.IsDBNull(8) ? 0L : rdr.GetInt64(8);
       var cpCode = rdr.IsDBNull(9) ? string.Empty : rdr.GetString(9);
       var cpName = rdr.IsDBNull(10) ? string.Empty : rdr.GetString(10);
+      var cpSector = rdr.IsDBNull(11) ? string.Empty : rdr.GetString(11);
 
       bool shipChanged = shipId != currentShip;
       bool wareChanged = !string.Equals(ware, currentWare, StringComparison.OrdinalIgnoreCase);
@@ -686,6 +689,7 @@ ORDER BY c.id, t.time
                 Volume = volume,
                 Price = price,
                 Time = time,
+                Sector = cpSector,
               }
             );
           }
@@ -715,6 +719,7 @@ ORDER BY c.id, t.time
                 Volume = volume,
                 Price = price,
                 Time = time,
+                Sector = cpSector,
               }
             );
           }
@@ -738,6 +743,7 @@ ORDER BY c.id, t.time
                 Volume = soldNow,
                 Price = price,
                 Time = time,
+                Sector = cpSector,
               }
             );
           }
