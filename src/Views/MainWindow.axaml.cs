@@ -160,6 +160,15 @@ public partial class MainWindow : Window
       FileTypeFilter = new[] { new FilePickerFileType("X4 Executable") { Patterns = new[] { "X4.exe", "X4" } } },
     };
 
+    // If we have an already set Game Folder, set its folder as the initial location
+    if (!string.IsNullOrWhiteSpace(vm.Configuration?.GameFolderExePath))
+    {
+      var currentFolder = new DirectoryInfo(vm.Configuration.GameFolderExePath);
+      if (currentFolder.Exists)
+      {
+        options.SuggestedStartLocation = await this.StorageProvider.TryGetFolderFromPathAsync(currentFolder.FullName);
+      }
+    }
     var files = await this.StorageProvider.OpenFilePickerAsync(options);
     if (files.Count > 0)
     {
@@ -184,6 +193,16 @@ public partial class MainWindow : Window
       AllowMultiple = false,
       FileTypeFilter = new[] { new FilePickerFileType("X4 Save Game") { Patterns = new[] { "*.xml.gz" } } },
     };
+
+    // If we have a saved path, set its folder as the initial location
+    if (!string.IsNullOrWhiteSpace(vm.Configuration?.GameSavePath))
+    {
+      var currentFile = new FileInfo(vm.Configuration.GameSavePath);
+      if (currentFile.Exists || currentFile.Directory?.Exists == true)
+      {
+        options.SuggestedStartLocation = await this.StorageProvider.TryGetFolderFromPathAsync(currentFile.Directory!.FullName);
+      }
+    }
 
     var files = await this.StorageProvider.OpenFilePickerAsync(options);
     if (files.Count > 0)
