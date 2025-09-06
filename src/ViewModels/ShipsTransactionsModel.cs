@@ -204,14 +204,13 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
     var txReader = txCmd.ExecuteReader();
     while (txReader.Read())
     {
-      var ms = -Convert.ToInt64(txReader["time"]);
-      TimeSpan span = TimeSpan.FromMilliseconds(ms);
+      var ms = Convert.ToInt64(txReader["time"]);
       allTransactions.Add(
         new ShipTransaction
         {
           ShipId = Convert.ToInt32(txReader["id"]),
-          RawTimeMs = ms,
-          Time = $"-{(int)span.TotalHours:D2}:{span.Minutes:D2}:{span.Seconds:D2}",
+          RawTimeMs = Math.Abs(ms),
+          Time = TimeFormatter.FormatHms(Convert.ToInt64(txReader["time"])),
           Sector = txReader["sector"].ToString() ?? string.Empty,
           Station = txReader["station"].ToString() ?? string.Empty,
           Operation = txReader["operation"].ToString() ?? string.Empty,
@@ -260,13 +259,12 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
       {
         var firstMs = shipTx.Min(t => t.RawTimeMs);
         var lastMs = shipTx.Max(t => t.RawTimeMs);
-        var dur = TimeSpan.FromMilliseconds(lastMs - firstMs);
-        TimeInService = $"{(int)dur.TotalHours:N0}:{dur.Minutes:D2}:{dur.Seconds:D2}";
+        TimeInService = TimeFormatter.FormatHms(lastMs - firstMs, groupHours: true);
         ItemsTraded = itemsTraded.ToString("N0");
         TotalEstimatedProfit = estimatedProfit.ToString("N2");
-        TripTimeMin = tripsTimes.Count > 0 ? TimeSpan.FromMilliseconds(tripsTimes.Min()).ToString(@"hh\:mm\:ss") : "-";
-        TripTimeAvg = tripsTimes.Count > 0 ? TimeSpan.FromMilliseconds(tripsTimes.Average()).ToString(@"hh\:mm\:ss") : "-";
-        TripTimeMax = tripsTimes.Count > 0 ? TimeSpan.FromMilliseconds(tripsTimes.Max()).ToString(@"hh\:mm\:ss") : "-";
+        TripTimeMin = tripsTimes.Count > 0 ? TimeFormatter.FormatHms(tripsTimes.Min()) : "-";
+        TripTimeAvg = tripsTimes.Count > 0 ? TimeFormatter.FormatHms((long)tripsTimes.Average()) : "-";
+        TripTimeMax = tripsTimes.Count > 0 ? TimeFormatter.FormatHms(tripsTimes.Max()) : "-";
       }
     }
     else

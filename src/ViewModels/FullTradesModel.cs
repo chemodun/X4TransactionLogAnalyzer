@@ -25,6 +25,23 @@ public sealed class FullTradesModel : INotifyPropertyChanged
   // Combined purchase/sale steps of SelectedFullTrade
   public ObservableCollection<TradeStep> TradeSteps { get; } = new();
 
+  private List<FullTrade> _allFullTrades = new();
+
+  private bool _withInternalTrades = true;
+  public bool WithInternalTrades
+  {
+    get => _withInternalTrades;
+    set
+    {
+      if (_withInternalTrades == value)
+        return;
+      _withInternalTrades = value;
+      OnPropertyChanged();
+      // Re-apply filters and steps based on new setting
+      ApplyTradeFilter();
+    }
+  }
+
   private ShipInfo? _selectedShip;
   public ShipInfo? SelectedShip
   {
@@ -60,35 +77,134 @@ public sealed class FullTradesModel : INotifyPropertyChanged
 
   public void Refresh() => LoadData();
 
+  // Summary fields (similar to ShipsTransactionsModel)
+  private string _timeInService = "-";
+  public string TimeInService
+  {
+    get => _timeInService;
+    private set
+    {
+      if (_timeInService != value)
+      {
+        _timeInService = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private string _itemsTraded = "0";
+  public string ItemsTraded
+  {
+    get => _itemsTraded;
+    private set
+    {
+      if (_itemsTraded != value)
+      {
+        _itemsTraded = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private string _totalProfit = "0";
+  public string TotalProfit
+  {
+    get => _totalProfit;
+    private set
+    {
+      if (_totalProfit != value)
+      {
+        _totalProfit = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private string _tradeTimeMin = "-";
+  public string TradeTimeMin
+  {
+    get => _tradeTimeMin;
+    private set
+    {
+      if (_tradeTimeMin != value)
+      {
+        _tradeTimeMin = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private string _tradeTimeAvg = "-";
+  public string TradeTimeAvg
+  {
+    get => _tradeTimeAvg;
+    private set
+    {
+      if (_tradeTimeAvg != value)
+      {
+        _tradeTimeAvg = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private string _tradeTimeMax = "-";
+  public string TradeTimeMax
+  {
+    get => _tradeTimeMax;
+    private set
+    {
+      if (_tradeTimeMax != value)
+      {
+        _tradeTimeMax = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
   private void LoadData()
   {
     try
     {
-      FullTrades.Clear();
-      ShipList.Clear();
-      FilteredFullTrades.Clear();
-      TradeSteps.Clear();
-      SelectedShip = null;
-      SelectedFullTrade = null;
-
-      foreach (var ft in MainWindow.GameData.GetFullTrades())
-      {
-        FullTrades.Add(ft);
-      }
-
-      // Build ships list from loaded full trades
-      foreach (var group in FullTrades.GroupBy(f => new { f.ShipId, f.ShipName }).OrderBy(g => g.Key.ShipName))
-      {
-        ShipList.Add(new ShipInfo { ShipId = (int)group.Key.ShipId, ShipName = group.Key.ShipName });
-      }
-
-      OnPropertyChanged(nameof(FullTrades));
-      OnPropertyChanged(nameof(ShipList));
+      _allFullTrades = MainWindow.GameData.GetFullTrades().ToList();
+      ApplyTradeFilter();
     }
     catch
     {
       // swallow for draft; UI can remain empty on errors
     }
+  }
+
+  private void ApplyTradeFilter()
+  {
+    FullTrades.Clear();
+    ShipList.Clear();
+    FilteredFullTrades.Clear();
+    TradeSteps.Clear();
+    SelectedShip = null;
+    SelectedFullTrade = null;
+
+    var seenShips = new HashSet<long>();
+    foreach (var ft in _allFullTrades)
+    {
+      if (!WithInternalTrades && IsInternalTrade(ft))
+        continue;
+
+      FullTrades.Add(ft);
+
+      if (seenShips.Add(ft.ShipId))
+      {
+        var displayName = $"{ft.ShipName} ({ft.ShipCode})";
+        // Insert into ShipList keeping it sorted by display name
+        int insertAt = 0;
+        while (insertAt < ShipList.Count && string.CompareOrdinal(ShipList[insertAt].ShipName, displayName) < 0)
+          insertAt++;
+        ShipList.Insert(insertAt, new ShipInfo { ShipId = (int)ft.ShipId, ShipName = displayName });
+      }
+    }
+
+    OnPropertyChanged(nameof(FullTrades));
+    OnPropertyChanged(nameof(ShipList));
   }
 
   private void ApplyShipFilter()
@@ -97,10 +213,60 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     TradeSteps.Clear();
     SelectedFullTrade = null;
     if (SelectedShip == null)
+    {
+      // reset summaries
+      TimeInService = "-";
+      ItemsTraded = "0";
+      TotalProfit = "0";
+      TradeTimeMin = "-";
+      TradeTimeAvg = "-";
+      TradeTimeMax = "-";
       return;
+    }
+
+    long itemsTotal = 0;
+    decimal profitTotal = 0m;
+    long spentSum = 0;
+    long spentMin = long.MaxValue;
+    long spentMax = 0;
+    int count = 0;
 
     foreach (var ft in FullTrades.Where(f => f.ShipId == SelectedShip.ShipId))
+    {
       FilteredFullTrades.Add(ft);
+
+      // accumulate summaries inline
+      itemsTotal += ft.SoldVolume;
+      profitTotal += ft.Profit;
+      long spent = (long)ft.SpentTimeRaw;
+      spentSum += spent;
+      if (spent < spentMin)
+        spentMin = spent;
+      if (spent > spentMax)
+        spentMax = spent;
+      count++;
+    }
+
+    // Update summaries based on filtered trades
+    if (count > 0)
+    {
+      TimeInService = Services.TimeFormatter.FormatHms(spentSum, groupHours: true);
+      ItemsTraded = itemsTotal.ToString("N0");
+      TotalProfit = profitTotal.ToString("N2");
+      TradeTimeMin = Services.TimeFormatter.FormatHms(spentMin);
+      TradeTimeAvg = Services.TimeFormatter.FormatHms(spentSum / count);
+      TradeTimeMax = Services.TimeFormatter.FormatHms(spentMax);
+    }
+    else
+    {
+      // reset summaries for empty selection
+      TimeInService = "-";
+      ItemsTraded = "0";
+      TotalProfit = "0";
+      TradeTimeMin = "-";
+      TradeTimeAvg = "-";
+      TradeTimeMax = "-";
+    }
   }
 
   private void RebuildTradeSteps()
@@ -116,9 +282,10 @@ public sealed class FullTradesModel : INotifyPropertyChanged
       steps.Add(
         new TradeStep
         {
-          Time = p.Time,
+          TimeRaw = p.Time,
+          Time = Services.TimeFormatter.FormatHms(p.Time, groupHours: true),
           Operation = "buy",
-          Counterpart = string.IsNullOrWhiteSpace(p.CounterpartName) ? p.CounterpartCode : p.CounterpartName,
+          Station = string.IsNullOrWhiteSpace(p.StationName) ? p.StationCode : p.StationName,
           Sector = p.Sector,
           Price = p.Price,
           Volume = p.Volume,
@@ -130,17 +297,25 @@ public sealed class FullTradesModel : INotifyPropertyChanged
       steps.Add(
         new TradeStep
         {
-          Time = s.Time,
+          TimeRaw = s.Time,
+          Time = Services.TimeFormatter.FormatHms(s.Time, groupHours: true),
           Operation = "sell",
-          Counterpart = string.IsNullOrWhiteSpace(s.CounterpartName) ? s.CounterpartCode : s.CounterpartName,
+          Station = string.IsNullOrWhiteSpace(s.StationName) ? s.StationCode : s.StationName,
           Sector = s.Sector,
           Price = s.Price,
           Volume = s.Volume,
         }
       );
     }
-    foreach (var step in steps.OrderBy(t => t.Time))
+    foreach (var step in steps.OrderBy(t => t.TimeRaw))
       TradeSteps.Add(step);
+  }
+
+  private static bool IsInternalTrade(FullTrade ft)
+  {
+    bool onlyInternalBuy = ft.Purchases?.All(l => string.Equals(l.StationOwner, "player", StringComparison.OrdinalIgnoreCase)) ?? false;
+    bool onlyInternalSell = ft.Sales?.All(l => string.Equals(l.StationOwner, "player", StringComparison.OrdinalIgnoreCase)) ?? false;
+    return onlyInternalBuy && onlyInternalSell;
   }
 
   public event PropertyChangedEventHandler? PropertyChanged;
@@ -150,11 +325,12 @@ public sealed class FullTradesModel : INotifyPropertyChanged
 
   public sealed class TradeStep
   {
-    public int Time { get; init; }
+    public long TimeRaw { get; init; }
+    public string Time { get; init; } = string.Empty;
     public string Operation { get; init; } = string.Empty; // buy/sell
-    public string Counterpart { get; init; } = string.Empty;
+    public string Station { get; init; } = string.Empty;
     public string Sector { get; init; } = string.Empty;
-    public long Price { get; init; }
+    public decimal Price { get; init; }
     public long Volume { get; init; }
   }
 }

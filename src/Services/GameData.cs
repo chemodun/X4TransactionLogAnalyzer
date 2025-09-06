@@ -552,36 +552,6 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
   }
 
   /// <summary>
-  /// Load localized text resources from the application's GameData/t directory into the 'text' table.
-  /// Refinement rules:
-  /// - Resolve references of the form {page,id} within the current language (recursively with a small depth limit).
-  /// - Exclude any segments enclosed by unescaped parentheses '(' and ')'. Escaped parentheses (\( or \)) are kept, without the backslash.
-  /// </summary>
-
-  public IEnumerable<TradeOperation> GetPlayerTradeOperations()
-  {
-    using var cmd = _conn.CreateCommand();
-    cmd.CommandText =
-      @"SELECT code,name,class,counterpart_code,counterpart_name,counterpart_faction,time,ware,price,volume,trade_sum FROM player_ships_transactions_log ORDER BY time";
-    using var rdr = cmd.ExecuteReader();
-    while (rdr.Read())
-    {
-      yield return new TradeOperation
-      {
-        ShipCode = rdr.GetString(0),
-        ShipName = rdr.GetString(1),
-        CounterpartCode = rdr.IsDBNull(3) ? string.Empty : rdr.GetString(3),
-        CounterpartName = rdr.IsDBNull(4) ? string.Empty : rdr.GetString(4),
-        CounterpartFaction = rdr.IsDBNull(5) ? string.Empty : rdr.GetString(5),
-        TimeSeconds = (rdr.GetInt64(6)) / 1000.0,
-        WareId = rdr.IsDBNull(7) ? string.Empty : rdr.GetString(7),
-        Volume = rdr.IsDBNull(9) ? 0 : Convert.ToInt32(rdr.GetInt64(9)),
-        Money = rdr.IsDBNull(10) ? 0 : Convert.ToInt32(rdr.GetInt64(10)),
-      };
-    }
-  }
-
-  /// <summary>
   /// Detects "full trades" for player ships: a contiguous sequence per ship and ware where
   /// buys accumulate positive inventory followed by sells that deplete it to zero, without interleaving other wares.
   /// When the cumulative volume returns to zero, the segment is emitted as a FullTrade.
@@ -590,28 +560,32 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
   public IEnumerable<FullTrade> GetFullTrades()
   {
     ReOpenConnection();
-    // Query raw trade rows for player ships with resolved ship info; include ware and price/volume/time
+    // Use the pre-resolved player_ships_transactions_log view for ship trades; it already resolves station and sector.
     using var cmd = _conn.CreateCommand();
     cmd.CommandText =
       @"
-SELECT c.id AS ship_id, c.code AS ship_code, c.name AS ship_name,
-       t.time AS time, t.ware AS ware, t.price AS price, t.volume AS volume,
-       CASE WHEN t.seller = c.id THEN 1 ELSE -1 END AS direction,
-       CASE WHEN t.seller = c.id THEN t.buyer ELSE t.seller END AS counterpart_id,
-       cp.code AS counterpart_code,
-       cp.name AS counterpart_name,
-       sn.name AS sector
-FROM trade t
-JOIN component c ON (t.seller = c.id OR t.buyer = c.id)
-LEFT JOIN component cp ON cp.id = CASE WHEN t.seller = c.id THEN t.buyer ELSE t.seller END
-LEFT JOIN cluster_sector_name AS sn ON cp.sector = sn.macro
-WHERE c.type = 'ship' AND c.owner = 'player'
-ORDER BY c.id, t.time
+SELECT
+  id            AS ship_id,
+  code          AS ship_code,
+  name          AS ship_name,
+  time          AS time,
+  ware          AS ware,
+  ware_name     AS ware_name,
+  operation     AS operation,             -- 'buy' or 'sell'
+  price         AS price,                 -- decimal credits
+  volume        AS volume,
+  counterpart_faction AS station_owner,
+  sector        AS station_sector,
+  station       AS station_name,
+  counterpart_code AS station_code
+FROM player_ships_transactions_log
+ORDER BY id, time
 ";
     using var rdr = cmd.ExecuteReader();
 
     long currentShip = -1;
     string currentWare = string.Empty;
+    string currentWareName = string.Empty;
     string shipCode = string.Empty;
     string shipName = string.Empty;
     // State of an accumulating segment
@@ -620,8 +594,8 @@ ORDER BY c.id, t.time
     long cumVolume = 0; // positive while buying, decreases during selling
     long boughtVolume = 0;
     long soldVolume = 0;
-    long totalBuyCost = 0; // sum(price*volume) for buys
-    long totalRevenue = 0; // sum(price*volume) for sells
+    decimal totalBuyCost = 0; // sum(price*volume) for buys
+    decimal totalRevenue = 0; // sum(price*volume) for sells
 
     // Ordered legs for this segment
     var purchases = new List<TradeLeg>();
@@ -647,13 +621,15 @@ ORDER BY c.id, t.time
       var name = rdr.IsDBNull(2) ? string.Empty : rdr.GetString(2);
       var time = (int)rdr.GetInt64(3);
       var ware = rdr.IsDBNull(4) ? string.Empty : rdr.GetString(4);
-      var price = rdr.GetInt64(5);
-      var volume = rdr.GetInt64(6);
-      var dir = rdr.GetInt32(7); // 1 = sell, -1 = buy relative to ship
-      var cpId = rdr.IsDBNull(8) ? 0L : rdr.GetInt64(8);
-      var cpCode = rdr.IsDBNull(9) ? string.Empty : rdr.GetString(9);
-      var cpName = rdr.IsDBNull(10) ? string.Empty : rdr.GetString(10);
-      var cpSector = rdr.IsDBNull(11) ? string.Empty : rdr.GetString(11);
+      var wareName = rdr.IsDBNull(5) ? string.Empty : rdr.GetString(5);
+      var operation = rdr.IsDBNull(6) ? string.Empty : rdr.GetString(6);
+      var price = rdr.IsDBNull(7) ? 0m : Convert.ToDecimal(rdr.GetDouble(7));
+      var volume = rdr.IsDBNull(8) ? 0L : rdr.GetInt64(8);
+      // No counterpart_id in the view
+      var stationOwner = rdr.IsDBNull(9) ? string.Empty : rdr.GetString(9);
+      var stationSector = rdr.IsDBNull(10) ? string.Empty : rdr.GetString(10);
+      var stationName = rdr.IsDBNull(11) ? string.Empty : rdr.GetString(11);
+      var stationCode = rdr.IsDBNull(12) ? string.Empty : rdr.GetString(12);
 
       bool shipChanged = shipId != currentShip;
       bool wareChanged = !string.Equals(ware, currentWare, StringComparison.OrdinalIgnoreCase);
@@ -664,6 +640,7 @@ ORDER BY c.id, t.time
         Reset();
         currentShip = shipId;
         currentWare = ware;
+        currentWareName = wareName;
         shipCode = code;
         shipName = name;
       }
@@ -671,7 +648,7 @@ ORDER BY c.id, t.time
       // We only consider sequences that start with buys
       if (!inSegment)
       {
-        if (dir == -1)
+        if (string.Equals(operation, "buy", StringComparison.OrdinalIgnoreCase))
         {
           inSegment = true;
           segmentStartTime = time;
@@ -683,13 +660,13 @@ ORDER BY c.id, t.time
             purchases.Add(
               new TradeLeg
               {
-                CounterpartId = cpId,
-                CounterpartCode = cpCode,
-                CounterpartName = cpName,
+                StationCode = stationCode,
+                StationOwner = stationOwner,
+                StationName = stationName,
                 Volume = volume,
                 Price = price,
                 Time = time,
-                Sector = cpSector,
+                Sector = stationSector,
               }
             );
           }
@@ -702,7 +679,7 @@ ORDER BY c.id, t.time
       else
       {
         // Inside a segment
-        if (dir == -1)
+        if (string.Equals(operation, "buy", StringComparison.OrdinalIgnoreCase))
         {
           // Another buy
           cumVolume += volume;
@@ -713,13 +690,13 @@ ORDER BY c.id, t.time
             purchases.Add(
               new TradeLeg
               {
-                CounterpartId = cpId,
-                CounterpartCode = cpCode,
-                CounterpartName = cpName,
+                StationCode = stationCode,
+                StationOwner = stationOwner,
+                StationName = stationName,
                 Volume = volume,
                 Price = price,
                 Time = time,
-                Sector = cpSector,
+                Sector = stationSector,
               }
             );
           }
@@ -737,13 +714,13 @@ ORDER BY c.id, t.time
             sales.Add(
               new TradeLeg
               {
-                CounterpartId = cpId,
-                CounterpartCode = cpCode,
-                CounterpartName = cpName,
+                StationCode = stationCode,
+                StationOwner = stationOwner,
+                StationName = stationName,
                 Volume = soldNow,
                 Price = price,
                 Time = time,
-                Sector = cpSector,
+                Sector = stationSector,
               }
             );
           }
@@ -758,7 +735,9 @@ ORDER BY c.id, t.time
             ShipCode = shipCode,
             ShipName = shipName,
             WareId = currentWare,
+            WareName = currentWareName,
             StartTime = segmentStartTime,
+            Time = TimeFormatter.FormatHms(segmentStartTime),
             EndTime = time,
             BoughtVolume = boughtVolume,
             SoldVolume = soldVolume,

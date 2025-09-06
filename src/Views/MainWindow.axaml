@@ -90,6 +90,7 @@
 
             <DataGrid ItemsSource="{Binding FilteredTransactions}"
                       AutoGenerateColumns="False"
+                      IsReadOnly="True"
                       Margin="8">
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
@@ -137,19 +138,58 @@
       <Grid DataContext="{Binding FullTrades}">
           <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition Width="*"/>
-              <ColumnDefinition Width="420"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
           <Grid.RowDefinitions>
               <RowDefinition Height="28" />
               <RowDefinition />
           </Grid.RowDefinitions>
 
-          <!-- Placeholder top row for future summaries -->
+          <!-- Filters / summary row -->
           <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
-              <TextBlock Text="Ships Trades" FontWeight="Bold"/>
-            </StackPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <!-- Left: filters -->
+              <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="24">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
+                </StackPanel>
+              </StackPanel>
+              <!-- Right: summary values -->
+              <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Total Profit:"/>
+                  <TextBlock Text="{Binding TotalProfit}" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Items Traded:"/>
+                  <TextBlock Text="{Binding ItemsTraded}" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Time in Service:"/>
+                  <TextBlock Text="{Binding TimeInService}" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Trade Time:"/>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Min:"/>
+                    <TextBlock Text="{Binding TradeTimeMin}" FontWeight="Bold"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Avg:"/>
+                    <TextBlock Text="{Binding TradeTimeAvg}" FontWeight="Bold"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Max:"/>
+                    <TextBlock Text="{Binding TradeTimeMax}" FontWeight="Bold"/>
+                  </StackPanel>
+                </StackPanel>
+              </StackPanel>
+            </Grid>
           </Border>
 
           <!-- Left: ships list -->
@@ -170,14 +210,33 @@
             <DataGrid ItemsSource="{Binding FilteredFullTrades}"
                       SelectedItem="{Binding SelectedFullTrade, Mode=TwoWay}"
                       AutoGenerateColumns="False"
+                      IsReadOnly="True"
                       Margin="8">
               <DataGrid.Columns>
-        <DataGridTextColumn Header="Start Time" Binding="{Binding StartTime}" Width="120"/>
-        <DataGridTextColumn Header="Ware" Binding="{Binding WareId}" Width="160"/>
-        <DataGridTextColumn Header="Bought" Binding="{Binding BoughtVolume}" Width="100"/>
-        <DataGridTextColumn Header="Sold" Binding="{Binding SoldVolume}" Width="100"/>
-        <DataGridTextColumn Header="Profit" Binding="{Binding Profit}" Width="120"/>
-        <DataGridTextColumn Header="Spent Time" Binding="{Binding SpentTime}" Width="120"/>
+              <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
+              <DataGridTextColumn Header="Ware" Binding="{Binding WareName}" Width="160"/>
+              <DataGridTemplateColumn Header="Bought" SortMemberPath="BoughtVolume" Width="80">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding BoughtVolume, StringFormat=N0}" Classes="rightAligned" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="Sold" SortMemberPath="SoldVolume" Width="80">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding SoldVolume, StringFormat=N0}" Classes="rightAligned" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="Profit" SortMemberPath="Profit" Width="120">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Profit, StringFormat=N2}" Classes="rightAligned" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Spent Time" Binding="{Binding SpentTime}" Width="100"/>
               </DataGrid.Columns>
             </DataGrid>
           </Border>
@@ -186,13 +245,26 @@
           <Border Grid.Row="1" Grid.Column="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
             <DataGrid ItemsSource="{Binding TradeSteps}"
                       AutoGenerateColumns="False"
+                      IsReadOnly="True"
                       Margin="8">
               <DataGrid.Columns>
-        <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="120"/>
-        <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
-        <DataGridTextColumn Header="Volume" Binding="{Binding Volume}" Width="100"/>
-        <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="100"/>
-        <DataGridTextColumn Header="Station" Binding="{Binding Counterpart}" Width="220"/>
+        <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
+        <DataGridTextColumn Header="Op." Binding="{Binding Operation}" Width="60"/>
+        <DataGridTemplateColumn Header="Vol."  SortMemberPath="Volume" Width="80">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Volume, StringFormat=N0}" Classes="rightAligned"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="Price" SortMemberPath="Price" Width="80">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Price, StringFormat=N2}" Classes="rightAligned" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="Station" Binding="{Binding Station}" Width="340"/>
         <DataGridTextColumn Header="Sector" Binding="{Binding Sector}" Width="140"/>
               </DataGrid.Columns>
             </DataGrid>
