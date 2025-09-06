@@ -82,19 +82,22 @@
               </StackPanel>
             </StackPanel>
           </Border>
-          <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
 
+          <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
             <ListBox ItemsSource="{Binding ShipList}"
                     SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
                     Margin="8" Width="300">
               <ListBox.ItemTemplate>
                 <DataTemplate>
-                  <TextBlock Text="{Binding ShipName}" />
+                  <Grid ColumnDefinitions="*,8,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}"/>
+                    <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="SemiBold" Classes="RightAligned"  Margin="0"/>
+                  </Grid>
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
-
           </Border>
+
           <Border Grid.Row="1" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
 
             <DataGrid ItemsSource="{Binding FilteredTransactions}"

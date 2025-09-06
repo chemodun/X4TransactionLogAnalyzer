@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.SQLite;
+using System.Linq;
 using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Services;
 using X4PlayerShipTradeAnalyzer.Views;
@@ -183,32 +184,41 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
     SelectedShip = null;
     ShipList.Clear();
     allTransactions.Clear();
-    // Load ships
-    var shipCmd = new SQLiteCommand(
-      AppendWhereOnFilters("SELECT DISTINCT id, full_name FROM player_ships_transactions_log") + " ORDER BY full_name",
-      conn
-    );
-    var shipReader = shipCmd.ExecuteReader();
-    while (shipReader.Read())
-    {
-      ShipList.Add(new ShipInfo { ShipId = Convert.ToInt32(shipReader["id"]), ShipName = shipReader["full_name"].ToString() });
-    }
+    // Build ships map while reading transactions
+    var ships = new Dictionary<int, ShipInfo>();
 
     // Load transactions
     var txCmd = new SQLiteCommand(
       AppendWhereOnFilters(
-        "SELECT id, time, sector, station, operation, ware_name, price, volume, trade_sum, profit FROM player_ships_transactions_log"
+        "SELECT id, full_name, time, sector, station, operation, ware_name, price, volume, trade_sum, profit FROM player_ships_transactions_log"
       ),
       conn
     );
     var txReader = txCmd.ExecuteReader();
     while (txReader.Read())
     {
+      var id = Convert.ToInt32(txReader["id"]);
+      var fullName = txReader["full_name"].ToString() ?? string.Empty;
+      var profit = Convert.ToDecimal(txReader["profit"]);
+
+      // aggregate ships
+      if (!ships.TryGetValue(id, out var info))
+      {
+        info = new ShipInfo
+        {
+          ShipId = id,
+          ShipName = fullName,
+          EstimatedProfit = 0m,
+        };
+        ships.Add(id, info);
+      }
+      info.EstimatedProfit = (info.EstimatedProfit ?? 0m) + profit;
+
       var ms = Convert.ToInt64(txReader["time"]);
       allTransactions.Add(
         new ShipTransaction
         {
-          ShipId = Convert.ToInt32(txReader["id"]),
+          ShipId = id,
           RawTimeMs = Math.Abs(ms),
           Time = TimeFormatter.FormatHms(Convert.ToInt64(txReader["time"])),
           Sector = txReader["sector"].ToString() ?? string.Empty,
@@ -219,10 +229,13 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
           VolumeValue = Convert.ToInt32(txReader["volume"]),
           Quantity = Convert.ToInt32(txReader["volume"]),
           Total = Convert.ToDecimal(txReader["trade_sum"]),
-          EstimatedProfit = Convert.ToDecimal(txReader["profit"]),
+          EstimatedProfit = profit,
         }
       );
     }
+    // materialize ShipList sorted by name
+    foreach (var s in ships.Values.OrderBy(s => s.ShipName, System.StringComparer.Ordinal))
+      ShipList.Add(s);
     ApplyShipFilter();
   }
 
