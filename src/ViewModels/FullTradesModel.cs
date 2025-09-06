@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Avalonia.Controls.Generators;
 using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Views;
 
@@ -388,17 +389,11 @@ ORDER BY id, time
     _allFullTrades.Clear();
     long currentShip = -1;
     string currentWare = string.Empty;
-    string currentWareName = string.Empty;
-    string shipCode = string.Empty;
-    string shipName = string.Empty;
     // State of an accumulating segment
     bool inSegment = false;
-    int segmentStartTime = 0;
+    bool sellingStarted = false;
     long cumVolume = 0; // positive while buying, decreases during selling
-    long boughtVolume = 0;
-    long soldVolume = 0;
-    decimal totalBuyCost = 0; // sum(price*volume) for buys
-    decimal totalRevenue = 0; // sum(price*volume) for sells
+    FullTrade? trade = null;
 
     // Ordered legs for this segment
     var purchases = new List<TradeLeg>();
@@ -407,14 +402,50 @@ ORDER BY id, time
     void Reset()
     {
       inSegment = false;
-      segmentStartTime = 0;
+      sellingStarted = false;
       cumVolume = 0;
-      boughtVolume = 0;
-      soldVolume = 0;
-      totalBuyCost = 0;
-      totalRevenue = 0;
       purchases.Clear();
       sales.Clear();
+      trade = null;
+    }
+
+    void SaveAndReset()
+    {
+      // Segment complete: emit trade
+      if (trade != null && trade.BoughtVolume > 0 && trade.SoldVolume > 0)
+      {
+        int boughtIndex = purchases.Count - 1;
+        if (trade.BoughtVolume > trade.SoldVolume)
+        {
+          var purchasesNew = new List<TradeLeg>();
+          trade.BoughtVolume = 0;
+          trade.TotalBuyCost = 0m;
+          while (boughtIndex >= 0 && trade.BoughtVolume != trade.SoldVolume)
+          {
+            var leg = purchases[boughtIndex];
+            purchasesNew.Insert(0, leg);
+            trade.BoughtVolume += leg.Volume;
+            trade.TotalBuyCost += leg.Volume * leg.Price;
+            boughtIndex--;
+          }
+          if (trade.BoughtVolume != trade.SoldVolume)
+          {
+            // Should not happen, but just in case
+            Reset();
+            return;
+          }
+          purchases = purchasesNew;
+          trade.StartTime = purchases.First().Time;
+          trade.Time = Services.TimeFormatter.FormatHms(trade.StartTime);
+        }
+        if (trade.BoughtVolume == trade.SoldVolume)
+        {
+          trade.Purchases = purchases.ToArray();
+          trade.Sales = sales.ToArray();
+          _allFullTrades.Add(trade);
+        }
+      }
+      Reset();
     }
 
     while (rdr.Read())
@@ -437,15 +468,16 @@ ORDER BY id, time
       bool shipChanged = shipId != currentShip;
       bool wareChanged = !string.Equals(ware, currentWare, StringComparison.OrdinalIgnoreCase);
 
-      if (shipChanged || wareChanged)
+      if (
+        shipChanged
+        || wareChanged
+        || (inSegment && string.Equals(operation, "buy", StringComparison.OrdinalIgnoreCase) && sellingStarted)
+      )
       {
         // If we switch context and have a completed segment, drop incomplete ones; only emit on zero balance
-        Reset();
+        SaveAndReset();
         currentShip = shipId;
         currentWare = ware;
-        currentWareName = wareName;
-        shipCode = code;
-        shipName = name;
       }
 
       // We only consider sequences that start with buys
@@ -453,11 +485,23 @@ ORDER BY id, time
       {
         if (string.Equals(operation, "buy", StringComparison.OrdinalIgnoreCase))
         {
+          trade = new FullTrade
+          {
+            ShipId = currentShip,
+            ShipCode = code,
+            ShipName = name,
+            WareId = currentWare,
+            WareName = wareName,
+            StartTime = time,
+            Time = Services.TimeFormatter.FormatHms(time),
+            EndTime = time,
+            BoughtVolume = volume,
+            SoldVolume = 0,
+            TotalBuyCost = price * volume,
+            TotalRevenue = 0,
+          };
           inSegment = true;
-          segmentStartTime = time;
           cumVolume = volume;
-          boughtVolume += volume;
-          totalBuyCost += price * volume;
           if (volume > 0)
           {
             purchases.Add(
@@ -479,15 +523,16 @@ ORDER BY id, time
           // Selling without inventory; ignore until a buy happens
         }
       }
-      else
+      else if (trade != null)
       {
         // Inside a segment
         if (string.Equals(operation, "buy", StringComparison.OrdinalIgnoreCase))
         {
           // Another buy
           cumVolume += volume;
-          boughtVolume += volume;
-          totalBuyCost += price * volume;
+          trade.EndTime = time;
+          trade.BoughtVolume += volume;
+          trade.TotalBuyCost += price * volume;
           if (volume > 0)
           {
             purchases.Add(
@@ -508,12 +553,15 @@ ORDER BY id, time
         {
           // A sell
           // If selling more than available, clamp to available to keep non-negative inventory
+          if (!sellingStarted)
+            sellingStarted = true;
           long soldNow = Math.Min(volume, Math.Max(0, cumVolume));
           if (soldNow > 0)
           {
             cumVolume -= soldNow;
-            soldVolume += soldNow;
-            totalRevenue += price * soldNow;
+            trade.EndTime = time;
+            trade.SoldVolume += soldNow;
+            trade.TotalRevenue += price * soldNow;
             sales.Add(
               new TradeLeg
               {
@@ -528,31 +576,9 @@ ORDER BY id, time
             );
           }
         }
-
-        if (cumVolume == 0 && (boughtVolume > 0) && (soldVolume > 0))
+        if (cumVolume == 0 && trade != null && (trade.BoughtVolume > 0) && (trade.SoldVolume > 0))
         {
-          // Segment complete: emit trade
-          _allFullTrades.Add(
-            new FullTrade
-            {
-              ShipId = currentShip,
-              ShipCode = shipCode,
-              ShipName = shipName,
-              WareId = currentWare,
-              WareName = currentWareName,
-              StartTime = segmentStartTime,
-              Time = Services.TimeFormatter.FormatHms(segmentStartTime),
-              EndTime = time,
-              BoughtVolume = boughtVolume,
-              SoldVolume = soldVolume,
-              TotalBuyCost = totalBuyCost,
-              TotalRevenue = totalRevenue,
-              Purchases = purchases.ToArray(),
-              Sales = sales.ToArray(),
-            }
-          );
-          // Reset to look for next cycle for this ware
-          Reset();
+          SaveAndReset();
         }
       }
     }
