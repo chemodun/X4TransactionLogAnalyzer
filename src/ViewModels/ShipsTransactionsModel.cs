@@ -35,7 +35,7 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
       if (selectedShip != value)
       {
         selectedShip = value;
-        OnPropertyChanged(nameof(SelectedShip));
+        OnPropertyChanged();
         ApplyShipFilter();
       }
     }
@@ -58,7 +58,7 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
         return;
       }
       isContainerChecked = value;
-      OnPropertyChanged(nameof(IsContainerChecked));
+      OnPropertyChanged();
       LoadData();
     }
   }
@@ -80,7 +80,7 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
         return;
       }
       isSolidChecked = value;
-      OnPropertyChanged(nameof(IsSolidChecked));
+      OnPropertyChanged();
       LoadData();
     }
   }
@@ -88,86 +88,86 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
   private List<ShipTransaction> allTransactions = new();
 
   // summary fields
-  private string timeInService = "-";
+  private string _timeInService = "-";
   public string TimeInService
   {
-    get => timeInService;
+    get => _timeInService;
     private set
     {
-      if (timeInService != value)
+      if (_timeInService != value)
       {
-        timeInService = value;
-        OnPropertyChanged(nameof(TimeInService));
+        _timeInService = value;
+        OnPropertyChanged();
       }
     }
   }
 
-  private string itemsTraded = "0";
+  private string _itemsTraded = "0";
   public string ItemsTraded
   {
-    get => itemsTraded;
+    get => _itemsTraded;
     private set
     {
-      if (itemsTraded != value)
+      if (_itemsTraded != value)
       {
-        itemsTraded = value;
-        OnPropertyChanged(nameof(ItemsTraded));
+        _itemsTraded = value;
+        OnPropertyChanged();
       }
     }
   }
 
-  private string totalEstimatedProfit = "0";
-  public string TotalEstimatedProfit
+  private string _totalProfit = "0";
+  public string TotalProfit
   {
-    get => totalEstimatedProfit;
+    get => _totalProfit;
     private set
     {
-      if (totalEstimatedProfit != value)
+      if (_totalProfit != value)
       {
-        totalEstimatedProfit = value;
-        OnPropertyChanged(nameof(TotalEstimatedProfit));
+        _totalProfit = value;
+        OnPropertyChanged();
       }
     }
   }
 
-  private string tripTimeMin = "-";
-  public string TripTimeMin
+  private string _timeMin = "-";
+  public string TimeMin
   {
-    get => tripTimeMin;
+    get => _timeMin;
     private set
     {
-      if (tripTimeMin != value)
+      if (_timeMin != value)
       {
-        tripTimeMin = value;
-        OnPropertyChanged(nameof(TripTimeMin));
+        _timeMin = value;
+        OnPropertyChanged();
       }
     }
   }
 
-  private string tripTimeAvg = "-";
-  public string TripTimeAvg
+  private string _timeAvg = "-";
+  public string TimeAvg
   {
-    get => tripTimeAvg;
+    get => _timeAvg;
     private set
     {
-      if (tripTimeAvg != value)
+      if (_timeAvg != value)
       {
-        tripTimeAvg = value;
-        OnPropertyChanged(nameof(TripTimeAvg));
+        _timeAvg = value;
+        OnPropertyChanged();
       }
     }
   }
 
-  private string tripTimeMax = "-";
-  public string TripTimeMax
+  private string _timeMax = "-";
+  public string TimeMax
   {
-    get => tripTimeMax;
+    get => _timeMax;
     private set
     {
-      if (tripTimeMax != value)
+      if (_timeMax != value)
       {
-        tripTimeMax = value;
-        OnPropertyChanged(nameof(TripTimeMax));
+        _timeMax = value;
+        OnPropertyChanged();
       }
     }
   }
@@ -279,10 +279,10 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
       // reset summaries
       TimeInService = "-";
       ItemsTraded = "0";
-      TotalEstimatedProfit = "0";
-      TripTimeMin = "-";
-      TripTimeAvg = "-";
-      TripTimeMax = "-";
+      TotalProfit = "0";
+      TimeMin = "-";
+      TimeAvg = "-";
+      TimeMax = "-";
       return;
     }
 
@@ -339,18 +339,18 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
     {
       TimeInService = TimeFormatter.FormatHms(lastMs - firstMs, groupHours: true);
       ItemsTraded = itemsTotal.ToString("N0");
-      TotalEstimatedProfit = profitTotal.ToString("N2");
+      TotalProfit = profitTotal.ToString("N2");
       if (tripCount > 0)
       {
-        TripTimeMin = TimeFormatter.FormatHms(tripMin);
-        TripTimeAvg = TimeFormatter.FormatHms(tripSum / tripCount);
-        TripTimeMax = TimeFormatter.FormatHms(tripMax);
+        TimeMin = TimeFormatter.FormatHms(tripMin);
+        TimeAvg = TimeFormatter.FormatHms(tripSum / tripCount);
+        TimeMax = TimeFormatter.FormatHms(tripMax);
       }
       else
       {
-        TripTimeMin = "-";
-        TripTimeAvg = "-";
-        TripTimeMax = "-";
+        TimeMin = "-";
+        TimeAvg = "-";
+        TimeMax = "-";
       }
     }
     else
@@ -358,10 +358,10 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
       // empty selection after filter
       TimeInService = "-";
       ItemsTraded = "0";
-      TotalEstimatedProfit = "0";
-      TripTimeMin = "-";
-      TripTimeAvg = "-";
-      TripTimeMax = "-";
+      TotalProfit = "0";
+      TimeMin = "-";
+      TimeAvg = "-";
+      TimeMax = "-";
     }
   }
 

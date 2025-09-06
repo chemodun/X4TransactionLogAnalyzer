@@ -134,43 +134,43 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     }
   }
 
-  private string _tradeTimeMin = "-";
-  public string TradeTimeMin
+  private string _timeMin = "-";
+  public string TimeMin
   {
-    get => _tradeTimeMin;
+    get => _timeMin;
     private set
     {
-      if (_tradeTimeMin != value)
+      if (_timeMin != value)
       {
-        _tradeTimeMin = value;
+        _timeMin = value;
         OnPropertyChanged();
       }
     }
   }
 
-  private string _tradeTimeAvg = "-";
-  public string TradeTimeAvg
+  private string _timeAvg = "-";
+  public string TimeAvg
   {
-    get => _tradeTimeAvg;
+    get => _timeAvg;
     private set
     {
-      if (_tradeTimeAvg != value)
+      if (_timeAvg != value)
       {
-        _tradeTimeAvg = value;
+        _timeAvg = value;
         OnPropertyChanged();
       }
     }
   }
 
-  private string _tradeTimeMax = "-";
-  public string TradeTimeMax
+  private string _timeMax = "-";
+  public string TimeMax
   {
-    get => _tradeTimeMax;
+    get => _timeMax;
     private set
     {
-      if (_tradeTimeMax != value)
+      if (_timeMax != value)
       {
-        _tradeTimeMax = value;
+        _timeMax = value;
         OnPropertyChanged();
       }
     }
@@ -180,7 +180,7 @@ public sealed class FullTradesModel : INotifyPropertyChanged
   {
     try
     {
-      _allFullTrades = MainWindow.GameData.GetFullTrades().ToList();
+      GetFullTrades();
       ApplyTradeFilter();
     }
     catch
@@ -258,9 +258,9 @@ public sealed class FullTradesModel : INotifyPropertyChanged
       TimeInService = "-";
       ItemsTraded = "0";
       TotalProfit = "0";
-      TradeTimeMin = "-";
-      TradeTimeAvg = "-";
-      TradeTimeMax = "-";
+      TimeMin = "-";
+      TimeAvg = "-";
+      TimeMax = "-";
       return;
     }
 
@@ -293,9 +293,9 @@ public sealed class FullTradesModel : INotifyPropertyChanged
       TimeInService = Services.TimeFormatter.FormatHms(spentSum, groupHours: true);
       ItemsTraded = itemsTotal.ToString("N0");
       TotalProfit = profitTotal.ToString("N2");
-      TradeTimeMin = Services.TimeFormatter.FormatHms(spentMin);
-      TradeTimeAvg = Services.TimeFormatter.FormatHms(spentSum / count);
-      TradeTimeMax = Services.TimeFormatter.FormatHms(spentMax);
+      TimeMin = Services.TimeFormatter.FormatHms(spentMin);
+      TimeAvg = Services.TimeFormatter.FormatHms(spentSum / count);
+      TimeMax = Services.TimeFormatter.FormatHms(spentMax);
     }
     else
     {
@@ -303,9 +303,9 @@ public sealed class FullTradesModel : INotifyPropertyChanged
       TimeInService = "-";
       ItemsTraded = "0";
       TotalProfit = "0";
-      TradeTimeMin = "-";
-      TradeTimeAvg = "-";
-      TradeTimeMax = "-";
+      TimeMin = "-";
+      TimeAvg = "-";
+      TimeMax = "-";
     }
   }
 
@@ -356,6 +356,206 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     bool onlyInternalBuy = ft.Purchases?.All(l => string.Equals(l.StationOwner, "player", StringComparison.OrdinalIgnoreCase)) ?? false;
     bool onlyInternalSell = ft.Sales?.All(l => string.Equals(l.StationOwner, "player", StringComparison.OrdinalIgnoreCase)) ?? false;
     return onlyInternalBuy && onlyInternalSell;
+  }
+
+  private void GetFullTrades()
+  { //MIC-510
+    var conn = MainWindow.GameData.Connection;
+    if (conn == null)
+      return;
+    // Use the pre-resolved player_ships_transactions_log view for ship trades; it already resolves station and sector.
+    using var cmd = conn.CreateCommand();
+    cmd.CommandText =
+      @"
+SELECT
+  id,
+  code,
+  name,
+  time,
+  ware,
+  ware_name,
+  operation,
+  price,
+  volume,
+  counterpart_faction,
+  sector,
+  station,
+  counterpart_code
+FROM player_ships_transactions_log
+ORDER BY id, time
+";
+    using var rdr = cmd.ExecuteReader();
+    _allFullTrades.Clear();
+    long currentShip = -1;
+    string currentWare = string.Empty;
+    string currentWareName = string.Empty;
+    string shipCode = string.Empty;
+    string shipName = string.Empty;
+    // State of an accumulating segment
+    bool inSegment = false;
+    int segmentStartTime = 0;
+    long cumVolume = 0; // positive while buying, decreases during selling
+    long boughtVolume = 0;
+    long soldVolume = 0;
+    decimal totalBuyCost = 0; // sum(price*volume) for buys
+    decimal totalRevenue = 0; // sum(price*volume) for sells
+
+    // Ordered legs for this segment
+    var purchases = new List<TradeLeg>();
+    var sales = new List<TradeLeg>();
+
+    void Reset()
+    {
+      inSegment = false;
+      segmentStartTime = 0;
+      cumVolume = 0;
+      boughtVolume = 0;
+      soldVolume = 0;
+      totalBuyCost = 0;
+      totalRevenue = 0;
+      purchases.Clear();
+      sales.Clear();
+    }
+
+    while (rdr.Read())
+    {
+      var shipId = rdr.GetInt64(0);
+      var code = rdr.IsDBNull(1) ? string.Empty : rdr.GetString(1);
+      var name = rdr.IsDBNull(2) ? string.Empty : rdr.GetString(2);
+      var time = (int)rdr.GetInt64(3);
+      var ware = rdr.IsDBNull(4) ? string.Empty : rdr.GetString(4);
+      var wareName = rdr.IsDBNull(5) ? string.Empty : rdr.GetString(5);
+      var operation = rdr.IsDBNull(6) ? string.Empty : rdr.GetString(6);
+      var price = rdr.IsDBNull(7) ? 0m : Convert.ToDecimal(rdr.GetDouble(7));
+      var volume = rdr.IsDBNull(8) ? 0L : rdr.GetInt64(8);
+      // No counterpart_id in the view
+      var stationOwner = rdr.IsDBNull(9) ? string.Empty : rdr.GetString(9);
+      var stationSector = rdr.IsDBNull(10) ? string.Empty : rdr.GetString(10);
+      var stationName = rdr.IsDBNull(11) ? string.Empty : rdr.GetString(11);
+      var stationCode = rdr.IsDBNull(12) ? string.Empty : rdr.GetString(12);
+
+      bool shipChanged = shipId != currentShip;
+      bool wareChanged = !string.Equals(ware, currentWare, StringComparison.OrdinalIgnoreCase);
+
+      if (shipChanged || wareChanged)
+      {
+        // If we switch context and have a completed segment, drop incomplete ones; only emit on zero balance
+        Reset();
+        currentShip = shipId;
+        currentWare = ware;
+        currentWareName = wareName;
+        shipCode = code;
+        shipName = name;
+      }
+
+      // We only consider sequences that start with buys
+      if (!inSegment)
+      {
+        if (string.Equals(operation, "buy", StringComparison.OrdinalIgnoreCase))
+        {
+          inSegment = true;
+          segmentStartTime = time;
+          cumVolume = volume;
+          boughtVolume += volume;
+          totalBuyCost += price * volume;
+          if (volume > 0)
+          {
+            purchases.Add(
+              new TradeLeg
+              {
+                StationCode = stationCode,
+                StationOwner = stationOwner,
+                StationName = stationName,
+                Volume = volume,
+                Price = price,
+                Time = time,
+                Sector = stationSector,
+              }
+            );
+          }
+        }
+        else
+        {
+          // Selling without inventory; ignore until a buy happens
+        }
+      }
+      else
+      {
+        // Inside a segment
+        if (string.Equals(operation, "buy", StringComparison.OrdinalIgnoreCase))
+        {
+          // Another buy
+          cumVolume += volume;
+          boughtVolume += volume;
+          totalBuyCost += price * volume;
+          if (volume > 0)
+          {
+            purchases.Add(
+              new TradeLeg
+              {
+                StationCode = stationCode,
+                StationOwner = stationOwner,
+                StationName = stationName,
+                Volume = volume,
+                Price = price,
+                Time = time,
+                Sector = stationSector,
+              }
+            );
+          }
+        }
+        else
+        {
+          // A sell
+          // If selling more than available, clamp to available to keep non-negative inventory
+          long soldNow = Math.Min(volume, Math.Max(0, cumVolume));
+          if (soldNow > 0)
+          {
+            cumVolume -= soldNow;
+            soldVolume += soldNow;
+            totalRevenue += price * soldNow;
+            sales.Add(
+              new TradeLeg
+              {
+                StationCode = stationCode,
+                StationOwner = stationOwner,
+                StationName = stationName,
+                Volume = soldNow,
+                Price = price,
+                Time = time,
+                Sector = stationSector,
+              }
+            );
+          }
+        }
+
+        if (cumVolume == 0 && (boughtVolume > 0) && (soldVolume > 0))
+        {
+          // Segment complete: emit trade
+          _allFullTrades.Add(
+            new FullTrade
+            {
+              ShipId = currentShip,
+              ShipCode = shipCode,
+              ShipName = shipName,
+              WareId = currentWare,
+              WareName = currentWareName,
+              StartTime = segmentStartTime,
+              Time = Services.TimeFormatter.FormatHms(segmentStartTime),
+              EndTime = time,
+              BoughtVolume = boughtVolume,
+              SoldVolume = soldVolume,
+              TotalBuyCost = totalBuyCost,
+              TotalRevenue = totalRevenue,
+              Purchases = purchases.ToArray(),
+              Sales = sales.ToArray(),
+            }
+          );
+          // Reset to look for next cycle for this ware
+          Reset();
+        }
+      }
+    }
   }
 
   public event PropertyChangedEventHandler? PropertyChanged;

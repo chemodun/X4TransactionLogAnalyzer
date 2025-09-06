@@ -189,6 +189,15 @@ public sealed class GameData
   private readonly string _dbPath;
   private SQLiteConnection _conn;
 
+  public SQLiteConnection Connection
+  {
+    get
+    {
+      ReOpenConnection();
+      return _conn;
+    }
+  }
+
   // DLC list is now resolved via DlcResolver with its own cache
 
   public GameDataStats Stats { get; } = new GameDataStats();
@@ -198,15 +207,6 @@ public sealed class GameData
   private int _processedFiles;
   private int _clusterSectorNamesProcessed;
   private long _dbSchemaVersion = 1;
-
-  public SQLiteConnection Connection
-  {
-    get
-    {
-      ReOpenConnection();
-      return _conn;
-    }
-  }
 
   public GameData()
   {
@@ -549,208 +549,6 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     using var cmd = _conn.CreateCommand();
     cmd.CommandText = "INSERT INTO settings (current_language) VALUES (44);";
     cmd.ExecuteNonQuery();
-  }
-
-  /// <summary>
-  /// Detects "full trades" for player ships: a contiguous sequence per ship and ware where
-  /// buys accumulate positive inventory followed by sells that deplete it to zero, without interleaving other wares.
-  /// When the cumulative volume returns to zero, the segment is emitted as a FullTrade.
-  /// Opposite-first sequences (sell then buy) are ignored.
-  /// </summary>
-  public IEnumerable<FullTrade> GetFullTrades()
-  {
-    ReOpenConnection();
-    // Use the pre-resolved player_ships_transactions_log view for ship trades; it already resolves station and sector.
-    using var cmd = _conn.CreateCommand();
-    cmd.CommandText =
-      @"
-SELECT
-  id            AS ship_id,
-  code          AS ship_code,
-  name          AS ship_name,
-  time          AS time,
-  ware          AS ware,
-  ware_name     AS ware_name,
-  operation     AS operation,             -- 'buy' or 'sell'
-  price         AS price,                 -- decimal credits
-  volume        AS volume,
-  counterpart_faction AS station_owner,
-  sector        AS station_sector,
-  station       AS station_name,
-  counterpart_code AS station_code
-FROM player_ships_transactions_log
-ORDER BY id, time
-";
-    using var rdr = cmd.ExecuteReader();
-
-    long currentShip = -1;
-    string currentWare = string.Empty;
-    string currentWareName = string.Empty;
-    string shipCode = string.Empty;
-    string shipName = string.Empty;
-    // State of an accumulating segment
-    bool inSegment = false;
-    int segmentStartTime = 0;
-    long cumVolume = 0; // positive while buying, decreases during selling
-    long boughtVolume = 0;
-    long soldVolume = 0;
-    decimal totalBuyCost = 0; // sum(price*volume) for buys
-    decimal totalRevenue = 0; // sum(price*volume) for sells
-
-    // Ordered legs for this segment
-    var purchases = new List<TradeLeg>();
-    var sales = new List<TradeLeg>();
-
-    void Reset()
-    {
-      inSegment = false;
-      segmentStartTime = 0;
-      cumVolume = 0;
-      boughtVolume = 0;
-      soldVolume = 0;
-      totalBuyCost = 0;
-      totalRevenue = 0;
-      purchases.Clear();
-      sales.Clear();
-    }
-
-    while (rdr.Read())
-    {
-      var shipId = rdr.GetInt64(0);
-      var code = rdr.IsDBNull(1) ? string.Empty : rdr.GetString(1);
-      var name = rdr.IsDBNull(2) ? string.Empty : rdr.GetString(2);
-      var time = (int)rdr.GetInt64(3);
-      var ware = rdr.IsDBNull(4) ? string.Empty : rdr.GetString(4);
-      var wareName = rdr.IsDBNull(5) ? string.Empty : rdr.GetString(5);
-      var operation = rdr.IsDBNull(6) ? string.Empty : rdr.GetString(6);
-      var price = rdr.IsDBNull(7) ? 0m : Convert.ToDecimal(rdr.GetDouble(7));
-      var volume = rdr.IsDBNull(8) ? 0L : rdr.GetInt64(8);
-      // No counterpart_id in the view
-      var stationOwner = rdr.IsDBNull(9) ? string.Empty : rdr.GetString(9);
-      var stationSector = rdr.IsDBNull(10) ? string.Empty : rdr.GetString(10);
-      var stationName = rdr.IsDBNull(11) ? string.Empty : rdr.GetString(11);
-      var stationCode = rdr.IsDBNull(12) ? string.Empty : rdr.GetString(12);
-
-      bool shipChanged = shipId != currentShip;
-      bool wareChanged = !string.Equals(ware, currentWare, StringComparison.OrdinalIgnoreCase);
-
-      if (shipChanged || wareChanged)
-      {
-        // If we switch context and have a completed segment, drop incomplete ones; only emit on zero balance
-        Reset();
-        currentShip = shipId;
-        currentWare = ware;
-        currentWareName = wareName;
-        shipCode = code;
-        shipName = name;
-      }
-
-      // We only consider sequences that start with buys
-      if (!inSegment)
-      {
-        if (string.Equals(operation, "buy", StringComparison.OrdinalIgnoreCase))
-        {
-          inSegment = true;
-          segmentStartTime = time;
-          cumVolume = volume;
-          boughtVolume += volume;
-          totalBuyCost += price * volume;
-          if (volume > 0)
-          {
-            purchases.Add(
-              new TradeLeg
-              {
-                StationCode = stationCode,
-                StationOwner = stationOwner,
-                StationName = stationName,
-                Volume = volume,
-                Price = price,
-                Time = time,
-                Sector = stationSector,
-              }
-            );
-          }
-        }
-        else
-        {
-          // Selling without inventory; ignore until a buy happens
-        }
-      }
-      else
-      {
-        // Inside a segment
-        if (string.Equals(operation, "buy", StringComparison.OrdinalIgnoreCase))
-        {
-          // Another buy
-          cumVolume += volume;
-          boughtVolume += volume;
-          totalBuyCost += price * volume;
-          if (volume > 0)
-          {
-            purchases.Add(
-              new TradeLeg
-              {
-                StationCode = stationCode,
-                StationOwner = stationOwner,
-                StationName = stationName,
-                Volume = volume,
-                Price = price,
-                Time = time,
-                Sector = stationSector,
-              }
-            );
-          }
-        }
-        else
-        {
-          // A sell
-          // If selling more than available, clamp to available to keep non-negative inventory
-          long soldNow = Math.Min(volume, Math.Max(0, cumVolume));
-          if (soldNow > 0)
-          {
-            cumVolume -= soldNow;
-            soldVolume += soldNow;
-            totalRevenue += price * soldNow;
-            sales.Add(
-              new TradeLeg
-              {
-                StationCode = stationCode,
-                StationOwner = stationOwner,
-                StationName = stationName,
-                Volume = soldNow,
-                Price = price,
-                Time = time,
-                Sector = stationSector,
-              }
-            );
-          }
-        }
-
-        if (cumVolume == 0 && (boughtVolume > 0) && (soldVolume > 0))
-        {
-          // Segment complete: emit trade
-          yield return new FullTrade
-          {
-            ShipId = currentShip,
-            ShipCode = shipCode,
-            ShipName = shipName,
-            WareId = currentWare,
-            WareName = currentWareName,
-            StartTime = segmentStartTime,
-            Time = TimeFormatter.FormatHms(segmentStartTime),
-            EndTime = time,
-            BoughtVolume = boughtVolume,
-            SoldVolume = soldVolume,
-            TotalBuyCost = totalBuyCost,
-            TotalRevenue = totalRevenue,
-            Purchases = purchases.ToArray(),
-            Sales = sales.ToArray(),
-          };
-          // Reset to look for next cycle for this ware
-          Reset();
-        }
-      }
-    }
   }
 
   public void LoadGameXmlFiles(Action<ProgressUpdate>? progress = null)
