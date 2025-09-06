@@ -22,7 +22,7 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
       {
         selectedShip = value;
         OnPropertyChanged(nameof(SelectedShip));
-        ApplyFilter();
+        ApplyShipFilter();
       }
     }
   }
@@ -223,52 +223,94 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
         }
       );
     }
-    ApplyFilter();
+    ApplyShipFilter();
   }
 
-  private void ApplyFilter()
+  private void ApplyShipFilter()
   {
     FilteredTransactions.Clear();
-    if (SelectedShip != null)
+    if (SelectedShip == null)
     {
-      var shipTx = allTransactions.Where(t => t.ShipId == (SelectedShip?.ShipId)).ToList();
-      long itemsTraded = 0;
-      decimal estimatedProfit = 0;
-      List<long> tripsTimes = new();
-      string lastOperation = string.Empty;
-      string lastWare = string.Empty;
-      long lastTimeMs = 0;
-      foreach (var tx in shipTx)
+      // reset summaries
+      TimeInService = "-";
+      ItemsTraded = "0";
+      TotalEstimatedProfit = "0";
+      TripTimeMin = "-";
+      TripTimeAvg = "-";
+      TripTimeMax = "-";
+      return;
+    }
+
+    long itemsTotal = 0;
+    decimal profitTotal = 0m;
+    long firstMs = long.MaxValue;
+    long lastMs = 0;
+
+    // trip stats (buy -> subsequent sell of same ware)
+    long tripMin = long.MaxValue;
+    long tripMax = 0;
+    long tripSum = 0;
+    int tripCount = 0;
+    string prevOp = string.Empty;
+    string prevWare = string.Empty;
+    long prevMs = 0;
+
+    int count = 0;
+    foreach (var tx in allTransactions.Where(t => t.ShipId == SelectedShip.ShipId))
+    {
+      FilteredTransactions.Add(tx);
+      count++;
+
+      // accumulate items and profit
+      if (tx.Operation == "sell")
       {
-        FilteredTransactions.Add(tx);
-        if (tx.Operation == "sell")
+        itemsTotal += tx.VolumeValue;
+        if (prevOp == "buy" && prevWare == tx.Product)
         {
-          itemsTraded += tx.VolumeValue;
-          if (lastOperation == "buy" && lastWare == tx.Product)
-          {
-            tripsTimes.Add(Math.Abs(tx.RawTimeMs - lastTimeMs));
-          }
+          var dt = Math.Abs(tx.RawTimeMs - prevMs);
+          tripSum += dt;
+          tripCount++;
+          if (dt < tripMin)
+            tripMin = dt;
+          if (dt > tripMax)
+            tripMax = dt;
         }
-        lastOperation = tx.Operation ?? string.Empty;
-        lastWare = tx.Product ?? string.Empty;
-        lastTimeMs = tx.RawTimeMs;
-        estimatedProfit += tx.EstimatedProfit ?? 0;
       }
-      // update summaries
-      if (shipTx.Count > 0)
+      profitTotal += tx.EstimatedProfit ?? 0m;
+
+      // update window
+      if (tx.RawTimeMs < firstMs)
+        firstMs = tx.RawTimeMs;
+      if (tx.RawTimeMs > lastMs)
+        lastMs = tx.RawTimeMs;
+
+      // carry last op/ware/time
+      prevOp = tx.Operation ?? string.Empty;
+      prevWare = tx.Product ?? string.Empty;
+      prevMs = tx.RawTimeMs;
+    }
+
+    if (count > 0)
+    {
+      TimeInService = TimeFormatter.FormatHms(lastMs - firstMs, groupHours: true);
+      ItemsTraded = itemsTotal.ToString("N0");
+      TotalEstimatedProfit = profitTotal.ToString("N2");
+      if (tripCount > 0)
       {
-        var firstMs = shipTx.Min(t => t.RawTimeMs);
-        var lastMs = shipTx.Max(t => t.RawTimeMs);
-        TimeInService = TimeFormatter.FormatHms(lastMs - firstMs, groupHours: true);
-        ItemsTraded = itemsTraded.ToString("N0");
-        TotalEstimatedProfit = estimatedProfit.ToString("N2");
-        TripTimeMin = tripsTimes.Count > 0 ? TimeFormatter.FormatHms(tripsTimes.Min()) : "-";
-        TripTimeAvg = tripsTimes.Count > 0 ? TimeFormatter.FormatHms((long)tripsTimes.Average()) : "-";
-        TripTimeMax = tripsTimes.Count > 0 ? TimeFormatter.FormatHms(tripsTimes.Max()) : "-";
+        TripTimeMin = TimeFormatter.FormatHms(tripMin);
+        TripTimeAvg = TimeFormatter.FormatHms(tripSum / tripCount);
+        TripTimeMax = TimeFormatter.FormatHms(tripMax);
+      }
+      else
+      {
+        TripTimeMin = "-";
+        TripTimeAvg = "-";
+        TripTimeMax = "-";
       }
     }
     else
     {
+      // empty selection after filter
       TimeInService = "-";
       ItemsTraded = "0";
       TotalEstimatedProfit = "0";
