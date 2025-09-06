@@ -581,6 +581,193 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     }
   }
 
+  /// <summary>
+  /// Detects "full trades" for player ships: a contiguous sequence per ship and ware where
+  /// buys accumulate positive inventory followed by sells that deplete it to zero, without interleaving other wares.
+  /// When the cumulative volume returns to zero, the segment is emitted as a FullTrade.
+  /// Opposite-first sequences (sell then buy) are ignored.
+  /// </summary>
+  public IEnumerable<FullTrade> GetFullTrades()
+  {
+    ReOpenConnection();
+    // Query raw trade rows for player ships with resolved ship info; include ware and price/volume/time
+    using var cmd = _conn.CreateCommand();
+    cmd.CommandText =
+      @"
+SELECT c.id AS ship_id, c.code AS ship_code, c.name AS ship_name,
+       t.time AS time, t.ware AS ware, t.price AS price, t.volume AS volume,
+       CASE WHEN t.seller = c.id THEN 1 ELSE -1 END AS direction,
+       CASE WHEN t.seller = c.id THEN t.buyer ELSE t.seller END AS counterpart_id,
+       cp.code AS counterpart_code,
+       cp.name AS counterpart_name
+FROM trade t
+JOIN component c ON (t.seller = c.id OR t.buyer = c.id)
+LEFT JOIN component cp ON cp.id = CASE WHEN t.seller = c.id THEN t.buyer ELSE t.seller END
+WHERE c.type = 'ship' AND c.owner = 'player'
+ORDER BY c.id, t.time
+";
+    using var rdr = cmd.ExecuteReader();
+
+    long currentShip = -1;
+    string currentWare = string.Empty;
+    string shipCode = string.Empty;
+    string shipName = string.Empty;
+    // State of an accumulating segment
+    bool inSegment = false;
+    int segmentStartTime = 0;
+    long cumVolume = 0; // positive while buying, decreases during selling
+    long boughtVolume = 0;
+    long soldVolume = 0;
+    long totalBuyCost = 0; // sum(price*volume) for buys
+    long totalRevenue = 0; // sum(price*volume) for sells
+
+    // Ordered legs for this segment
+    var purchases = new List<TradeLeg>();
+    var sales = new List<TradeLeg>();
+
+    void Reset()
+    {
+      inSegment = false;
+      segmentStartTime = 0;
+      cumVolume = 0;
+      boughtVolume = 0;
+      soldVolume = 0;
+      totalBuyCost = 0;
+      totalRevenue = 0;
+      purchases.Clear();
+      sales.Clear();
+    }
+
+    while (rdr.Read())
+    {
+      var shipId = rdr.GetInt64(0);
+      var code = rdr.IsDBNull(1) ? string.Empty : rdr.GetString(1);
+      var name = rdr.IsDBNull(2) ? string.Empty : rdr.GetString(2);
+      var time = (int)rdr.GetInt64(3);
+      var ware = rdr.IsDBNull(4) ? string.Empty : rdr.GetString(4);
+      var price = rdr.GetInt64(5);
+      var volume = rdr.GetInt64(6);
+      var dir = rdr.GetInt32(7); // 1 = sell, -1 = buy relative to ship
+      var cpId = rdr.IsDBNull(8) ? 0L : rdr.GetInt64(8);
+      var cpCode = rdr.IsDBNull(9) ? string.Empty : rdr.GetString(9);
+      var cpName = rdr.IsDBNull(10) ? string.Empty : rdr.GetString(10);
+
+      bool shipChanged = shipId != currentShip;
+      bool wareChanged = !string.Equals(ware, currentWare, StringComparison.OrdinalIgnoreCase);
+
+      if (shipChanged || wareChanged)
+      {
+        // If we switch context and have a completed segment, drop incomplete ones; only emit on zero balance
+        Reset();
+        currentShip = shipId;
+        currentWare = ware;
+        shipCode = code;
+        shipName = name;
+      }
+
+      // We only consider sequences that start with buys
+      if (!inSegment)
+      {
+        if (dir == -1)
+        {
+          inSegment = true;
+          segmentStartTime = time;
+          cumVolume = volume;
+          boughtVolume += volume;
+          totalBuyCost += price * volume;
+          if (volume > 0)
+          {
+            purchases.Add(
+              new TradeLeg
+              {
+                CounterpartId = cpId,
+                CounterpartCode = cpCode,
+                CounterpartName = cpName,
+                Volume = volume,
+                Price = price,
+                Time = time,
+              }
+            );
+          }
+        }
+        else
+        {
+          // Selling without inventory; ignore until a buy happens
+        }
+      }
+      else
+      {
+        // Inside a segment
+        if (dir == -1)
+        {
+          // Another buy
+          cumVolume += volume;
+          boughtVolume += volume;
+          totalBuyCost += price * volume;
+          if (volume > 0)
+          {
+            purchases.Add(
+              new TradeLeg
+              {
+                CounterpartId = cpId,
+                CounterpartCode = cpCode,
+                CounterpartName = cpName,
+                Volume = volume,
+                Price = price,
+                Time = time,
+              }
+            );
+          }
+        }
+        else
+        {
+          // A sell
+          // If selling more than available, clamp to available to keep non-negative inventory
+          long soldNow = Math.Min(volume, Math.Max(0, cumVolume));
+          if (soldNow > 0)
+          {
+            cumVolume -= soldNow;
+            soldVolume += soldNow;
+            totalRevenue += price * soldNow;
+            sales.Add(
+              new TradeLeg
+              {
+                CounterpartId = cpId,
+                CounterpartCode = cpCode,
+                CounterpartName = cpName,
+                Volume = soldNow,
+                Price = price,
+                Time = time,
+              }
+            );
+          }
+        }
+
+        if (cumVolume == 0 && (boughtVolume > 0) && (soldVolume > 0))
+        {
+          // Segment complete: emit trade
+          yield return new FullTrade
+          {
+            ShipId = currentShip,
+            ShipCode = shipCode,
+            ShipName = shipName,
+            WareId = currentWare,
+            StartTime = segmentStartTime,
+            EndTime = time,
+            BoughtVolume = boughtVolume,
+            SoldVolume = soldVolume,
+            TotalBuyCost = totalBuyCost,
+            TotalRevenue = totalRevenue,
+            Purchases = purchases.ToArray(),
+            Sales = sales.ToArray(),
+          };
+          // Reset to look for next cycle for this ware
+          Reset();
+        }
+      }
+    }
+  }
+
   public void LoadGameXmlFiles(Action<ProgressUpdate>? progress = null)
   {
     ReOpenConnection();

@@ -51,6 +51,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
+  private FullTradesModel? _fullTrades;
+  public FullTradesModel? FullTrades
+  {
+    get => _fullTrades;
+    set
+    {
+      _fullTrades = value;
+      OnPropertyChanged();
+    }
+  }
+
   private ConfigurationViewModel? _configuration;
   public ConfigurationViewModel? Configuration
   {
@@ -68,6 +79,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     ShipsTransactions = new ShipsTransactionsModel();
     ShipsGraphs = new ShipsGraphsModel();
     WaresStats = new WaresStatsModel();
+    FullTrades = new FullTradesModel();
     Configuration = new ConfigurationViewModel();
   }
 
@@ -77,6 +89,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     ShipsTransactions?.Refresh();
     ShipsGraphs?.Refresh();
     WaresStats?.Refresh();
+    FullTrades?.Refresh();
     Configuration?.RefreshStats();
   }
 
