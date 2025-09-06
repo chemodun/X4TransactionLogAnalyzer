@@ -1,5 +1,46 @@
 # Changelog
 
+## [1.3.0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.2.0...v1.3.0) (2025-09-06)
+
+
+### Features
+
+* **ContentExtractor:** enhance catalog initialization and file extraction ([12911e6](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/12911e68daa0106c3d91cc6edee1c80128c56a1d))
+* **DlcResolver:** add DLC resolution logic ([b487d75](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/b487d7558e5bee5962ecb7d6db521ea133009829))
+* **DlcResolver:** enhance DLC discovery and content ID handling ([57a3abd](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/57a3abddcc0eecedb360b176c0d4af3a11b26d57))
+* **ExtensionResolver:** add extension resolution logic ([65ecfb0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/65ecfb02158c6e80f40c39644d0c5eec7014388f))
+* **FullTrade:** add SpentTime property for trade duration calculation ([a13bb6d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/a13bb6d17cff7ee96526b2ae57179d93fe67b7da))
+* **FullTrade:** enhance trade duration representation ([32d3bcb](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/32d3bcbd184a4d8f42e036457fffcd6cfe7b7da6))
+* **FullTrade:** introduce FullTrade and TradeLeg models ([246e157](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/246e157763426d81aa5b1d9e8dde8902b915eeed))
+* **FullTradesModel:** add summary fields for trade statistics ([32d3bcb](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/32d3bcbd184a4d8f42e036457fffcd6cfe7b7da6))
+* **FullTradesModel:** implement data loading and refreshing logic ([246e157](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/246e157763426d81aa5b1d9e8dde8902b915eeed))
+* **FullTradesModel:** implement ship filtering and trade steps rebuilding ([a13bb6d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/a13bb6d17cff7ee96526b2ae57179d93fe67b7da))
+* **GameData:** add GetFullTrades method for detecting full trades ([246e157](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/246e157763426d81aa5b1d9e8dde8902b915eeed))
+* **GameData:** improve full trade detection ([32d3bcb](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/32d3bcbd184a4d8f42e036457fffcd6cfe7b7da6))
+* **GameData:** include sector information in trade queries ([a13bb6d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/a13bb6d17cff7ee96526b2ae57179d93fe67b7da))
+* **MainViewModel:** integrate FullTradesModel for UI updates ([246e157](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/246e157763426d81aa5b1d9e8dde8902b915eeed))
+* **MainWindow:** add Ships Trades tab with data grid for trades ([a13bb6d](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/a13bb6d17cff7ee96526b2ae57179d93fe67b7da))
+* **TimeFormatter:** add utility for time formatting ([32d3bcb](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/32d3bcbd184a4d8f42e036457fffcd6cfe7b7da6))
+
+
+### Bug Fixes
+
+* **on-markdown-update:** add 'steam' conversion type for markdown processing ([b272d20](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/b272d20f7b03fcf7e32bbccb43a5b414d44c5fea))
+
+
+### Code Refactoring
+
+* **DlcResolver:** remove unused class ([65ecfb0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/65ecfb02158c6e80f40c39644d0c5eec7014388f))
+* **GameData:** delegate DLC resolution to DlcResolver ([b487d75](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/b487d7558e5bee5962ecb7d6db521ea133009829))
+* **GameData:** update DLC handling to extensions ([65ecfb0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/65ecfb02158c6e80f40c39644d0c5eec7014388f))
+* **MainWindow:** set initial folder based on a current values for file/folder pickers ([1fcc6a0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/1fcc6a012c60988e9947200e6a5ccf102cac9922))
+
+
+### Documentation
+
+* **bbcode:** Update bbcode files ([075ac45](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/075ac456738a586506c519b52d71a595ad5b7fb8))
+* **README.md:** correct date and grammar in change log ([670c751](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/670c751d55ea14a4ef1f6fe68d5ce63b8b78ce60))
+
 ## [1.2.0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.1.3...v1.2.0) (2025-09-04)
 
 
