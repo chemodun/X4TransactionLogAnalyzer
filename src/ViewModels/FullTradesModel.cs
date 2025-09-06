@@ -42,6 +42,26 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     }
   }
 
+  public enum ShipSortOrder
+  {
+    Name,
+    Profit,
+  }
+
+  private ShipSortOrder _shipsSortOrder = ShipSortOrder.Name;
+  public ShipSortOrder ShipsSortOrder
+  {
+    get => _shipsSortOrder;
+    set
+    {
+      if (_shipsSortOrder == value)
+        return;
+      _shipsSortOrder = value;
+      OnPropertyChanged();
+      ResortShips();
+    }
+  }
+
   private ShipInfo? _selectedShip;
   public ShipInfo? SelectedShip
   {
@@ -184,7 +204,7 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     SelectedShip = null;
     SelectedFullTrade = null;
 
-    var seenShips = new HashSet<long>();
+    var ships = new Dictionary<long, ShipInfo>();
     foreach (var ft in _allFullTrades)
     {
       if (!WithInternalTrades && IsInternalTrade(ft))
@@ -192,19 +212,45 @@ public sealed class FullTradesModel : INotifyPropertyChanged
 
       FullTrades.Add(ft);
 
-      if (seenShips.Add(ft.ShipId))
+      if (!ships.TryGetValue(ft.ShipId, out var info))
       {
-        var displayName = $"{ft.ShipName} ({ft.ShipCode})";
-        // Insert into ShipList keeping it sorted by display name
-        int insertAt = 0;
-        while (insertAt < ShipList.Count && string.CompareOrdinal(ShipList[insertAt].ShipName, displayName) < 0)
-          insertAt++;
-        ShipList.Insert(insertAt, new ShipInfo { ShipId = (int)ft.ShipId, ShipName = displayName });
+        info = new ShipInfo
+        {
+          ShipId = (int)ft.ShipId,
+          ShipName = $"{ft.ShipName} ({ft.ShipCode})",
+          EstimatedProfit = 0m,
+        };
+        ships.Add(ft.ShipId, info);
       }
+      info.EstimatedProfit = (info.EstimatedProfit ?? 0m) + ft.Profit;
     }
+
+    // Fill ShipList sorted according to current sort order
+    ShipList.Clear();
+    foreach (var ship in SortShips(ships.Values))
+      ShipList.Add(ship);
 
     OnPropertyChanged(nameof(FullTrades));
     OnPropertyChanged(nameof(ShipList));
+  }
+
+  private IEnumerable<ShipInfo> SortShips(IEnumerable<ShipInfo> ships)
+  {
+    return ShipsSortOrder switch
+    {
+      ShipSortOrder.Profit => ships.OrderByDescending(s => s.EstimatedProfit ?? 0m).ThenBy(s => s.ShipName, StringComparer.Ordinal),
+      _ => ships.OrderBy(s => s.ShipName, StringComparer.Ordinal),
+    };
+  }
+
+  private void ResortShips()
+  {
+    if (ShipList.Count == 0)
+      return;
+    var snapshot = ShipList.ToList();
+    ShipList.Clear();
+    foreach (var ship in SortShips(snapshot))
+      ShipList.Add(ship);
   }
 
   private void ApplyShipFilter()

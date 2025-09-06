@@ -4,6 +4,7 @@ public class ShipInfo
 {
   public int ShipId { get; set; }
   public string? ShipName { get; set; }
+  public decimal? EstimatedProfit { get; set; }
 }
 
 public class ShipTransaction
