@@ -24,3 +24,9 @@ public class ShipTransaction
   public decimal? Total { get; set; }
   public decimal? EstimatedProfit { get; set; }
 }
+
+public enum ShipSortOrder
+{
+  Name,
+  Profit,
+}

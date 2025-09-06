@@ -38,6 +38,7 @@
           </Grid.ColumnDefinitions>
           <Grid.RowDefinitions>
               <RowDefinition Height="28" />
+              <RowDefinition Height="36" />
               <RowDefinition />
           </Grid.RowDefinitions>
           <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
@@ -83,7 +84,17 @@
             </StackPanel>
           </Border>
 
-          <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+          <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="16,0,0,0">
+              <TextBlock Text="Sort:" VerticalAlignment="Center"/>
+              <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
+                            IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
+              <RadioButton Content="Profit" GroupName="ShipsSort" Margin="8,0,0,0"
+                            IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
+            </StackPanel>
+          </Border>
+
+          <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
             <ListBox ItemsSource="{Binding ShipList}"
                     SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
                     Margin="8" Width="300">
@@ -98,7 +109,7 @@
             </ListBox>
           </Border>
 
-          <Border Grid.Row="1" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+          <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
 
             <DataGrid ItemsSource="{Binding FilteredTransactions}"
                       AutoGenerateColumns="False"

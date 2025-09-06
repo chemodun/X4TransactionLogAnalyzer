@@ -42,12 +42,6 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     }
   }
 
-  public enum ShipSortOrder
-  {
-    Name,
-    Profit,
-  }
-
   private ShipSortOrder _shipsSortOrder = ShipSortOrder.Name;
   public ShipSortOrder ShipsSortOrder
   {

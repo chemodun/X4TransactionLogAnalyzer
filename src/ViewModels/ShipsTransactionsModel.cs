@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.SQLite;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Services;
 using X4PlayerShipTradeAnalyzer.Views;
@@ -12,7 +13,19 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
 {
   public ObservableCollection<ShipInfo> ShipList { get; } = new();
   public ObservableCollection<ShipTransaction> FilteredTransactions { get; } = new();
-
+  private ShipSortOrder _shipsSortOrder = ShipSortOrder.Name;
+  public ShipSortOrder ShipsSortOrder
+  {
+    get => _shipsSortOrder;
+    set
+    {
+      if (_shipsSortOrder == value)
+        return;
+      _shipsSortOrder = value;
+      OnPropertyChanged();
+      ResortShips();
+    }
+  }
   private ShipInfo? selectedShip;
   public ShipInfo? SelectedShip
   {
@@ -239,6 +252,25 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
     ApplyShipFilter();
   }
 
+  private IEnumerable<ShipInfo> SortShips(IEnumerable<ShipInfo> ships)
+  {
+    return ShipsSortOrder switch
+    {
+      ShipSortOrder.Profit => ships.OrderByDescending(s => s.EstimatedProfit ?? 0m).ThenBy(s => s.ShipName, StringComparer.Ordinal),
+      _ => ships.OrderBy(s => s.ShipName, StringComparer.Ordinal),
+    };
+  }
+
+  private void ResortShips()
+  {
+    if (ShipList.Count == 0)
+      return;
+    var snapshot = ShipList.ToList();
+    ShipList.Clear();
+    foreach (var ship in SortShips(snapshot))
+      ShipList.Add(ship);
+  }
+
   private void ApplyShipFilter()
   {
     FilteredTransactions.Clear();
@@ -335,5 +367,6 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
 
   public event PropertyChangedEventHandler? PropertyChanged;
 
-  private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+  private void OnPropertyChanged([CallerMemberName] string? name = null) =>
+    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
