@@ -281,10 +281,10 @@ public sealed class GameData
   /// sorted so that items with no present dependencies come first, followed by their dependents, etc.
   /// The list is cached per GameFolderExePath; if the configured path hasn't changed, the cached list is returned.
   /// </summary>
-  public static List<string> GetDLCsSorted()
+  public static List<string> GetExtensionsSorted()
   {
     var configuredExePath = ConfigurationService.Instance.GameFolderExePath;
-    return DlcResolver.GetDLCsSorted(configuredExePath);
+    return ExtensionResolver.GetExtensionsSorted(configuredExePath);
   }
 
   private void CreateDBSchema()
@@ -589,8 +589,8 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     string gamePath = ConfigurationService.Instance.GameFolderExePath ?? string.Empty;
     if (string.IsNullOrWhiteSpace(gamePath) || !Directory.Exists(gamePath))
       return;
-    List<string> dlcPathList = GetDLCsSorted();
-    dlcPathList.Insert(0, string.Empty); // base game first
+    List<string> extensionsPathList = GetExtensionsSorted();
+    extensionsPathList.Insert(0, string.Empty); // base game first
     ClearTableText();
     ClearTableWare();
     ClearTableFaction();
@@ -600,13 +600,13 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     _processedFiles = 0;
     _clusterSectorNamesProcessed = 0;
     // dlcPathList.Prepend(string.Empty); // base game first
-    foreach (var dlcRelPath in dlcPathList)
+    foreach (var extensionRelPath in extensionsPathList)
     {
-      var dlcFullPath = string.IsNullOrWhiteSpace(dlcRelPath) ? gamePath : Path.Combine(gamePath, dlcRelPath);
+      var dlcFullPath = string.IsNullOrWhiteSpace(extensionRelPath) ? gamePath : Path.Combine(gamePath, extensionRelPath);
       // Report current package: base game or last folder name of the dlc path
-      string packageLabel = string.IsNullOrWhiteSpace(dlcRelPath)
+      string packageLabel = string.IsNullOrWhiteSpace(extensionRelPath)
         ? "game"
-        : (dlcRelPath.Replace('\\', '/').Split('/').LastOrDefault() ?? dlcRelPath);
+        : (extensionRelPath.Replace('\\', '/').Split('/').LastOrDefault() ?? extensionRelPath);
       progress?.Invoke(new ProgressUpdate { CurrentPackage = packageLabel });
 
       ContentExtractor contentExtractor = new(dlcFullPath);
@@ -614,7 +614,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
       {
         continue;
       }
-      if (string.IsNullOrWhiteSpace(dlcRelPath))
+      if (string.IsNullOrWhiteSpace(extensionRelPath))
       {
         progress?.Invoke(new ProgressUpdate { Status = "Parsing texts..." });
         LoadTextsFromGameT(contentExtractor, progress);
