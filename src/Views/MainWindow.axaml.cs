@@ -28,6 +28,7 @@ public partial class MainWindow : Window
   private TabItem? _byTransactionsTab;
   private TabItem? _byTradesTab;
   private TabItem? _ByTransactionsGraphsTab;
+  private TabItem? _ByTradesGraphsTab;
   private TabItem? _shipsTradesTab;
   private TabItem? _waresStatsTab;
   private TabItem? _configurationTab;
@@ -71,6 +72,7 @@ public partial class MainWindow : Window
     _byTradesTab = this.FindControl<TabItem>("ByTradesTab");
     _shipsTransactionsTab = this.FindControl<TabItem>("ShipsTransactionsTab");
     _ByTransactionsGraphsTab = this.FindControl<TabItem>("ShipsTransactionsGraphsTab");
+    _ByTradesGraphsTab = this.FindControl<TabItem>("ShipsTradesGraphsTab");
     _waresStatsTab = this.FindControl<TabItem>("WaresStatsTab");
     _shipsTradesTab = this.FindControl<TabItem>("ShipsTradesTab");
     _configurationTab = this.FindControl<TabItem>("ConfigurationTab");
@@ -141,6 +143,8 @@ public partial class MainWindow : Window
       _shipsTransactionsTab.IsEnabled = dataReady;
     if (_ByTransactionsGraphsTab != null)
       _ByTransactionsGraphsTab.IsEnabled = dataReady;
+    if (_ByTradesGraphsTab != null)
+      _ByTradesGraphsTab.IsEnabled = dataReady;
     if (_shipsTradesTab != null)
       _shipsTradesTab.IsEnabled = dataReady;
     if (_waresStatsTab != null)
@@ -162,7 +166,9 @@ public partial class MainWindow : Window
   // Toggle a ship's series on double-click in Ships Graphs list
   private void ShipGraphsList_DoubleTapped(object? sender, RoutedEventArgs e)
   {
-    if (sender is not ListBox lb || lb.DataContext is not ShipsGraphsModel model)
+    if (sender is not ListBox lb)
+      return;
+    if (lb.DataContext is not ShipsGraphsBaseModel model)
       return;
     if (e is not TappedEventArgs tea)
       return;
@@ -170,10 +176,8 @@ public partial class MainWindow : Window
     if (tea.Source is Control c)
     {
       var container = c as ListBoxItem ?? c.FindAncestorOfType<ListBoxItem>();
-      if (container?.DataContext is ShipsGraphsModel.ShipListItem ship)
-      {
+      if (container?.DataContext is ShipsGraphsBaseModel.GraphShipItem ship)
         model.ToggleShip(ship);
-      }
     }
   }
 
@@ -330,6 +334,9 @@ public partial class MainWindow : Window
         // do not refresh
         break;
       case "ShipsTransactionsGraphsTab":
+        // do not refresh
+        break;
+      case "ShipsTradesGraphsTab":
         // do not refresh
         break;
       case "WaresStatsTab":

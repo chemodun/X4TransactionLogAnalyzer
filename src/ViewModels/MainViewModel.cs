@@ -29,13 +29,24 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
-  private ShipsGraphsModel? _shipsGraphs;
-  public ShipsGraphsModel? ShipsGraphs
+  private ShipsGraphTransactionsModel? _shipsGraphs;
+  public ShipsGraphTransactionsModel? ShipsGraphs
   {
     get => _shipsGraphs;
     set
     {
       _shipsGraphs = value;
+      OnPropertyChanged();
+    }
+  }
+
+  private ShipsGraphTradesModel? _shipsGraphsTrades;
+  public ShipsGraphTradesModel? ShipsGraphsTrades
+  {
+    get => _shipsGraphsTrades;
+    set
+    {
+      _shipsGraphsTrades = value;
       OnPropertyChanged();
     }
   }
@@ -77,7 +88,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
   {
     Console.WriteLine($"Connection state: {MainWindow.GameData.Connection.State}");
     ShipsDataTransactions = new ShipsDataTransactionsModel();
-    ShipsGraphs = new ShipsGraphsModel();
+    ShipsGraphs = new ShipsGraphTransactionsModel();
+    ShipsGraphsTrades = new ShipsGraphTradesModel();
     WaresStats = new WaresStatsModel();
     ShipsDataTrades = new ShipsDataTradesModel();
     Configuration = new ConfigurationViewModel();
@@ -88,6 +100,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     // Reload data for all models
     ShipsDataTransactions?.Refresh();
     ShipsGraphs?.Refresh();
+    ShipsGraphsTrades?.Refresh();
     WaresStats?.Refresh();
     ShipsDataTrades?.Refresh();
     Configuration?.RefreshStats();
