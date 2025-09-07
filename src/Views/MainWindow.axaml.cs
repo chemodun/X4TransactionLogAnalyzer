@@ -110,6 +110,7 @@ public partial class MainWindow : Window
       || s.ClusterSectorNamesCount == 0
       || s.PlayerShipsCount == 0
       || s.StationsCount == 0
+      || s.RemovedObjectCount == 0
       || s.TradesCount == 0
       || s.LanguagesCount == 0
       || s.CurrentLanguageId == 0

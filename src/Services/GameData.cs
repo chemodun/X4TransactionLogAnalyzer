@@ -87,6 +87,20 @@ public sealed class GameDataStats : INotifyPropertyChanged
     }
   }
 
+  int _removedObjectCount;
+  public int RemovedObjectCount
+  {
+    get => _removedObjectCount;
+    set
+    {
+      if (_removedObjectCount != value)
+      {
+        _removedObjectCount = value;
+        OnPropertyChanged(nameof(RemovedObjectCount));
+      }
+    }
+  }
+
   int _tradesCount;
   public int TradesCount
   {
@@ -1780,6 +1794,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
           {
             removedProcessed = true;
             removedEntries = false;
+            progress?.Invoke(new ProgressUpdate { RemovedProcessed = removedCount });
           }
         }
       }
@@ -1821,6 +1836,8 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
       Stats.StationsCount = ViewExists("stations")
         ? ExecuteScalarInt("SELECT COUNT(1) FROM stations")
         : ExecuteScalarInt("SELECT COUNT(1) FROM component WHERE type='station'");
+      // removed objects count (from save import)
+      Stats.RemovedObjectCount = ExecuteScalarInt("SELECT COUNT(1) FROM component WHERE type='removed'");
       // wares table may not exist in this project schema; guard it
       Stats.WaresCount = TableExists("ware") ? ExecuteScalarInt("SELECT COUNT(1) FROM ware") : 0;
       // factions count if table exists

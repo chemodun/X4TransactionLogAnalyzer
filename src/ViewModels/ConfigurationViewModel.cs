@@ -137,6 +137,19 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
       }
     }
   }
+  private int _removedObjectCount;
+  public int RemovedObjectCount
+  {
+    get => _removedObjectCount;
+    private set
+    {
+      if (_removedObjectCount != value)
+      {
+        _removedObjectCount = value;
+        OnPropertyChanged();
+      }
+    }
+  }
   private int _tradesCount;
   public int TradesCount
   {
@@ -276,6 +289,7 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
       WaresCount = gameData.Stats.WaresCount;
       PlayerShipsCount = gameData.Stats.PlayerShipsCount;
       StationsCount = gameData.Stats.StationsCount;
+      RemovedObjectCount = gameData.Stats.RemovedObjectCount;
       TradesCount = gameData.Stats.TradesCount;
       FactionsCount = gameData.Stats.FactionsCount;
       ClusterSectorNamesCount = gameData.Stats.ClusterSectorNamesCount;

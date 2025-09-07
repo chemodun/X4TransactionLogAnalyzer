@@ -486,6 +486,10 @@
               <TextBlock Text="{Binding StationsCount}" FontWeight="Bold" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Removed objects:" Foreground="{Binding RemovedObjectCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding RemovedObjectCount}" FontWeight="Bold" Foreground="{Binding RemovedObjectCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
               <TextBlock Text="Trades:" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
               <TextBlock Text="{Binding TradesCount}" FontWeight="Bold" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
             </StackPanel>
