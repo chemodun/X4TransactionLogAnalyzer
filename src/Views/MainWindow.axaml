@@ -4,7 +4,7 @@
     xmlns:vm="clr-namespace:X4PlayerShipTradeAnalyzer.ViewModels"
     xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
     xmlns:conv="clr-namespace:X4PlayerShipTradeAnalyzer.Converters"
-  xmlns:mdv="clr-namespace:MarkdownViewer.Core.Controls;assembly=MarkdownViewer.Core"
+    xmlns:mdv="clr-namespace:MarkdownViewer.Core.Controls;assembly=MarkdownViewer.Core"
     x:Class="X4PlayerShipTradeAnalyzer.Views.MainWindow"
   Width="1200" Height="800"
   Title="X4 Player Ship Trade Analyzer">
@@ -35,7 +35,7 @@
     <TabItem Header="By Transactions" x:Name="ByTransactionsTab">
       <TabControl x:Name="ByTransactionsTabs">
         <TabItem Header="Ships transactions" x:Name="ShipsTransactionsTab">
-          <Grid DataContext="{Binding ShipsTransactions}">
+          <Grid DataContext="{Binding ShipsDataTransactions}">
           <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="*"/>
@@ -244,7 +244,7 @@
     <TabItem Header="By Trades" x:Name="ByTradesTab">
       <TabControl x:Name="ByTradesTabs">
         <TabItem Header="Ships Trades" x:Name="ShipsTradesTab">
-          <Grid DataContext="{Binding FullTrades}">
+          <Grid DataContext="{Binding ShipsDataTrades}">
           <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="Auto"/>

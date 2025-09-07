@@ -9,81 +9,9 @@ using X4PlayerShipTradeAnalyzer.Views;
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
-public class ShipsTransactionsModel : INotifyPropertyChanged
+public class ShipsDataTransactionsModel : ShipsDataBaseModel
 {
-  public ObservableCollection<ShipInfo> ShipList { get; } = new();
   public ObservableCollection<ShipTransaction> FilteredTransactions { get; } = new();
-  private ShipSortOrder _shipsSortOrder = ShipSortOrder.Name;
-  public ShipSortOrder ShipsSortOrder
-  {
-    get => _shipsSortOrder;
-    set
-    {
-      if (_shipsSortOrder == value)
-        return;
-      _shipsSortOrder = value;
-      OnPropertyChanged();
-      ResortShips();
-    }
-  }
-  private ShipInfo? selectedShip;
-  public ShipInfo? SelectedShip
-  {
-    get => selectedShip;
-    set
-    {
-      if (selectedShip != value)
-      {
-        selectedShip = value;
-        OnPropertyChanged();
-        ApplyShipFilter();
-      }
-    }
-  }
-
-  private bool isContainerChecked = true;
-  public bool IsContainerChecked
-  {
-    get => isContainerChecked;
-    set
-    {
-      // prevent both flags being false at the same time
-      if (!value && !isSolidChecked)
-      {
-        IsSolidChecked = true;
-        return;
-      }
-      if (isContainerChecked == value)
-      {
-        return;
-      }
-      isContainerChecked = value;
-      OnPropertyChanged();
-      LoadData();
-    }
-  }
-
-  private bool isSolidChecked;
-  public bool IsSolidChecked
-  {
-    get => isSolidChecked;
-    set
-    {
-      // prevent both flags being false at the same time
-      if (!value && !isContainerChecked)
-      {
-        IsContainerChecked = true;
-        return;
-      }
-      if (isSolidChecked == value)
-      {
-        return;
-      }
-      isSolidChecked = value;
-      OnPropertyChanged();
-      LoadData();
-    }
-  }
 
   private List<ShipTransaction> allTransactions = new();
 
@@ -172,26 +100,9 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
     }
   }
 
-  public ShipsTransactionsModel()
-  {
-    LoadData();
-  }
+  public ShipsDataTransactionsModel() => LoadData();
 
-  private string AppendWhereOnFilters(string baseQuery)
-  {
-    var filters = new List<string>();
-    if (IsContainerChecked)
-      filters.Add("transport == 'container'");
-    if (IsSolidChecked)
-      filters.Add("transport == 'solid'");
-    if (filters.Count > 0)
-      return $"{baseQuery} WHERE {string.Join(" OR ", filters)}";
-    return baseQuery;
-  }
-
-  public void Refresh() => LoadData();
-
-  private void LoadData()
+  protected override void LoadData()
   {
     using var conn = MainWindow.GameData.Connection;
     SelectedShip = null;
@@ -252,26 +163,7 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
     ApplyShipFilter();
   }
 
-  private IEnumerable<ShipInfo> SortShips(IEnumerable<ShipInfo> ships)
-  {
-    return ShipsSortOrder switch
-    {
-      ShipSortOrder.Profit => ships.OrderByDescending(s => s.EstimatedProfit ?? 0m).ThenBy(s => s.ShipName, StringComparer.Ordinal),
-      _ => ships.OrderBy(s => s.ShipName, StringComparer.Ordinal),
-    };
-  }
-
-  private void ResortShips()
-  {
-    if (ShipList.Count == 0)
-      return;
-    var snapshot = ShipList.ToList();
-    ShipList.Clear();
-    foreach (var ship in SortShips(snapshot))
-      ShipList.Add(ship);
-  }
-
-  private void ApplyShipFilter()
+  protected override void ApplyShipFilter()
   {
     FilteredTransactions.Clear();
     if (SelectedShip == null)
@@ -364,9 +256,4 @@ public class ShipsTransactionsModel : INotifyPropertyChanged
       TimeMax = "-";
     }
   }
-
-  public event PropertyChangedEventHandler? PropertyChanged;
-
-  private void OnPropertyChanged([CallerMemberName] string? name = null) =>
-    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }

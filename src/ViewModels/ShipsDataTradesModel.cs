@@ -12,13 +12,10 @@ namespace X4PlayerShipTradeAnalyzer.ViewModels;
 /// Draft view model that materializes full trades from the database.
 /// Loads on construction and can be refreshed after save-game imports.
 /// </summary>
-public sealed class FullTradesModel : INotifyPropertyChanged
+public sealed class ShipsDataTradesModel : ShipsDataBaseModel
 {
   // All full trades loaded from analytics
   public ObservableCollection<FullTrade> FullTrades { get; } = new();
-
-  // Ships list populated from FullTrades (distinct ship id/name)
-  public ObservableCollection<ShipInfo> ShipList { get; } = new();
 
   // Filtered by SelectedShip
   public ObservableCollection<FullTrade> FilteredFullTrades { get; } = new();
@@ -43,34 +40,6 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     }
   }
 
-  private ShipSortOrder _shipsSortOrder = ShipSortOrder.Name;
-  public ShipSortOrder ShipsSortOrder
-  {
-    get => _shipsSortOrder;
-    set
-    {
-      if (_shipsSortOrder == value)
-        return;
-      _shipsSortOrder = value;
-      OnPropertyChanged();
-      ResortShips();
-    }
-  }
-
-  private ShipInfo? _selectedShip;
-  public ShipInfo? SelectedShip
-  {
-    get => _selectedShip;
-    set
-    {
-      if (_selectedShip == value)
-        return;
-      _selectedShip = value;
-      OnPropertyChanged();
-      ApplyShipFilter();
-    }
-  }
-
   private FullTrade? _selectedFullTrade;
   public FullTrade? SelectedFullTrade
   {
@@ -85,12 +54,10 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     }
   }
 
-  public FullTradesModel()
+  public ShipsDataTradesModel()
   {
     LoadData();
   }
-
-  public void Refresh() => LoadData();
 
   // Summary fields (similar to ShipsTransactionsModel)
   private string _timeInService = "-";
@@ -177,7 +144,7 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     }
   }
 
-  private void LoadData()
+  protected override void LoadData()
   {
     try
     {
@@ -229,26 +196,7 @@ public sealed class FullTradesModel : INotifyPropertyChanged
     OnPropertyChanged(nameof(ShipList));
   }
 
-  private IEnumerable<ShipInfo> SortShips(IEnumerable<ShipInfo> ships)
-  {
-    return ShipsSortOrder switch
-    {
-      ShipSortOrder.Profit => ships.OrderByDescending(s => s.EstimatedProfit ?? 0m).ThenBy(s => s.ShipName, StringComparer.Ordinal),
-      _ => ships.OrderBy(s => s.ShipName, StringComparer.Ordinal),
-    };
-  }
-
-  private void ResortShips()
-  {
-    if (ShipList.Count == 0)
-      return;
-    var snapshot = ShipList.ToList();
-    ShipList.Clear();
-    foreach (var ship in SortShips(snapshot))
-      ShipList.Add(ship);
-  }
-
-  private void ApplyShipFilter()
+  protected override void ApplyShipFilter()
   {
     FilteredFullTrades.Clear();
     TradeSteps.Clear();
@@ -366,7 +314,7 @@ public sealed class FullTradesModel : INotifyPropertyChanged
       return;
     // Use the pre-resolved player_ships_transactions_log view for ship trades; it already resolves station and sector.
     using var cmd = conn.CreateCommand();
-    cmd.CommandText =
+    var baseSelect =
       @"
 SELECT
   id,
@@ -382,9 +330,8 @@ SELECT
   sector,
   station,
   counterpart_code
-FROM player_ships_transactions_log
-ORDER BY id, time
-";
+FROM player_ships_transactions_log";
+    cmd.CommandText = AppendWhereOnFilters(baseSelect) + " ORDER BY id, time";
     using var rdr = cmd.ExecuteReader();
     _allFullTrades.Clear();
     long currentShip = -1;
@@ -584,10 +531,7 @@ ORDER BY id, time
     }
   }
 
-  public event PropertyChangedEventHandler? PropertyChanged;
-
-  private void OnPropertyChanged([CallerMemberName] string? name = null) =>
-    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+  // INotifyPropertyChanged comes from BaseShipsModel
 
   public sealed class TradeStep
   {

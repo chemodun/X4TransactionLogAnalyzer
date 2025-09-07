@@ -18,13 +18,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
   public ObservableCollection<TradeOperation> Trades { get; } = new();
   public ObservableCollection<Ware> Wares { get; } = new();
 
-  private ShipsTransactionsModel? _shipsTransactions;
-  public ShipsTransactionsModel? ShipsTransactions
+  private ShipsDataTransactionsModel? _shipsDataTransactions;
+  public ShipsDataTransactionsModel? ShipsDataTransactions
   {
-    get => _shipsTransactions;
+    get => _shipsDataTransactions;
     set
     {
-      _shipsTransactions = value;
+      _shipsDataTransactions = value;
       OnPropertyChanged();
     }
   }
@@ -51,13 +51,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
-  private FullTradesModel? _fullTrades;
-  public FullTradesModel? FullTrades
+  private ShipsDataTradesModel? _shipsDataTrades;
+  public ShipsDataTradesModel? ShipsDataTrades
   {
-    get => _fullTrades;
+    get => _shipsDataTrades;
     set
     {
-      _fullTrades = value;
+      _shipsDataTrades = value;
       OnPropertyChanged();
     }
   }
@@ -76,20 +76,20 @@ public sealed class MainViewModel : INotifyPropertyChanged
   public MainViewModel()
   {
     Console.WriteLine($"Connection state: {MainWindow.GameData.Connection.State}");
-    ShipsTransactions = new ShipsTransactionsModel();
+    ShipsDataTransactions = new ShipsDataTransactionsModel();
     ShipsGraphs = new ShipsGraphsModel();
     WaresStats = new WaresStatsModel();
-    FullTrades = new FullTradesModel();
+    ShipsDataTrades = new ShipsDataTradesModel();
     Configuration = new ConfigurationViewModel();
   }
 
   public void Refresh()
   {
     // Reload data for all models
-    ShipsTransactions?.Refresh();
+    ShipsDataTransactions?.Refresh();
     ShipsGraphs?.Refresh();
     WaresStats?.Refresh();
-    FullTrades?.Refresh();
+    ShipsDataTrades?.Refresh();
     Configuration?.RefreshStats();
   }
 
