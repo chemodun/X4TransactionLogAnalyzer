@@ -10,7 +10,8 @@
   Title="X4 Player Ship Trade Analyzer">
   <Window.Resources>
     <conv:NullToUnsetBrushConverter x:Key="NullToUnsetBrush" />
-    <conv:ZeroToRedBrushConverter x:Key="ZeroToRed" />
+  <conv:ZeroToRedBrushConverter x:Key="ZeroToRed" />
+  <conv:ZeroToRedIfEnabledConverter x:Key="ZeroToRedIfEnabled" />
   <conv:EnumEqualsConverter x:Key="EnumEquals" />
   </Window.Resources>
   <Window.Styles>
@@ -437,6 +438,8 @@
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="12"/>
           <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="12"/>
+          <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
         <!-- Wares + Language statistics row (each stat on its own line) -->
@@ -472,8 +475,8 @@
         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="Game Folder"/>
         <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding GameFolderExePath}"/>
         <Button Grid.Row="0" Grid.Column="2" Content="Set" Click="SetGameFolder_Click"/>
-        <CheckBox Grid.Row="0" Grid.Column="4" Content="Load Only Game Language" IsChecked="{Binding LoadOnlyGameLanguage, Mode=TwoWay}" VerticalAlignment="Center"/>
-        <Button Grid.Row="0" Grid.Column="6" Content="Load Game Data" IsEnabled="{Binding CanReloadGameData}" Click="ReloadGameData_Click"/>
+  <CheckBox Grid.Row="0" Grid.Column="4" Content="Load Only Game Language" IsChecked="{Binding LoadOnlyGameLanguage, Mode=TwoWay}" VerticalAlignment="Center"/>
+  <Button Grid.Row="0" Grid.Column="6" Content="Load Game Data" IsEnabled="{Binding CanReloadGameData}" Click="ReloadGameData_Click"/>
 
         <!-- Theme selector -->
         <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Text="Theme"/>
@@ -484,7 +487,7 @@
           <x:String>Dark</x:String>
         </ComboBox>
 
-        <!-- Save-data statistics table (each stat on its own line) -->
+  <!-- Save-data statistics table (each stat on its own line) -->
         <Border Grid.Row="6" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="8 0 0 8">
           <StackPanel Orientation="Vertical" Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -496,8 +499,22 @@
               <TextBlock Text="{Binding StationsCount}" FontWeight="Bold" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="Removed objects:" Foreground="{Binding RemovedObjectCount, Converter={StaticResource ZeroToRed}}"/>
-              <TextBlock Text="{Binding RemovedObjectCount}" FontWeight="Bold" Foreground="{Binding RemovedObjectCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="Removed objects:">
+                <TextBlock.Foreground>
+                  <MultiBinding Converter="{StaticResource ZeroToRedIfEnabled}">
+                    <Binding Path="RemovedObjectCount"/>
+                    <Binding Path="LoadRemovedObjects"/>
+                  </MultiBinding>
+                </TextBlock.Foreground>
+              </TextBlock>
+              <TextBlock Text="{Binding RemovedObjectCount}" FontWeight="Bold">
+                <TextBlock.Foreground>
+                  <MultiBinding Converter="{StaticResource ZeroToRedIfEnabled}">
+                    <Binding Path="RemovedObjectCount"/>
+                    <Binding Path="LoadRemovedObjects"/>
+                  </MultiBinding>
+                </TextBlock.Foreground>
+              </TextBlock>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="6">
               <TextBlock Text="Trades:" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
@@ -507,11 +524,12 @@
         </Border>
 
               <!-- Game Save Path -->
-        <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Game Save Path"/>
-        <TextBlock Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding GameSavePath}"/>
-        <Button Grid.Row="4" Grid.Column="2" Content="Set" Click="SetSaveFolder_Click"/>
-        <!-- Keep columns aligned by skipping checkbox column and spacer in this row -->
-        <Button Grid.Row="4" Grid.Column="6" Content="Load Save Data" IsEnabled="{Binding CanReloadSaveData}" Click="ReloadSaveData_Click"/>
+  <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Game Save Path"/>
+  <TextBlock Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding GameSavePath}"/>
+  <Button Grid.Row="4" Grid.Column="2" Content="Set" Click="SetSaveFolder_Click"/>
+  <!-- Option checkbox before Load Save button -->
+  <CheckBox Grid.Row="4" Grid.Column="4" Content="Load removed objects" IsChecked="{Binding LoadRemovedObjects, Mode=TwoWay}" VerticalAlignment="Center"/>
+  <Button Grid.Row="4" Grid.Column="6" Content="Load Save Data" IsEnabled="{Binding CanReloadSaveData}" Click="ReloadSaveData_Click"/>
       </Grid>
     </TabItem>
 

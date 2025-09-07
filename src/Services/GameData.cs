@@ -1463,9 +1463,17 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
         }
         if (connectionsProcessed && !removedProcessed && !removedEntries && xr.Name == "removed")
         {
-          // Skip removed entries section
-          removedEntries = true;
-          tradeEntries = false;
+          // Enter removed entries section, but only process if enabled in config
+          if (ConfigurationService.Instance.LoadRemovedObjects)
+          {
+            removedEntries = true;
+            tradeEntries = false;
+          }
+          else
+          {
+            removedEntries = false;
+            removedProcessed = true; // skip entirely
+          }
           continue;
         }
         if (!connectionsProcessed && xr.Name == "component")
@@ -1842,7 +1850,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
       Stats.StationsCount = ViewExists("stations")
         ? ExecuteScalarInt("SELECT COUNT(1) FROM stations")
         : ExecuteScalarInt("SELECT COUNT(1) FROM component WHERE type='station'");
-      // removed objects count (from save import)
+      // removed objects count (from save import) — optionally ignored
       Stats.RemovedObjectCount = ExecuteScalarInt("SELECT COUNT(1) FROM component WHERE type='removed'");
       // wares table may not exist in this project schema; guard it
       Stats.WaresCount = TableExists("ware") ? ExecuteScalarInt("SELECT COUNT(1) FROM ware") : 0;

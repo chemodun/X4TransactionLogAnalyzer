@@ -24,6 +24,7 @@ public sealed class ConfigurationService
   public string? GameFolderExePath { get; set; }
   public string? GameSavePath { get; set; }
   public bool LoadOnlyGameLanguage { get; set; } = true;
+  public bool LoadRemovedObjects { get; set; }
   public string AppTheme { get; set; } = "System"; // System | Light | Dark
 
   public void Save()
@@ -33,6 +34,7 @@ public sealed class ConfigurationService
       GameFolderExePath = GameFolderExePath,
       GameSavePath = GameSavePath,
       LoadOnlyGameLanguage = LoadOnlyGameLanguage,
+      LoadRemovedObjects = LoadRemovedObjects,
       AppTheme = AppTheme,
     };
     var json = JsonSerializer.Serialize(dto, _jsonSerializerOptions);
@@ -50,6 +52,7 @@ public sealed class ConfigurationService
       GameFolderExePath = dto?.GameFolderExePath;
       GameSavePath = dto?.GameSavePath;
       LoadOnlyGameLanguage = dto?.LoadOnlyGameLanguage ?? true; // default to true for backward compatibility
+      LoadRemovedObjects = dto?.LoadRemovedObjects ?? false; // default to false
       AppTheme = string.IsNullOrWhiteSpace(dto?.AppTheme) ? "System" : dto!.AppTheme!;
     }
     catch
@@ -63,6 +66,7 @@ public sealed class ConfigurationService
     public string? GameFolderExePath { get; set; }
     public string? GameSavePath { get; set; }
     public bool? LoadOnlyGameLanguage { get; set; }
+    public bool? LoadRemovedObjects { get; set; }
     public string? AppTheme { get; set; }
   }
 }

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -40,6 +41,12 @@ public partial class MainWindow : Window
 #endif
 
     DataContext = new MainViewModel();
+
+    // React to configuration changes affecting tab enablement
+    if (DataContext is MainViewModel vm && vm.Configuration != null)
+    {
+      vm.Configuration.PropertyChanged += Configuration_PropertyChanged;
+    }
 
     // Set base title from assembly metadata (Product + Version)
     try
@@ -94,7 +101,7 @@ public partial class MainWindow : Window
 
     bool anyZero = AnyStatsMissing();
 
-    UpdateTabsEnabled(!anyZero);
+    UpdateTabsEnabled();
 
     if (anyZero)
     {
@@ -109,20 +116,22 @@ public partial class MainWindow : Window
   private static bool AnyStatsMissing()
   {
     var s = GameData.Stats;
+    bool removedRequired = ConfigurationService.Instance.LoadRemovedObjects;
     return s.WaresCount == 0
       || s.FactionsCount == 0
       || s.ClusterSectorNamesCount == 0
       || s.PlayerShipsCount == 0
       || s.StationsCount == 0
-      || s.RemovedObjectCount == 0
+      || (removedRequired && s.RemovedObjectCount == 0)
       || s.TradesCount == 0
       || s.LanguagesCount == 0
       || s.CurrentLanguageId == 0
       || s.CurrentLanguageTextCount == 0;
   }
 
-  private void UpdateTabsEnabled(bool dataReady)
+  private void UpdateTabsEnabled()
   {
+    bool dataReady = !AnyStatsMissing();
     // Keep Configuration always enabled; toggle other tabs
     if (_byTransactionsTab != null)
       _byTransactionsTab.IsEnabled = dataReady;
@@ -140,6 +149,14 @@ public partial class MainWindow : Window
       _configurationTab.IsEnabled = true;
     if (_readmeTab != null)
       _readmeTab.IsEnabled = true;
+  }
+
+  private void Configuration_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  {
+    if (e.PropertyName == nameof(ConfigurationViewModel.LoadRemovedObjects))
+    {
+      UpdateTabsEnabled();
+    }
   }
 
   // Toggle a ship's series on double-click in Ships Graphs list
@@ -244,7 +261,7 @@ public partial class MainWindow : Window
       await Task.Run(() => vm?.Configuration?.ReloadGameData(GameData, u => progress.SetProgress(u)));
       vm.Refresh();
       GameData.RefreshStats();
-      UpdateTabsEnabled(!AnyStatsMissing());
+      UpdateTabsEnabled();
     }
     finally
     {
@@ -272,7 +289,7 @@ public partial class MainWindow : Window
       await Task.Run(() => vm?.Configuration?.ReloadSaveData(GameData, u => progress.SetProgress(u)));
       vm?.Refresh();
       GameData.RefreshStats();
-      UpdateTabsEnabled(!AnyStatsMissing());
+      UpdateTabsEnabled();
     }
     finally
     {

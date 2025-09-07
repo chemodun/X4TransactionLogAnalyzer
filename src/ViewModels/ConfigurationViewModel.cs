@@ -63,6 +63,23 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
     }
   }
 
+  private bool _loadRemovedObjects;
+  public bool LoadRemovedObjects
+  {
+    get => _loadRemovedObjects;
+    set
+    {
+      if (_loadRemovedObjects == value)
+        return;
+      _loadRemovedObjects = value;
+      _cfg.LoadRemovedObjects = value;
+      _cfg.Save();
+      OnPropertyChanged();
+      // Visual gating may depend on stats treated differently; update CanReloadSaveData
+      OnPropertyChanged(nameof(CanReloadSaveData));
+    }
+  }
+
   private string _appTheme;
   public string AppTheme
   {
@@ -239,6 +256,7 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
     GameFolderExePath = _cfg.GameFolderExePath;
     GameSavePath = _cfg.GameSavePath;
     LoadOnlyGameLanguage = _cfg.LoadOnlyGameLanguage;
+    LoadRemovedObjects = _cfg.LoadRemovedObjects;
     _appTheme = _cfg.AppTheme;
     // apply saved theme on startup
     ApplyTheme(_appTheme);
