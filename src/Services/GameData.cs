@@ -1369,6 +1369,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     ReOpenConnection();
 
     var factoryNames = GetFactoryNamesDict();
+    var factionsShortNames = GetFactionsShortNamesDict();
 
     // Begin transactional import for speed and atomicity
     SQLiteTransaction txn = _conn.BeginTransaction();
@@ -1640,6 +1641,11 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
           if (string.IsNullOrWhiteSpace(name))
           {
             continue;
+          }
+          string factionShortName = factionsShortNames.TryGetValue(owner, out var fsn) ? fsn : string.Empty;
+          if (!string.IsNullOrEmpty(factionShortName) && name.StartsWith(factionShortName + " "))
+          {
+            name = name[factionShortName.Length..].TrimStart();
           }
           string code = xr.GetAttribute("code") ?? "";
           if (string.IsNullOrWhiteSpace(code))
@@ -2028,5 +2034,24 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
       }
     }
     return prodDict;
+  }
+
+  private Dictionary<string, string> GetFactionsShortNamesDict()
+  {
+    ReOpenConnection();
+    var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    using var cmd = _conn.CreateCommand();
+    cmd.CommandText = "SELECT id, shortname FROM faction WHERE shortname IS NOT NULL AND shortname != ''";
+    using var rdr = cmd.ExecuteReader();
+    while (rdr.Read())
+    {
+      string id = rdr.GetString(0);
+      string shortname = rdr.GetString(1);
+      if (!dict.ContainsKey(id))
+      {
+        dict[id] = shortname;
+      }
+    }
+    return dict;
   }
 }
