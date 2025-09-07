@@ -1823,21 +1823,20 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
   {
     if (string.IsNullOrWhiteSpace(raw))
       return 0;
-    if (!raw.StartsWith('[') || !raw.EndsWith(']'))
-      return 0;
-    string hex = raw.Trim('[', ']');
-    if (string.IsNullOrWhiteSpace(hex))
+    if (raw.StartsWith('[') && raw.EndsWith(']'))
+      raw = raw.Trim('[', ']');
+    if (string.IsNullOrWhiteSpace(raw))
       return 0;
     try
     {
-      if (hex.StartsWith("0x"))
+      if (raw.StartsWith("0x"))
       {
-        hex = hex.Substring(2);
-        return long.Parse(hex, NumberStyles.HexNumber);
+        raw = raw.Substring(2);
+        return long.Parse(raw, NumberStyles.HexNumber);
       }
       else
       {
-        return long.Parse(hex);
+        return long.Parse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture);
       }
     }
     catch
