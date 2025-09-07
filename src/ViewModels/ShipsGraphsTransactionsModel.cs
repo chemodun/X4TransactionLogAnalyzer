@@ -22,13 +22,12 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
     get => _isContainerChecked;
     set
     {
-      if (!value && !_isSolidChecked)
-      { // enforce at least one
-        IsSolidChecked = true;
-        return;
-      }
       if (_isContainerChecked == value)
         return;
+      if (!value && !_isSolidChecked)
+      {
+        IsSolidChecked = true; // enforce at least one
+      }
       _isContainerChecked = value;
       OnPropertyChanged();
       ReloadShipsAndRebuildActiveSeries();
@@ -41,13 +40,12 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
     get => _isSolidChecked;
     set
     {
-      if (!value && !_isContainerChecked)
-      { // enforce at least one
-        IsContainerChecked = true;
-        return;
-      }
       if (_isSolidChecked == value)
         return;
+      if (!value && !_isContainerChecked)
+      {
+        IsContainerChecked = true; // enforce at least one
+      }
       _isSolidChecked = value;
       OnPropertyChanged();
       ReloadShipsAndRebuildActiveSeries();

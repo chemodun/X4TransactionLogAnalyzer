@@ -15,89 +15,53 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
 
   private List<ShipTransaction> allTransactions = new();
 
-  // summary fields
-  private string _timeInService = "-";
-  public string TimeInService
+  // Transport type filters (shared across ship-based views)
+  private bool _isContainerChecked = true;
+  public bool IsContainerChecked
   {
-    get => _timeInService;
-    private set
+    get => _isContainerChecked;
+    set
     {
-      if (_timeInService != value)
+      if (_isContainerChecked == value)
+        return;
+      if (!value && !_isSolidChecked)
       {
-        _timeInService = value;
-        OnPropertyChanged();
+        IsSolidChecked = true; // enforce at least one
       }
+      _isContainerChecked = value;
+      OnPropertyChanged();
+      LoadData();
     }
   }
 
-  private string _itemsTraded = "0";
-  public string ItemsTraded
+  private bool _isSolidChecked;
+  public bool IsSolidChecked
   {
-    get => _itemsTraded;
-    private set
+    get => _isSolidChecked;
+    set
     {
-      if (_itemsTraded != value)
+      if (_isSolidChecked == value)
+        return;
+      if (!value && !_isContainerChecked)
       {
-        _itemsTraded = value;
-        OnPropertyChanged();
+        IsContainerChecked = true; // enforce at least one
       }
+      _isSolidChecked = value;
+      OnPropertyChanged();
+      LoadData();
     }
   }
 
-  private string _totalProfit = "0";
-  public string TotalProfit
+  protected string AppendWhereOnFilters(string baseQuery)
   {
-    get => _totalProfit;
-    private set
-    {
-      if (_totalProfit != value)
-      {
-        _totalProfit = value;
-        OnPropertyChanged();
-      }
-    }
-  }
-
-  private string _timeMin = "-";
-  public string TimeMin
-  {
-    get => _timeMin;
-    private set
-    {
-      if (_timeMin != value)
-      {
-        _timeMin = value;
-        OnPropertyChanged();
-      }
-    }
-  }
-
-  private string _timeAvg = "-";
-  public string TimeAvg
-  {
-    get => _timeAvg;
-    private set
-    {
-      if (_timeAvg != value)
-      {
-        _timeAvg = value;
-        OnPropertyChanged();
-      }
-    }
-  }
-
-  private string _timeMax = "-";
-  public string TimeMax
-  {
-    get => _timeMax;
-    private set
-    {
-      if (_timeMax != value)
-      {
-        _timeMax = value;
-        OnPropertyChanged();
-      }
-    }
+    var filters = new System.Collections.Generic.List<string>();
+    if (IsContainerChecked)
+      filters.Add("transport == 'container'");
+    if (IsSolidChecked)
+      filters.Add("transport == 'solid'");
+    if (filters.Count > 0)
+      return $"{baseQuery} WHERE {string.Join(" OR ", filters)}";
+    return baseQuery;
   }
 
   public ShipsDataTransactionsModel() => LoadData();

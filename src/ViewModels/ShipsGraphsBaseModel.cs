@@ -226,26 +226,12 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
   protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-  protected readonly SKColor[] Palette = new[]
-  {
-    SKColors.DodgerBlue,
-    SKColors.OrangeRed,
-    SKColors.MediumSeaGreen,
-    SKColors.MediumOrchid,
-    SKColors.Goldenrod,
-    SKColors.CadetBlue,
-    SKColors.Tomato,
-    SKColors.DeepSkyBlue,
-    SKColors.MediumVioletRed,
-    SKColors.SlateBlue,
-  };
-
   protected SKColor GetColorForShip(int shipId)
   {
     if (_colorByShipId.TryGetValue(shipId, out var color))
       return color;
-    var idx = Math.Abs(shipId.GetHashCode()) % Palette.Length;
-    color = Palette[idx];
+    var idx = Math.Abs(shipId.GetHashCode()) % MainViewModel.Palette.Length;
+    color = MainViewModel.Palette[idx];
     _colorByShipId[shipId] = color;
     return color;
   }

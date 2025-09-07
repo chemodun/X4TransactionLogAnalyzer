@@ -19,11 +19,96 @@ public abstract class ShipsDataBaseModel : INotifyPropertyChanged
   // Shared ship list and sorting
   public ObservableCollection<ShipInfo> ShipList { get; } = new();
 
-  private ShipSortOrder _shipsSortOrder = ShipSortOrder.Name;
+  // summary fields
+  protected string _timeInService = "-";
+  public string TimeInService
+  {
+    get => _timeInService;
+    protected set
+    {
+      if (_timeInService != value)
+      {
+        _timeInService = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  protected string _itemsTraded = "0";
+  public string ItemsTraded
+  {
+    get => _itemsTraded;
+    protected set
+    {
+      if (_itemsTraded != value)
+      {
+        _itemsTraded = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  protected string _totalProfit = "0";
+  public string TotalProfit
+  {
+    get => _totalProfit;
+    protected set
+    {
+      if (_totalProfit != value)
+      {
+        _totalProfit = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  protected string _timeMin = "-";
+  public string TimeMin
+  {
+    get => _timeMin;
+    protected set
+    {
+      if (_timeMin != value)
+      {
+        _timeMin = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  protected string _timeAvg = "-";
+  public string TimeAvg
+  {
+    get => _timeAvg;
+    protected set
+    {
+      if (_timeAvg != value)
+      {
+        _timeAvg = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  protected string _timeMax = "-";
+  public string TimeMax
+  {
+    get => _timeMax;
+    protected set
+    {
+      if (_timeMax != value)
+      {
+        _timeMax = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  protected ShipSortOrder _shipsSortOrder = ShipSortOrder.Name;
   public ShipSortOrder ShipsSortOrder
   {
     get => _shipsSortOrder;
-    set
+    protected set
     {
       if (_shipsSortOrder == value)
         return;
@@ -33,11 +118,11 @@ public abstract class ShipsDataBaseModel : INotifyPropertyChanged
     }
   }
 
-  private ShipInfo? _selectedShip;
+  protected ShipInfo? _selectedShip;
   public ShipInfo? SelectedShip
   {
     get => _selectedShip;
-    set
+    protected set
     {
       if (_selectedShip == value)
         return;
@@ -45,59 +130,6 @@ public abstract class ShipsDataBaseModel : INotifyPropertyChanged
       OnPropertyChanged();
       ApplyShipFilter();
     }
-  }
-
-  // Transport type filters (shared across ship-based views)
-  private bool _isContainerChecked = true;
-  public bool IsContainerChecked
-  {
-    get => _isContainerChecked;
-    set
-    {
-      // prevent both flags being false at the same time
-      if (!value && !_isSolidChecked)
-      {
-        IsSolidChecked = true;
-        return;
-      }
-      if (_isContainerChecked == value)
-        return;
-      _isContainerChecked = value;
-      OnPropertyChanged();
-      LoadData();
-    }
-  }
-
-  private bool _isSolidChecked;
-  public bool IsSolidChecked
-  {
-    get => _isSolidChecked;
-    set
-    {
-      // prevent both flags being false at the same time
-      if (!value && !_isContainerChecked)
-      {
-        IsContainerChecked = true;
-        return;
-      }
-      if (_isSolidChecked == value)
-        return;
-      _isSolidChecked = value;
-      OnPropertyChanged();
-      LoadData();
-    }
-  }
-
-  protected string AppendWhereOnFilters(string baseQuery)
-  {
-    var filters = new System.Collections.Generic.List<string>();
-    if (IsContainerChecked)
-      filters.Add("transport == 'container'");
-    if (IsSolidChecked)
-      filters.Add("transport == 'solid'");
-    if (filters.Count > 0)
-      return $"{baseQuery} WHERE {string.Join(" OR ", filters)}";
-    return baseQuery;
   }
 
   protected void ResortShips()
