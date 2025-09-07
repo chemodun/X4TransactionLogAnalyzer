@@ -211,7 +211,7 @@
         </TabItem>
 
         <TabItem Header="Wares Stats" x:Name="WaresStatsTab">
-          <Grid DataContext="{Binding WaresStats}">
+          <Grid DataContext="{Binding ShipsWaresStats}">
             <Grid.RowDefinitions>
               <RowDefinition Height="28" />
               <RowDefinition />

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.SQLite;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Avalonia.Media;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -14,55 +15,17 @@ using RectGeometry = LiveChartsCore.SkiaSharpView.Drawing.Geometries.RectangleGe
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
-public sealed class WaresStatsModel : INotifyPropertyChanged
+public abstract class WaresStatsBaseModel : INotifyPropertyChanged
 {
   public ObservableCollection<ISeries> Series { get; } = new();
   public ObservableCollection<LegendItem> Legend { get; } = new();
   public Axis[] XAxes { get; }
   public Axis[] YAxes { get; }
 
-  private List<string> _labels = new();
+  protected List<string> _labels = new();
   public IReadOnlyList<string> Labels => _labels;
 
-  private bool isContainerChecked = true;
-  public bool IsContainerChecked
-  {
-    get => isContainerChecked;
-    set
-    {
-      if (!value && !isSolidChecked)
-      {
-        IsSolidChecked = true; // enforce at least one
-        return;
-      }
-      if (isContainerChecked == value)
-        return;
-      isContainerChecked = value;
-      OnPropertyChanged(nameof(IsContainerChecked));
-      Reload();
-    }
-  }
-
-  private bool isSolidChecked;
-  public bool IsSolidChecked
-  {
-    get => isSolidChecked;
-    set
-    {
-      if (!value && !isContainerChecked)
-      {
-        IsContainerChecked = true; // enforce at least one
-        return;
-      }
-      if (isSolidChecked == value)
-        return;
-      isSolidChecked = value;
-      OnPropertyChanged(nameof(IsSolidChecked));
-      Reload();
-    }
-  }
-
-  public WaresStatsModel()
+  public WaresStatsBaseModel()
   {
     XAxes = new[]
     {
@@ -88,40 +51,14 @@ public sealed class WaresStatsModel : INotifyPropertyChanged
     Reload();
   }
 
-  private string AppendWhereOnFilters(string baseQuery)
-  {
-    var filters = new List<string>();
-    if (IsContainerChecked)
-      filters.Add("transport == 'container'");
-    if (IsSolidChecked)
-      filters.Add("transport == 'solid'");
-    if (filters.Count > 0)
-      return $"{baseQuery} WHERE {string.Join(" OR ", filters)}";
-    return baseQuery;
-  }
-
   public void Refresh() => Reload();
 
-  private void Reload()
+  protected abstract List<(string WareId, string WareName, double Profit)> LoadData();
+
+  protected void Reload()
   {
     var labels = new List<string>();
-    var rows = new List<(string WareId, string WareName, double Profit)>();
-
-    using var conn = MainWindow.GameData.Connection;
-    // sum profit per ware from the prepared view
-    var cmd = new SQLiteCommand(
-      AppendWhereOnFilters("SELECT ware, ware_name, SUM(profit) AS total_profit FROM player_ships_transactions_log")
-        + " GROUP BY ware, ware_name ORDER BY total_profit DESC",
-      conn
-    );
-    using var reader = cmd.ExecuteReader();
-    while (reader.Read())
-    {
-      var id = reader["ware"].ToString() ?? string.Empty;
-      var name = reader["ware_name"].ToString() ?? id;
-      var profit = Convert.ToDouble(reader["total_profit"]);
-      rows.Add((id, name, profit));
-    }
+    var rows = LoadData();
 
     // order already desc by profit; compose labels from rows
     labels.AddRange(rows.Select(r => r.WareName));
@@ -173,54 +110,7 @@ public sealed class WaresStatsModel : INotifyPropertyChanged
     OnPropertyChanged(nameof(Legend));
   }
 
-  private static readonly SKColor[] Palette = new[]
-  {
-    SKColors.DodgerBlue,
-    SKColors.OrangeRed,
-    SKColors.MediumSeaGreen,
-    SKColors.MediumOrchid,
-    SKColors.Goldenrod,
-    SKColors.CadetBlue,
-    SKColors.Tomato,
-    SKColors.DeepSkyBlue,
-    SKColors.MediumVioletRed,
-    SKColors.SlateBlue,
-    SKColors.SteelBlue,
-    SKColors.LightSeaGreen,
-    SKColors.DarkKhaki,
-    SKColors.IndianRed,
-    SKColors.Teal,
-    // Extra colors
-    SKColors.Crimson,
-    SKColors.Coral,
-    SKColors.DarkCyan,
-    SKColors.DarkOrange,
-    SKColors.DarkSalmon,
-    SKColors.ForestGreen,
-    SKColors.HotPink,
-    SKColors.Khaki,
-    SKColors.LawnGreen,
-    SKColors.LightCoral,
-    SKColors.LightPink,
-    SKColors.LightSkyBlue,
-    SKColors.LimeGreen,
-    SKColors.MediumAquamarine,
-    SKColors.MediumPurple,
-    SKColors.Orchid,
-    SKColors.PaleVioletRed,
-    SKColors.Peru,
-    SKColors.Plum,
-    SKColors.RosyBrown,
-    SKColors.SandyBrown,
-    SKColors.SeaGreen,
-    SKColors.Sienna,
-    SKColors.SpringGreen,
-    SKColors.Turquoise,
-    SKColors.Violet,
-    SKColors.YellowGreen,
-  };
-
-  private static SKColor GetColorForWare(string wareId)
+  protected static SKColor GetColorForWare(string wareId)
   {
     if (string.IsNullOrEmpty(wareId))
       return new SKColor(33, 150, 243, 200);
@@ -229,15 +119,16 @@ public sealed class WaresStatsModel : INotifyPropertyChanged
       int hash = 17;
       foreach (var ch in wareId)
         hash = hash * 31 + ch;
-      var idx = Math.Abs(hash) % Palette.Length;
-      var baseColor = Palette[idx];
+      var idx = Math.Abs(hash) % MainViewModel.Palette.Length;
+      var baseColor = MainViewModel.Palette[idx];
       return new SKColor(baseColor.Red, baseColor.Green, baseColor.Blue, 200);
     }
   }
 
   public event PropertyChangedEventHandler? PropertyChanged;
 
-  private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+  protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
+    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
   public sealed record LegendItem(string Name, ISolidColorBrush Brush);
 }

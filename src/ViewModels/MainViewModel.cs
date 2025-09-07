@@ -51,13 +51,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
-  private WaresStatsModel? _waresStats;
-  public WaresStatsModel? WaresStats
+  private WaresStatsTransactionsModel? _shipsWaresStats;
+  public WaresStatsTransactionsModel? ShipsWaresStats
   {
-    get => _waresStats;
+    get => _shipsWaresStats;
     set
     {
-      _waresStats = value;
+      _shipsWaresStats = value;
       OnPropertyChanged();
     }
   }
@@ -90,7 +90,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     ShipsDataTransactions = new ShipsDataTransactionsModel();
     ShipsGraphs = new ShipsGraphTransactionsModel();
     ShipsGraphsTrades = new ShipsGraphTradesModel();
-    WaresStats = new WaresStatsModel();
+    ShipsWaresStats = new WaresStatsTransactionsModel();
     ShipsDataTrades = new ShipsDataTradesModel();
     Configuration = new ConfigurationViewModel();
   }
@@ -101,10 +101,57 @@ public sealed class MainViewModel : INotifyPropertyChanged
     ShipsDataTransactions?.Refresh();
     ShipsGraphs?.Refresh();
     ShipsGraphsTrades?.Refresh();
-    WaresStats?.Refresh();
+    ShipsWaresStats?.Refresh();
     ShipsDataTrades?.Refresh();
     Configuration?.RefreshStats();
   }
+
+  public static readonly SKColor[] Palette = new[]
+  {
+    SKColors.DodgerBlue,
+    SKColors.OrangeRed,
+    SKColors.MediumSeaGreen,
+    SKColors.MediumOrchid,
+    SKColors.Goldenrod,
+    SKColors.CadetBlue,
+    SKColors.Tomato,
+    SKColors.DeepSkyBlue,
+    SKColors.MediumVioletRed,
+    SKColors.SlateBlue,
+    SKColors.SteelBlue,
+    SKColors.LightSeaGreen,
+    SKColors.DarkKhaki,
+    SKColors.IndianRed,
+    SKColors.Teal,
+    // Extra colors
+    SKColors.Crimson,
+    SKColors.Coral,
+    SKColors.DarkCyan,
+    SKColors.DarkOrange,
+    SKColors.DarkSalmon,
+    SKColors.ForestGreen,
+    SKColors.HotPink,
+    SKColors.Khaki,
+    SKColors.LawnGreen,
+    SKColors.LightCoral,
+    SKColors.LightPink,
+    SKColors.LightSkyBlue,
+    SKColors.LimeGreen,
+    SKColors.MediumAquamarine,
+    SKColors.MediumPurple,
+    SKColors.Orchid,
+    SKColors.PaleVioletRed,
+    SKColors.Peru,
+    SKColors.Plum,
+    SKColors.RosyBrown,
+    SKColors.SandyBrown,
+    SKColors.SeaGreen,
+    SKColors.Sienna,
+    SKColors.SpringGreen,
+    SKColors.Turquoise,
+    SKColors.Violet,
+    SKColors.YellowGreen,
+  };
 
   // minimal INotifyPropertyChanged
   public event PropertyChangedEventHandler? PropertyChanged;
