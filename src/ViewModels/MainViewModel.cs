@@ -18,57 +18,68 @@ public sealed class MainViewModel : INotifyPropertyChanged
   public ObservableCollection<TradeOperation> Trades { get; } = new();
   public ObservableCollection<Ware> Wares { get; } = new();
 
-  private ShipsDataTransactionsModel? _shipsDataTransactions;
-  public ShipsDataTransactionsModel? ShipsDataTransactions
+  private ShipsDataTransactionsModel? _shipsTransactionsData;
+  public ShipsDataTransactionsModel? ShipsTransactionsData
   {
-    get => _shipsDataTransactions;
+    get => _shipsTransactionsData;
     set
     {
-      _shipsDataTransactions = value;
+      _shipsTransactionsData = value;
       OnPropertyChanged();
     }
   }
 
-  private ShipsGraphTransactionsModel? _shipsGraphs;
-  public ShipsGraphTransactionsModel? ShipsGraphs
+  private ShipsGraphTransactionsModel? _shipsTransactionsGraphs;
+  public ShipsGraphTransactionsModel? ShipsTransactionsGraphs
   {
-    get => _shipsGraphs;
+    get => _shipsTransactionsGraphs;
     set
     {
-      _shipsGraphs = value;
+      _shipsTransactionsGraphs = value;
       OnPropertyChanged();
     }
   }
 
-  private ShipsGraphTradesModel? _shipsGraphsTrades;
-  public ShipsGraphTradesModel? ShipsGraphsTrades
+  private WaresStatsTransactionsModel? _shipsTransactionsWaresStats;
+  public WaresStatsTransactionsModel? ShipsTransactionsWaresStats
   {
-    get => _shipsGraphsTrades;
+    get => _shipsTransactionsWaresStats;
     set
     {
-      _shipsGraphsTrades = value;
+      _shipsTransactionsWaresStats = value;
       OnPropertyChanged();
     }
   }
 
-  private WaresStatsTransactionsModel? _shipsWaresStats;
-  public WaresStatsTransactionsModel? ShipsWaresStats
+  private ShipsDataTradesModel? _shipsTradesData;
+  public ShipsDataTradesModel? ShipsTradesData
   {
-    get => _shipsWaresStats;
+    get => _shipsTradesData;
     set
     {
-      _shipsWaresStats = value;
+      _shipsTradesData = value;
       OnPropertyChanged();
     }
   }
 
-  private ShipsDataTradesModel? _shipsDataTrades;
-  public ShipsDataTradesModel? ShipsDataTrades
+  private ShipsGraphTradesModel? _shipsTradesGraphs;
+  public ShipsGraphTradesModel? ShipsTradesGraphs
   {
-    get => _shipsDataTrades;
+    get => _shipsTradesGraphs;
     set
     {
-      _shipsDataTrades = value;
+      _shipsTradesGraphs = value;
+      OnPropertyChanged();
+    }
+  }
+
+  private WaresStatsTradesModel? _shipsTradesWaresStats;
+  public WaresStatsTradesModel? ShipsTradesWaresStats
+  {
+    get => _shipsTradesWaresStats;
+    set
+    {
+      _shipsTradesWaresStats = value;
       OnPropertyChanged();
     }
   }
@@ -87,22 +98,24 @@ public sealed class MainViewModel : INotifyPropertyChanged
   public MainViewModel()
   {
     Console.WriteLine($"Connection state: {MainWindow.GameData.Connection.State}");
-    ShipsDataTransactions = new ShipsDataTransactionsModel();
-    ShipsGraphs = new ShipsGraphTransactionsModel();
-    ShipsGraphsTrades = new ShipsGraphTradesModel();
-    ShipsWaresStats = new WaresStatsTransactionsModel();
-    ShipsDataTrades = new ShipsDataTradesModel();
+    ShipsTransactionsData = new ShipsDataTransactionsModel();
+    ShipsTransactionsGraphs = new ShipsGraphTransactionsModel();
+    ShipsTransactionsWaresStats = new WaresStatsTransactionsModel();
+    ShipsTradesData = new ShipsDataTradesModel();
+    ShipsTradesGraphs = new ShipsGraphTradesModel();
+    ShipsTradesWaresStats = new WaresStatsTradesModel();
     Configuration = new ConfigurationViewModel();
   }
 
   public void Refresh()
   {
     // Reload data for all models
-    ShipsDataTransactions?.Refresh();
-    ShipsGraphs?.Refresh();
-    ShipsGraphsTrades?.Refresh();
-    ShipsWaresStats?.Refresh();
-    ShipsDataTrades?.Refresh();
+    ShipsTransactionsData?.Refresh();
+    ShipsTransactionsGraphs?.Refresh();
+    ShipsTransactionsWaresStats?.Refresh();
+    ShipsTradesGraphs?.Refresh();
+    ShipsTradesData?.Refresh();
+    ShipsTradesWaresStats?.Refresh();
     Configuration?.RefreshStats();
   }
 
