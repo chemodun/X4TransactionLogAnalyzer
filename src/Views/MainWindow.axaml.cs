@@ -27,7 +27,7 @@ public partial class MainWindow : Window
   private TabItem? _shipsTransactionsTab;
   private TabItem? _byTransactionsTab;
   private TabItem? _byTradesTab;
-  private TabItem? _shipsGraphsTab;
+  private TabItem? _ByTransactionsGraphsTab;
   private TabItem? _shipsTradesTab;
   private TabItem? _waresStatsTab;
   private TabItem? _configurationTab;
@@ -70,7 +70,7 @@ public partial class MainWindow : Window
     _byTransactionsTab = this.FindControl<TabItem>("ByTransactionsTab");
     _byTradesTab = this.FindControl<TabItem>("ByTradesTab");
     _shipsTransactionsTab = this.FindControl<TabItem>("ShipsTransactionsTab");
-    _shipsGraphsTab = this.FindControl<TabItem>("ShipsGraphsTab");
+    _ByTransactionsGraphsTab = this.FindControl<TabItem>("ShipsTransactionsGraphsTab");
     _waresStatsTab = this.FindControl<TabItem>("WaresStatsTab");
     _shipsTradesTab = this.FindControl<TabItem>("ShipsTradesTab");
     _configurationTab = this.FindControl<TabItem>("ConfigurationTab");
@@ -139,8 +139,8 @@ public partial class MainWindow : Window
       _byTradesTab.IsEnabled = dataReady;
     if (_shipsTransactionsTab != null)
       _shipsTransactionsTab.IsEnabled = dataReady;
-    if (_shipsGraphsTab != null)
-      _shipsGraphsTab.IsEnabled = dataReady;
+    if (_ByTransactionsGraphsTab != null)
+      _ByTransactionsGraphsTab.IsEnabled = dataReady;
     if (_shipsTradesTab != null)
       _shipsTradesTab.IsEnabled = dataReady;
     if (_waresStatsTab != null)
@@ -329,7 +329,7 @@ public partial class MainWindow : Window
       case "ShipsTransactionsTab":
         // do not refresh
         break;
-      case "ShipsGraphsTab":
+      case "ShipsTransactionsGraphsTab":
         // do not refresh
         break;
       case "WaresStatsTab":

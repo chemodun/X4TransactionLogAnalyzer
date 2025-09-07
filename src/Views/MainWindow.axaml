@@ -34,7 +34,7 @@
     <!-- Parent: By Transactions -->
     <TabItem Header="By Transactions" x:Name="ByTransactionsTab">
       <TabControl x:Name="ByTransactionsTabs">
-        <TabItem Header="Ships transactions" x:Name="ShipsTransactionsTab">
+        <TabItem Header="Ships Transactions" x:Name="ShipsTransactionsTab">
           <Grid DataContext="{Binding ShipsDataTransactions}">
           <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
@@ -101,7 +101,7 @@
           <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
             <ListBox ItemsSource="{Binding ShipList}"
                     SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
-                    Margin="8" Width="300">
+                    Margin="8" Width="340">
               <ListBox.ItemTemplate>
                 <DataTemplate>
                   <Grid ColumnDefinitions="*,8,Auto">
@@ -160,7 +160,7 @@
           </Grid>
         </TabItem>
 
-        <TabItem Header="Ships Graphs" x:Name="ShipsGraphsTab">
+        <TabItem Header="Ships Graphs" x:Name="ShipsTransactionsGraphsTab">
           <Grid DataContext="{Binding ShipsGraphs}">
               <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto"/>
@@ -315,7 +315,7 @@
           <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
             <ListBox ItemsSource="{Binding ShipList}"
                     SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
-                    Margin="8" Width="300">
+                    Margin="8" Width="340">
               <ListBox.ItemTemplate>
                 <DataTemplate>
                   <Grid ColumnDefinitions="*,8,Auto">
