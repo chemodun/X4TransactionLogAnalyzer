@@ -30,8 +30,11 @@
   </Design.DataContext>
 
   <TabControl Grid.Row="1" x:Name="MainTabs" SelectionChanged="MainTabs_SelectionChanged">
-    <TabItem Header="Ships transactions" x:Name="ShipsTransactionsTab">
-      <Grid DataContext="{Binding ShipsTransactions}">
+    <!-- Parent: By Transactions -->
+    <TabItem Header="By Transactions" x:Name="ByTransactionsTab">
+      <TabControl x:Name="ByTransactionsTabs">
+        <TabItem Header="Ships transactions" x:Name="ShipsTransactionsTab">
+          <Grid DataContext="{Binding ShipsTransactions}">
           <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="*"/>
@@ -55,8 +58,8 @@
                 <TextBlock Text="{Binding SelectedShip.ShipName}" FontWeight="Bold"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Total Estimated Profit:"/>
-                <TextBlock Text="{Binding TotalEstimatedProfit}" FontWeight="Bold"/>
+                <TextBlock Text="Total Profit:"/>
+                <TextBlock Text="{Binding TotalProfit}" FontWeight="Bold"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="Items Traded:"/>
@@ -70,15 +73,15 @@
                 <TextBlock Text="Elapsed Time (Buy→Sell):"/>
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Text="Min:"/>
-                  <TextBlock Text="{Binding TripTimeMin}" FontWeight="Bold"/>
+                  <TextBlock Text="{Binding TimeMin}" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Text="Avg:"/>
-                  <TextBlock Text="{Binding TripTimeAvg}" FontWeight="Bold"/>
+                  <TextBlock Text="{Binding TimeAvg}" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Text="Max:"/>
-                  <TextBlock Text="{Binding TripTimeMax}" FontWeight="Bold"/>
+                  <TextBlock Text="{Binding TimeMax}" FontWeight="Bold"/>
                 </StackPanel>
               </StackPanel>
             </StackPanel>
@@ -153,12 +156,94 @@
             </DataGrid>
 
           </Border>
-      </Grid>
+          </Grid>
+        </TabItem>
 
+        <TabItem Header="Ships Graphs" x:Name="ShipsGraphsTab">
+          <Grid DataContext="{Binding ShipsGraphs}">
+              <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                  <RowDefinition Height="28" />
+                  <RowDefinition />
+              </Grid.RowDefinitions>
+              <!-- Filters row -->
+              <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+                  <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
+                  <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
+                </StackPanel>
+              </Border>
+              <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+                <ListBox ItemsSource="{Binding ShipList}"
+                    Margin="8" Width="300"
+                    DoubleTapped="ShipGraphsList_DoubleTapped">
+                          <ListBox.ItemTemplate>
+                            <DataTemplate>
+                  <TextBlock Text="{Binding ShipName}"
+                     FontWeight="{Binding FontWeight}"
+                     Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}" />
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </Border>
+              <Border Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" BorderBrush="Gray" BorderThickness="0" Padding="8">
+                <lvc:CartesianChart Series="{Binding Series}"
+                                    XAxes="{Binding XAxes}"
+                                    YAxes="{Binding YAxes}"/>
+              </Border>
+          </Grid>
+        </TabItem>
+
+        <TabItem Header="Wares Stats" x:Name="WaresStatsTab">
+          <Grid DataContext="{Binding WaresStats}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="28" />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+            <!-- Filters row -->
+            <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+                <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
+                <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
+              </StackPanel>
+            </Border>
+            <!-- Chart + custom legend -->
+            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
+              <Grid ColumnDefinitions="* , Auto" >
+                <lvc:CartesianChart Grid.Column="0"
+                                    Series="{Binding Series}"
+                                    XAxes="{Binding XAxes}"
+                                    YAxes="{Binding YAxes}"
+                                    LegendPosition="Hidden"/>
+
+                <!-- Custom legend: ware color + name -->
+                <ScrollViewer Grid.Column="1" Margin="12,0,0,0" Width="280" VerticalScrollBarVisibility="Auto">
+                  <ItemsControl ItemsSource="{Binding Legend}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4">
+                          <Border Width="16" Height="16" Background="{Binding Brush}" CornerRadius="2"/>
+                          <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Grid>
+            </Border>
+          </Grid>
+        </TabItem>
+      </TabControl>
     </TabItem>
 
-    <TabItem Header="Ships Trades" x:Name="ShipsTradesTab">
-      <Grid DataContext="{Binding FullTrades}">
+    <!-- Parent: By Trades -->
+    <TabItem Header="By Trades" x:Name="ByTradesTab">
+      <TabControl x:Name="ByTradesTabs">
+        <TabItem Header="Ships Trades" x:Name="ShipsTradesTab">
+          <Grid DataContext="{Binding FullTrades}">
           <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="Auto"/>
@@ -200,15 +285,15 @@
                 <TextBlock Text="Trade Time:"/>
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Text="Min:"/>
-                  <TextBlock Text="{Binding TradeTimeMin}" FontWeight="Bold"/>
+                  <TextBlock Text="{Binding TimeMin}" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Text="Avg:"/>
-                  <TextBlock Text="{Binding TradeTimeAvg}" FontWeight="Bold"/>
+                  <TextBlock Text="{Binding TimeAvg}" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Text="Max:"/>
-                  <TextBlock Text="{Binding TradeTimeMax}" FontWeight="Bold"/>
+                  <TextBlock Text="{Binding TimeMax}" FontWeight="Bold"/>
                 </StackPanel>
               </StackPanel>
             </StackPanel>
@@ -241,7 +326,7 @@
             </ListBox>
           </Border>
 
-      <!-- Middle: full trades grid -->
+  <!-- Middle: full trades grid -->
           <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
             <DataGrid ItemsSource="{Binding FilteredFullTrades}"
                       SelectedItem="{Binding SelectedFullTrade, Mode=TwoWay}"
@@ -277,7 +362,7 @@
             </DataGrid>
           </Border>
 
-      <!-- Right: combined steps grid -->
+  <!-- Right: combined steps grid -->
           <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
             <DataGrid ItemsSource="{Binding TradeSteps}"
                       AutoGenerateColumns="False"
@@ -317,84 +402,9 @@
               </DataGrid.Columns>
             </DataGrid>
           </Border>
-      </Grid>
-    </TabItem>
-
-    <TabItem Header="Ships Graphs" x:Name="ShipsGraphsTab">
-      <Grid DataContext="{Binding ShipsGraphs}">
-          <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
-          <Grid.RowDefinitions>
-              <RowDefinition Height="28" />
-              <RowDefinition />
-          </Grid.RowDefinitions>
-          <!-- Filters row -->
-          <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-              <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
-              <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
-            </StackPanel>
-          </Border>
-          <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <ListBox ItemsSource="{Binding ShipList}"
-                Margin="8" Width="300"
-                DoubleTapped="ShipGraphsList_DoubleTapped">
-                      <ListBox.ItemTemplate>
-                        <DataTemplate>
-              <TextBlock Text="{Binding ShipName}"
-                 FontWeight="{Binding FontWeight}"
-                 Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}" />
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </Border>
-          <Border Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" BorderBrush="Gray" BorderThickness="0" Padding="8">
-            <lvc:CartesianChart Series="{Binding Series}"
-                                XAxes="{Binding XAxes}"
-                                YAxes="{Binding YAxes}"/>
-          </Border>
-      </Grid>
-    </TabItem>
-    <TabItem Header="Wares Stats" x:Name="WaresStatsTab">
-      <Grid DataContext="{Binding WaresStats}">
-        <Grid.RowDefinitions>
-          <RowDefinition Height="28" />
-          <RowDefinition />
-        </Grid.RowDefinitions>
-        <!-- Filters row -->
-        <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-            <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
-            <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
-          </StackPanel>
-        </Border>
-        <!-- Chart + custom legend -->
-        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
-          <Grid ColumnDefinitions="* , Auto" >
-            <lvc:CartesianChart Grid.Column="0"
-                                Series="{Binding Series}"
-                                XAxes="{Binding XAxes}"
-                                YAxes="{Binding YAxes}"
-                                LegendPosition="Hidden"/>
-
-            <!-- Custom legend: ware color + name -->
-            <ScrollViewer Grid.Column="1" Margin="12,0,0,0" Width="280" VerticalScrollBarVisibility="Auto">
-              <ItemsControl ItemsSource="{Binding Legend}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4">
-                      <Border Width="16" Height="16" Background="{Binding Brush}" CornerRadius="2"/>
-                      <TextBlock Text="{Binding Name}" />
-                    </StackPanel>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
           </Grid>
-        </Border>
-      </Grid>
+        </TabItem>
+      </TabControl>
     </TabItem>
     <TabItem Header="Configuration" x:Name="ConfigurationTab">
       <Grid DataContext="{Binding Configuration}" Margin="12">

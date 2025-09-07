@@ -24,6 +24,8 @@ public partial class MainWindow : Window
   private TabItem? _currentTab;
   private bool _didStartupStatsCheck;
   private TabItem? _shipsTransactionsTab;
+  private TabItem? _byTransactionsTab;
+  private TabItem? _byTradesTab;
   private TabItem? _shipsGraphsTab;
   private TabItem? _shipsTradesTab;
   private TabItem? _waresStatsTab;
@@ -57,7 +59,9 @@ public partial class MainWindow : Window
     // Run a one-time check on first open to direct user to Configuration if stats look empty
     this.Opened += MainWindow_Opened;
 
-    _currentTab = this.FindControl<TabItem>("ShipsTransactionsTab");
+    _currentTab = this.FindControl<TabItem>("ByTransactionsTab");
+    _byTransactionsTab = this.FindControl<TabItem>("ByTransactionsTab");
+    _byTradesTab = this.FindControl<TabItem>("ByTradesTab");
     _shipsTransactionsTab = this.FindControl<TabItem>("ShipsTransactionsTab");
     _shipsGraphsTab = this.FindControl<TabItem>("ShipsGraphsTab");
     _waresStatsTab = this.FindControl<TabItem>("WaresStatsTab");
@@ -120,6 +124,10 @@ public partial class MainWindow : Window
   private void UpdateTabsEnabled(bool dataReady)
   {
     // Keep Configuration always enabled; toggle other tabs
+    if (_byTransactionsTab != null)
+      _byTransactionsTab.IsEnabled = dataReady;
+    if (_byTradesTab != null)
+      _byTradesTab.IsEnabled = dataReady;
     if (_shipsTransactionsTab != null)
       _shipsTransactionsTab.IsEnabled = dataReady;
     if (_shipsGraphsTab != null)
