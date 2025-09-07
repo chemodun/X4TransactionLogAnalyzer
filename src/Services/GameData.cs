@@ -1388,6 +1388,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     long elementsProcessed = 0;
     int itemsForTransaction = 0,
       sectorCount = 0,
+      removedCount = 0,
       stationsProcessed = 0,
       shipsProcessed = 0,
       tradeCount = 0;
@@ -1402,6 +1403,8 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     using var xr = XmlReader.Create(sr, settings);
 
     bool tradeEntries = false;
+    bool removedEntries = false;
+    bool removedProcessed = false;
     bool connectionsProcessed = false;
     bool tradesProcessed = false;
     bool timeProcessed = false;
@@ -1412,6 +1415,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
     HashSet<int> processedPageIds = new();
     GameComponent? currentStation = null;
     Dictionary<string, string> wareComponentNames = GetWareComponentNamesDict();
+    Dictionary<long, string> zonesToSectors = new();
 
     while (xr.Read())
     {
@@ -1440,6 +1444,13 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
           // rebind commands to the new transaction
           insertComp.Transaction = txn;
           insertTrade.Transaction = txn;
+          continue;
+        }
+        if (connectionsProcessed && !removedProcessed && !removedEntries && xr.Name == "removed")
+        {
+          // Skip removed entries section
+          removedEntries = true;
+          tradeEntries = false;
           continue;
         }
         if (!connectionsProcessed && xr.Name == "component")
@@ -1502,7 +1513,17 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
             }
             continue;
           }
-
+          if (componentClass == "zone" && !string.IsNullOrEmpty(currentSector))
+          {
+            // map zone macro to sector macro for later use
+            long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
+            if (id <= 0)
+            {
+              continue;
+            }
+            zonesToSectors[id] = currentSector;
+            continue;
+          }
           if (!(componentClass == "station") && !componentClass.StartsWith("ship_"))
           {
             continue;
@@ -1589,6 +1610,47 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
           catch
           {
             // skip malformed component entries
+          }
+          continue;
+        }
+        if (removedEntries && xr.Name == "object")
+        {
+          long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
+          if (id <= 0)
+          {
+            continue;
+          }
+          string type = "removed";
+          string owner = xr.GetAttribute("owner") ?? "";
+          string name = xr.GetAttribute("name") ?? "";
+          if (string.IsNullOrWhiteSpace(name))
+          {
+            continue;
+          }
+          string code = xr.GetAttribute("code") ?? "";
+          if (string.IsNullOrWhiteSpace(code))
+          {
+            continue;
+          }
+          long space = ParseId(xr.GetAttribute("space") ?? string.Empty);
+          if (space <= 0 || !zonesToSectors.TryGetValue(space, out var sector) || string.IsNullOrEmpty(sector))
+          {
+            continue;
+          }
+          insertComp.Parameters["@id"].Value = id;
+          insertComp.Parameters["@type"].Value = type;
+          insertComp.Parameters["@class"].Value = type;
+          insertComp.Parameters["@sector"].Value = sector;
+          insertComp.Parameters["@owner"].Value = owner;
+          insertComp.Parameters["@code"].Value = code;
+          insertComp.Parameters["@nameindex"].Value = "";
+          insertComp.Parameters["@name"].Value = name;
+          insertComp.ExecuteNonQuery();
+          itemsForTransaction++;
+          removedCount++;
+          if (removedCount % 100 == 0)
+          {
+            progress?.Invoke(new ProgressUpdate { RemovedProcessed = removedCount });
           }
           continue;
         }
@@ -1688,6 +1750,7 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
           (itemsForTransaction > 0) && (itemsForTransaction % _batchSize == 0)
           || !connectionsProcessed && xr.Name == "universe"
           || (!tradesProcessed && tradeEntries && tradeCount > 0 && xr.Name == "entries")
+          || (removedEntries && xr.Name == "removed")
         )
         {
           txn.Commit();
@@ -1713,6 +1776,11 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
             progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
             progress?.Invoke(new ProgressUpdate { SectorsProcessed = sectorCount });
           }
+          if (removedEntries && xr.Name == "removed")
+          {
+            removedProcessed = true;
+            removedEntries = false;
+          }
         }
       }
     }
@@ -1726,6 +1794,8 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
         ElementsProcessed = (int)Math.Min(int.MaxValue, elementsProcessed),
         StationsProcessed = stationsProcessed,
         ShipsProcessed = shipsProcessed,
+        SectorsProcessed = sectorCount,
+        RemovedProcessed = removedCount,
         TradesProcessed = tradeCount,
         Status = "Save import complete.",
       }

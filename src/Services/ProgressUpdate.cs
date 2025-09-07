@@ -18,5 +18,6 @@ public sealed class ProgressUpdate
   public int? SectorsProcessed { get; init; }
   public int? StationsProcessed { get; init; }
   public int? ShipsProcessed { get; init; }
+  public int? RemovedProcessed { get; init; }
   public int? TradesProcessed { get; init; }
 }

@@ -64,17 +64,20 @@
         <TextBlock Grid.Row="16" Grid.Column="2" x:Name="ClusterSectorNamesProcessed"/>
 
         <!-- Save loading counters -->
-        <TextBlock Grid.Row="2" Grid.Column="0" x:Name="LblElementsProcessed" Text="Elements processed:"/>
-        <TextBlock Grid.Row="2" Grid.Column="2" x:Name="ElementsProcessed"/>
+        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="LblElementsProcessed" Text="Elements processed:"/>
+        <TextBlock Grid.Row="0" Grid.Column="2" x:Name="ElementsProcessed"/>
 
-        <TextBlock Grid.Row="4" Grid.Column="0" x:Name="LblSectorsProcessed" Text="Sectors processed:"/>
-        <TextBlock Grid.Row="4" Grid.Column="2" x:Name="SectorsProcessed"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" x:Name="LblSectorsProcessed" Text="Sectors processed:"/>
+        <TextBlock Grid.Row="2" Grid.Column="2" x:Name="SectorsProcessed"/>
 
-        <TextBlock Grid.Row="6" Grid.Column="0" x:Name="LblStationsProcessed" Text="Stations processed:"/>
-        <TextBlock Grid.Row="6" Grid.Column="2" x:Name="StationsProcessed"/>
+        <TextBlock Grid.Row="4" Grid.Column="0" x:Name="LblStationsProcessed" Text="Stations processed:"/>
+        <TextBlock Grid.Row="4" Grid.Column="2" x:Name="StationsProcessed"/>
 
-        <TextBlock Grid.Row="8" Grid.Column="0" x:Name="LblShipsProcessed" Text="Ships processed:"/>
-        <TextBlock Grid.Row="8" Grid.Column="2" x:Name="ShipsProcessed"/>
+        <TextBlock Grid.Row="6" Grid.Column="0" x:Name="LblShipsProcessed" Text="Ships processed:"/>
+        <TextBlock Grid.Row="6" Grid.Column="2" x:Name="ShipsProcessed"/>
+
+        <TextBlock Grid.Row="8" Grid.Column="0" x:Name="LblRemovedProcessed" Text="Removed processed:"/>
+        <TextBlock Grid.Row="8" Grid.Column="2" x:Name="RemovedProcessed"/>
 
         <TextBlock Grid.Row="10" Grid.Column="0" x:Name="LblTradesProcessed" Text="Trades processed:"/>
         <TextBlock Grid.Row="10" Grid.Column="2" x:Name="TradesProcessed"/>
