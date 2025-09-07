@@ -122,8 +122,9 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
       );
     }
     // materialize ShipList sorted by name
-    foreach (var s in ships.Values.OrderBy(s => s.ShipName, System.StringComparer.Ordinal))
+    foreach (var s in ships.Values)
       ShipList.Add(s);
+    ResortShips();
     ApplyShipFilter();
   }
 

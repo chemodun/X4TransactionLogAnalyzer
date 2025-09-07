@@ -92,13 +92,7 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
       _shipItemsById[item.ShipId] = item;
     }
     // Apply current sort
-    if (ShipList.Count > 1)
-    {
-      var sorted = SortShips(ShipList.ToList()).ToList();
-      ShipList.Clear();
-      foreach (var s in sorted)
-        ShipList.Add(s);
-    }
+    ResortShips();
   }
 
   protected override List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(int shipId)
