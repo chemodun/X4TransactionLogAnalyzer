@@ -157,6 +157,8 @@ public partial class MainWindow : Window
       _transactionsWaresStatsTab.IsEnabled = dataReady;
     if (_transactionsShipsWaresStatsTab != null)
       _transactionsShipsWaresStatsTab.IsEnabled = dataReady;
+    if (_transactionsWaresShipsStatsTab != null)
+      _transactionsWaresShipsStatsTab.IsEnabled = dataReady;
     if (_tradesGraphsTab != null)
       _tradesGraphsTab.IsEnabled = dataReady;
     if (_tradesWaresStatsTab != null)
