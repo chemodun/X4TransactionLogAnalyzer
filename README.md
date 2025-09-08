@@ -150,7 +150,7 @@ The app runs locally and reads only your X4 files. Nothing is uploaded. **Nothin
 
 ## Video
 
-There is short video available on [YouTube](https://www.youtube.com/watch?v=EBRmOO3SDUA) demonstrating the app's features and usage.
+There is short video available on [YouTube](https://www.youtube.com/watch?v=z1xCXBDdpFk) demonstrating the app's features and usage.
 
 ## Tips & troubleshooting
 
