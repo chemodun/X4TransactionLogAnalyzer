@@ -180,6 +180,7 @@ There is short video available on [YouTube](https://www.youtube.com/watch?v=EBRm
   - Fixed:
     - For non-container wares average price was excluded from calculation
     - Multiple other small fixes and improvements
+    - If game and save paths are set, resetting dialogs will start from those paths
 - 1.2.0 (2025-09-05)
   - Fixed:
     - Station wasn't loaded if has Player ships docked
