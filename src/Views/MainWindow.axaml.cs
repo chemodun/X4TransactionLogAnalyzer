@@ -29,10 +29,13 @@ public partial class MainWindow : Window
   private TabItem? _transactionsGraphsTab;
   private TabItem? _transactionsWaresStatsTab;
   private TabItem? _transactionsShipsWaresStatsTab;
+  private TabItem? _transactionsWaresShipsStatsTab;
   private TabItem? _byTradesTab;
   private TabItem? _tradesTab;
   private TabItem? _tradesGraphsTab;
   private TabItem? _tradesWaresStatsTab;
+  private TabItem? _tradesShipsWaresStatsTab;
+  private TabItem? _tradesWaresShipsStatsTab;
   private TabItem? _configurationTab;
   private TabItem? _readmeTab;
 
@@ -75,10 +78,13 @@ public partial class MainWindow : Window
     _transactionsGraphsTab = this.FindControl<TabItem>("TransactionsGraphsTab");
     _transactionsWaresStatsTab = this.FindControl<TabItem>("TransactionsWaresStatsTab");
     _transactionsShipsWaresStatsTab = this.FindControl<TabItem>("TransactionsShipsWaresStatsTab");
+    _transactionsWaresShipsStatsTab = this.FindControl<TabItem>("TransactionsWaresShipsStatsTab");
     _byTradesTab = this.FindControl<TabItem>("ByTradesTab");
     _tradesTab = this.FindControl<TabItem>("TradesTab");
     _tradesGraphsTab = this.FindControl<TabItem>("TradesGraphsTab");
     _tradesWaresStatsTab = this.FindControl<TabItem>("TradesWaresStatsTab");
+    _tradesShipsWaresStatsTab = this.FindControl<TabItem>("TradesShipsWaresStatsTab");
+    _tradesWaresShipsStatsTab = this.FindControl<TabItem>("TradesWaresShipsStatsTab");
     _configurationTab = this.FindControl<TabItem>("ConfigurationTab");
     _readmeTab = this.FindControl<TabItem>("ReadmeTab");
     this.Opened += (_, __) => LoadReadme();
@@ -147,14 +153,20 @@ public partial class MainWindow : Window
       _transactionsTab.IsEnabled = dataReady;
     if (_transactionsGraphsTab != null)
       _transactionsGraphsTab.IsEnabled = dataReady;
-    if (_tradesGraphsTab != null)
-      _tradesGraphsTab.IsEnabled = dataReady;
-    if (_tradesTab != null)
-      _tradesTab.IsEnabled = dataReady;
     if (_transactionsWaresStatsTab != null)
       _transactionsWaresStatsTab.IsEnabled = dataReady;
     if (_transactionsShipsWaresStatsTab != null)
       _transactionsShipsWaresStatsTab.IsEnabled = dataReady;
+    if (_tradesGraphsTab != null)
+      _tradesGraphsTab.IsEnabled = dataReady;
+    if (_tradesWaresStatsTab != null)
+      _tradesWaresStatsTab.IsEnabled = dataReady;
+    if (_tradesShipsWaresStatsTab != null)
+      _tradesShipsWaresStatsTab.IsEnabled = dataReady;
+    if (_tradesWaresShipsStatsTab != null)
+      _tradesWaresShipsStatsTab.IsEnabled = dataReady;
+    if (_tradesTab != null)
+      _tradesTab.IsEnabled = dataReady;
     if (_configurationTab != null)
       _configurationTab.IsEnabled = true;
     if (_readmeTab != null)

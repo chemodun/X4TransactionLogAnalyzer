@@ -63,6 +63,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
+  private WaresShipsStatsTransactionsModel? _transactionsWaresShipsStats;
+  public WaresShipsStatsTransactionsModel? TransactionsWaresShipsStats
+  {
+    get => _transactionsWaresShipsStats;
+    set
+    {
+      _transactionsWaresShipsStats = value;
+      OnPropertyChanged();
+    }
+  }
+
   private ShipsDataTradesModel? _tradesData;
   public ShipsDataTradesModel? TradesData
   {
@@ -107,6 +118,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
+  private WaresShipsStatsTradesModel? _tradesWaresShipsStats;
+  public WaresShipsStatsTradesModel? TradesWaresShipsStats
+  {
+    get => _tradesWaresShipsStats;
+    set
+    {
+      _tradesWaresShipsStats = value;
+      OnPropertyChanged();
+    }
+  }
+
   private ConfigurationViewModel? _configuration;
   public ConfigurationViewModel? Configuration
   {
@@ -126,10 +148,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
     TransactionsGraphs = new ShipsGraphTransactionsModel();
     TransactionsWaresStats = new WaresStatsTransactionsModel();
     TransactionsShipsWaresStats = new ShipsWaresStatsTransactionsModel();
+    TransactionsWaresShipsStats = new WaresShipsStatsTransactionsModel();
     TradesData = new ShipsDataTradesModel();
     TradesGraphs = new ShipsGraphTradesModel();
     TradesWaresStats = new WaresStatsTradesModel();
     TradesShipsWaresStats = new ShipsWaresStatsTradesModel();
+    TradesWaresShipsStats = new WaresShipsStatsTradesModel();
     Configuration = new ConfigurationViewModel();
   }
 

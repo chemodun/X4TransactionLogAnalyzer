@@ -272,7 +272,7 @@
             </Border>
           </Grid>
         </TabItem>
-        <TabItem Header="Ships per Wares Stats" x:Name="TransactionsShipsWaresStatsTab">
+        <TabItem Header="Ships by Wares Stats" x:Name="TransactionsShipsWaresStatsTab">
           <Grid DataContext="{Binding TransactionsShipsWaresStats}">
             <Grid.RowDefinitions>
               <RowDefinition Height="34" />
@@ -294,6 +294,46 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
                   <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
+                  <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+            <!-- Chart + custom legend -->
+            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Border MinWidth="{Binding ChartMinWidth}" MinHeight="{Binding ChartMinHeight}">
+                  <lvc:CartesianChart Grid.Column="0"
+                                      Series="{Binding Series}"
+                                      XAxes="{Binding XAxes}"
+                                      YAxes="{Binding YAxes}"
+                                      LegendPosition="Left"/>
+                </Border>
+              </ScrollViewer>
+            </Border>
+          </Grid>
+        </TabItem>
+        <TabItem Header="Wares by Ships Stats" x:Name="TransactionsWaresShipsStatsTab">
+          <Grid DataContext="{Binding TransactionsWaresShipsStats}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="34" />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+            <!-- Filters row -->
+            <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+              <Grid Grid.ColumnDefinitions="*,Auto" >
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" Margin="0">
+                  <TextBlock Text="Transport:" VerticalAlignment="Center"/>
+                  <RadioButton Content="All" GroupName="TxTransport"
+                              IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=All}"/>
+                  <RadioButton Content="Container" GroupName="TxTransport"
+                              IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Container}"/>
+                  <RadioButton Content="Solid" GroupName="TxTransport"
+                              IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Solid}"/>
+                  <RadioButton Content="Liquid" GroupName="TxTransport"
+                              IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Liquid}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
+                  <TextBlock Text="Top N Wares:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
                 </StackPanel>
               </Grid>
@@ -571,7 +611,7 @@
             </Border>
           </Grid>
         </TabItem>
-        <TabItem Header="Ships per Wares Stats" x:Name="TradesShipsWaresStatsTab">
+        <TabItem Header="Ships by Wares Stats" x:Name="TradesShipsWaresStatsTab">
           <Grid DataContext="{Binding TradesShipsWaresStats}">
             <Grid.RowDefinitions>
               <RowDefinition Height="34" />
@@ -589,6 +629,42 @@
                 </Border>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
                   <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
+                  <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+            <!-- Chart + custom legend -->
+            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Border MinWidth="{Binding ChartMinWidth}" MinHeight="{Binding ChartMinHeight}">
+                  <lvc:CartesianChart Grid.Column="0"
+                                      Series="{Binding Series}"
+                                      XAxes="{Binding XAxes}"
+                                      YAxes="{Binding YAxes}"
+                                      LegendPosition="Left"/>
+                </Border>
+              </ScrollViewer>
+            </Border>
+          </Grid>
+        </TabItem>
+        <TabItem Header="Wares by Ships Stats" x:Name="TradesWaresShipsStatsTab">
+          <Grid DataContext="{Binding TradesWaresShipsStats}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="34" />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+            <!-- Filters row -->
+            <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+              <Grid Grid.ColumnDefinitions="*,Auto" >
+                <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
+                      <StackPanel Orientation="Horizontal" Spacing="12">
+                        <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
+                      </StackPanel>
+                    </StackPanel>
+                </Border>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
+                  <TextBlock Text="Top N Wares:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
                 </StackPanel>
               </Grid>
