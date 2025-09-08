@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia;
@@ -223,6 +224,14 @@ public partial class MainWindow : Window
         options.SuggestedStartLocation = await this.StorageProvider.TryGetFolderFromPathAsync(currentFolder.FullName);
       }
     }
+    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+    {
+      string startFolder = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+      if (Directory.Exists(startFolder))
+      {
+        options.SuggestedStartLocation = await this.StorageProvider.TryGetFolderFromPathAsync(startFolder);
+      }
+    }
     var files = await this.StorageProvider.OpenFilePickerAsync(options);
     if (files.Count > 0)
     {
@@ -255,6 +264,22 @@ public partial class MainWindow : Window
       if (currentFile.Exists || currentFile.Directory?.Exists == true)
       {
         options.SuggestedStartLocation = await this.StorageProvider.TryGetFolderFromPathAsync(currentFile.Directory!.FullName);
+      }
+    }
+    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+    {
+      string startFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+      if (Directory.Exists(startFolder))
+      {
+        if (Directory.Exists(Path.Combine(startFolder, "Egosoft")))
+        {
+          startFolder = Path.Combine(startFolder, "Egosoft");
+          if (Directory.Exists(Path.Combine(startFolder, "X4")))
+          {
+            startFolder = Path.Combine(startFolder, "X4");
+            options.SuggestedStartLocation = await this.StorageProvider.TryGetFolderFromPathAsync(startFolder);
+          }
+        }
       }
     }
 
