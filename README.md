@@ -14,15 +14,29 @@ The app runs locally and reads only your X4 files. Nothing is uploaded. **Nothin
 
 ## Key features
 
-- Ships transactions: A detailed table of every trade in your save
-  - Columns: Time, Station, Operation (Buy/Sell), Product, Price, Quantity, Total, Estimated Profit
-- Filters for ware type: Container and Solid
+- Two analysis modes:
+  - By Transactions: Each buy/sell action is analyzed separately. This is faster and shows more data, but profit is estimated based on average prices.
+  - By Trades: Profit is calculated based on actual trades (buy+sell). This method is more accurate for profit calculation, but may show fewer entries if some ships haven't completed trades yet.
+- Ships transactions/trades: A detailed table of every transaction/trade in your save
+  - Columns for Transactions: Time, Sector, Station, Operation (Buy/Sell), Product, Price, Quantity, Total, Estimated Profit
+  - Columns for Trades: Time, Product, Bought, Sold, Profit, Spent Time.
+    - Columns for related Transactions: Time, Operation, Volume, Price, Sector, Station
+- Transactions filters for ware type: Container, Solid, Liquid, Gas
+- Trades filter: With Internal Trades (i.e. trades between your stations can be excluded)
 - Ships graphs: Compare ships visually
   - Interactive chart per ship; double-click a ship in the list to toggle it on/off
-  - Same Container/Solid filters apply
+  - Same Container/Solid/Liquid/Gas filters can be applied
 - Wares stats: See what actually makes money
   - Single-series histogram with per-ware colors and tooltips
   - Custom legend shows color + ware name for quick scanning
+- Ships by Wares: See which ships trade which wares
+  - Stacked column chart with ships on X-axis and wares colored
+  - Sorted by profit in descending order
+  - Same Container/Solid/Liquid/Gas filters can be applied
+- Wares by Ships: See which wares are traded by which ships
+  - Same as above, but with wares on X-axis and ships colored
+  - Sorted by profit in descending order
+  - Same Container/Solid/Liquid/Gas filters can be applied
 - Configuration (first-run setup and updates from save files)
   - Set Game Folder (your X4.exe location)
   - Choose a save file (.xml.gz)
@@ -66,17 +80,70 @@ The app runs locally and reads only your X4 files. Nothing is uploaded. **Nothin
 
 ## Using the app
 
-- Ships transactions tab
-  - Browse trades with totals and estimated profit.
-- Toggle “Container”/“Solid” to filter quickly.
+- By Transactions
+  - Ships transactions tab
+    - Browse trades with totals and estimated profit.
+    - Toggle Container/Solid/Liquid/Gas to filter quickly.
+    - Can be sorted by Ship Name/Profit in a Ships List.
 
-- Ships graphs tab
-  - Visualize activity and compare ships.
-  - Double-click a ship in the list to show/hide it on the chart.
+  - Ships graphs tab
+    - Visualize activity and compare ships.
+    - **Double-click a ship** in the list to show/hide it on the chart.
+    - Toggled Ship in a List will be have colored similar to the chart.
+    - Toggle Container/Solid/Liquid/Gas to filter quickly.
+    - Can be sorted by Name/Profit in a Ships List.
 
-- Wares stats tab
-  - Histogram of profit by ware with a color legend.
-  - Hover bars to see ware name and profit.
+  - Wares stats tab
+    - Histogram of profit by ware with a color legend.
+    - Hover bars to see ware name and profit.
+    - Toggle Container/Solid/Liquid/Gas to filter quickly.
+
+  - Ships by Wares tab
+    - Show Stacked Column chart of ships trading different wares.
+    - Sorted by Profit in descending order.
+    - Wares are colored.
+    - Toggle Container/Solid/Liquid/Gas to filter quickly.
+
+  - Wares by Ships tab
+    - Show Stacked Column chart of wares traded by different ships.
+    - Sorted by Profit in descending order.
+    - Ships are colored.
+    - Toggle Container/Solid/Liquid/Gas to filter quickly.
+
+- By Trades
+  - Same as above, but profit is calculated based on actual trades (buy+sell) rather than individual transactions.
+  - This method is more accurate for profit calculation, but may show fewer entries if some ships haven't completed trades yet.
+
+  - Ships Trades tab
+    - Browse trades with totals and actual profit.
+    - Toggle “With Internal Trades” to filter quickly. I.e. trades between your stations can be excluded.
+    - Can be sorted by Ship Name/Profit in a Ships List.
+    - Click a row to see related transactions on a right side.
+  - Ships graphs tab
+    - Visualize activity and compare ships.
+    - **Double-click a ship** in the list to show/hide it on the chart.
+    - Toggled Ship in a List will be have colored similar to the chart.
+    - Toggle “With Internal Trades” to filter quickly.
+    - Can be sorted by Name/Profit in a Ships List.
+  - Wares stats tab
+    - Histogram of profit by ware with a color legend.
+    - Hover bars to see ware name and profit.
+    - Toggle “With Internal Trades” to filter quickly.
+  - Ships by Wares tab
+    - Show Stacked Column chart of ships trading different wares.
+    - Sorted by Profit in descending order.
+    - Wares are colored.
+    - Toggle “With Internal Trades” to filter quickly.
+  - Wares by Ships tab
+    - Show Stacked Column chart of wares traded by different ships.
+    - Sorted by Profit in descending order.
+    - Ships are colored.
+    - Toggle “With Internal Trades” to filter quickly.
+
+- Configuration tab
+  - Change Game Folder or Save file and reload data.
+  - Optional settings: Load Only Game Language/Load removed objects, Theme (System, Light, Dark).
+  - Quick stats to confirm data loaded (wares, factions, ships, stations, trades, language).
 
 - Readme tab
   - Shows this guide inside the app for quick reference.
@@ -101,11 +168,23 @@ There is short video available on [YouTube](https://www.youtube.com/watch?v=EBRm
 
 ## Change log
 
-- 2.0.0 (2025-09-05)
+- 1.3.0 (2025-09-08)
+  - Introduced:
+    - Total profit summary in all Ships Lists
+    - Sorting by Name/Profit in all Ships Lists
+    - Processing more cargo types (i.e. liquids and gas added)
+    - If removed objects (ships/stations) has a next component, it will be loaded too
+    - Option to load removed objects (ships/stations) in Configuration tab
+    - All analysis tabs now shown in two variants: By Transactions and By Trades
+    - New Graphs tabs: Ships by Wares and Wares by Ships
+  - Fixed:
+    - For non-container wares average price was excluded from calculation
+    - Multiple other small fixes and improvements
+- 1.2.0 (2025-09-05)
   - Fixed:
     - Station wasn't loaded if has Player ships docked
     - Ships names not loaded, if player ships weren't renamed
-  - Implemented:
+  - Introduced:
     - Database schema updates
   - Warnings:
     - This is a breaking change. Will force to make re-import your game data and save file after updating.
@@ -122,10 +201,10 @@ There is short video available on [YouTube](https://www.youtube.com/watch?v=EBRm
     - Issue with data loading on certain save files (additional check is now performed)
     - Issue with displaying README after changing the Theme (issue on an element level)
 - 1.1.0 (2025-09-03)
-  - Implemented:
+  - Introduced:
     - Added a Station Sector column in Ships Transactions table
 - 1.0.0 (2025-09-02)
-  - Implemented:
+  - Introduced:
     - Initial release
 
 ## Credits
