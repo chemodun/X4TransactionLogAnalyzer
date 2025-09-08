@@ -1501,6 +1501,32 @@ ORDER BY full_name, time
     }
   }
 
+  private GameComponent GetComponentById(long id)
+  {
+    using var conn = CreateConnection();
+    if (conn == null)
+      throw new InvalidOperationException("Database connection is not initialized.");
+    using var cmd = conn.CreateCommand();
+    cmd.CommandText = "SELECT id, type, class, owner, sector, name, nameindex, code FROM component WHERE id = @id LIMIT 1";
+    cmd.Parameters.AddWithValue("@id", id);
+    using var rdr = cmd.ExecuteReader();
+    if (rdr.Read())
+    {
+      return new GameComponent
+      {
+        Id = rdr.GetInt64(0),
+        Type = rdr.IsDBNull(1) ? string.Empty : rdr.GetString(1),
+        ComponentClass = rdr.IsDBNull(2) ? string.Empty : rdr.GetString(2),
+        Owner = rdr.IsDBNull(3) ? string.Empty : rdr.GetString(3),
+        Sector = rdr.IsDBNull(4) ? string.Empty : rdr.GetString(4),
+        Name = rdr.IsDBNull(5) ? string.Empty : rdr.GetString(5),
+        NameIndex = rdr.IsDBNull(6) ? string.Empty : rdr.GetString(6),
+        Code = rdr.IsDBNull(7) ? string.Empty : rdr.GetString(7),
+      };
+    }
+    return new GameComponent();
+  }
+
   public void ImportSaveGame(Action<ProgressUpdate>? progress = null)
   {
     // Prefer external SaveGamesFolder from configuration; fallback to local GameData copy
@@ -1606,17 +1632,8 @@ ORDER BY full_name, time
         }
         if (connectionsProcessed && !removedProcessed && !removedEntries && xr.Name == "removed")
         {
-          // Enter removed entries section, but only process if enabled in config
-          if (ConfigurationService.Instance.LoadRemovedObjects)
-          {
-            removedEntries = true;
-            tradeEntries = false;
-          }
-          else
-          {
-            removedEntries = false;
-            removedProcessed = true; // skip entirely
-          }
+          removedEntries = true;
+          tradeEntries = false;
           continue;
         }
         if (!connectionsProcessed && xr.Name == "component")
@@ -1783,6 +1800,43 @@ ORDER BY full_name, time
         {
           long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
           if (id <= 0)
+          {
+            continue;
+          }
+          long next = ParseId(xr.GetAttribute("next") ?? string.Empty);
+          if (next > 0)
+          {
+            // skip objects that were removed but replaced by another object
+            GameComponent nextComp = GetComponentById(next);
+            if (nextComp != null && nextComp.Id > 0)
+            {
+              insertComp.Parameters["@id"].Value = id;
+              insertComp.Parameters["@type"].Value = nextComp.Type;
+              insertComp.Parameters["@class"].Value = nextComp.ComponentClass;
+              insertComp.Parameters["@sector"].Value = nextComp.Sector;
+              insertComp.Parameters["@owner"].Value = nextComp.Owner;
+              insertComp.Parameters["@code"].Value = nextComp.Code;
+              insertComp.Parameters["@nameindex"].Value = nextComp.NameIndex;
+              insertComp.Parameters["@name"].Value = nextComp.Name;
+              insertComp.ExecuteNonQuery();
+              itemsForTransaction++;
+              if (ConfigurationService.Instance.LoadRemovedObjects)
+              {
+                if (nextComp.Type == "station")
+                {
+                  stationsProcessed++;
+                  progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
+                }
+                else if (nextComp.Type == "ship")
+                {
+                  shipsProcessed++;
+                  progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
+                }
+              }
+            }
+            continue;
+          }
+          else if (!ConfigurationService.Instance.LoadRemovedObjects)
           {
             continue;
           }
