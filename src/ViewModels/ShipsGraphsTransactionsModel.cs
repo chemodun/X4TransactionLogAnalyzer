@@ -55,64 +55,38 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
   public ShipsGraphTransactionsModel()
     : base() { }
 
-  protected string AppendWhereOnFilters(string baseQuery)
-  {
-    var filters = new System.Collections.Generic.List<string>();
-    if (IsContainerChecked)
-      filters.Add("transport == 'container'");
-    if (IsSolidChecked)
-      filters.Add("transport == 'solid'");
-    if (filters.Count > 0)
-      return $"{baseQuery} WHERE {string.Join(" OR ", filters)}";
-    return baseQuery;
-  }
-
   protected override void LoadShips()
   {
-    using var conn = MainWindow.GameData.Connection;
-    ShipList.Clear();
-    _shipItemsById.Clear();
-    // Include EstimatedProfit per ship for sorting/display
-    var shipCmd = new SQLiteCommand(
-      AppendWhereOnFilters("SELECT id, full_name, SUM(profit) AS est_profit FROM player_ships_transactions_log")
-        + " GROUP BY id, full_name ORDER BY full_name",
-      conn
+    ShipList = new ObservableCollection<GraphShipItem>(
+      MainViewModel
+        .AllTransactions.Where(t => (IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid"))
+        .GroupBy(t => (t.ShipId, t.FullName))
+        .Select(g => new GraphShipItem
+        {
+          ShipId = g.Key.ShipId,
+          ShipName = g.Key.FullName,
+          EstimatedProfit = g.Sum(t => t.EstimatedProfit),
+        })
     );
-    using var shipReader = shipCmd.ExecuteReader();
-    while (shipReader.Read())
-    {
-      var item = new GraphShipItem
-      {
-        ShipId = Convert.ToInt32(shipReader["id"]),
-        ShipName = shipReader["full_name"].ToString() ?? string.Empty,
-        EstimatedProfit = shipReader.IsDBNull(2) ? 0m : Convert.ToDecimal(shipReader.GetDouble(2)),
-      };
-      // default (inactive) ships: GraphBrush left null to use theme default
-      ShipList.Add(item);
-      _shipItemsById[item.ShipId] = item;
-    }
+
     // Apply current sort
     ResortShips();
+    OnPropertyChanged(nameof(ShipList));
   }
 
   protected override List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(int shipId)
   {
-    var list = new List<LiveChartsCore.Defaults.ObservablePoint>();
-    using var conn = MainWindow.GameData.Connection;
-    var cmd = new SQLiteCommand(
-      AppendWhereOnFilters("SELECT time, profit FROM player_ships_transactions_log") + " AND id = @id ORDER BY time ASC",
-      conn
-    );
-    cmd.Parameters.AddWithValue("@id", shipId);
-    using var reader = cmd.ExecuteReader();
     decimal sum = 0m;
-    while (reader.Read())
-    {
-      var t = Convert.ToInt64(reader["time"]); // negative ms
-      var p = Convert.ToDecimal(reader["profit"]);
-      sum += p;
-      list.Add(new LiveChartsCore.Defaults.ObservablePoint(t, (double)sum));
-    }
-    return list;
+    return MainViewModel
+      .AllTransactions.Where(t =>
+        ((IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid")) && t.ShipId == shipId
+      )
+      .OrderBy(t => t.RawTime)
+      .Select(t =>
+      {
+        sum += t.EstimatedProfit;
+        return new LiveChartsCore.Defaults.ObservablePoint(t.RawTime, (double)sum);
+      })
+      .ToList();
   }
 }

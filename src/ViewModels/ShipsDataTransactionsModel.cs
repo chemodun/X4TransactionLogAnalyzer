@@ -52,23 +52,10 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
     }
   }
 
-  protected string AppendWhereOnFilters(string baseQuery)
-  {
-    var filters = new System.Collections.Generic.List<string>();
-    if (IsContainerChecked)
-      filters.Add("transport == 'container'");
-    if (IsSolidChecked)
-      filters.Add("transport == 'solid'");
-    if (filters.Count > 0)
-      return $"{baseQuery} WHERE {string.Join(" OR ", filters)}";
-    return baseQuery;
-  }
-
   public ShipsDataTransactionsModel() => LoadData();
 
   protected override void LoadData()
   {
-    using var conn = MainWindow.GameData.Connection;
     SelectedShip = null;
     ShipList.Clear();
     allTransactions.Clear();
@@ -76,48 +63,39 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
     var ships = new Dictionary<int, ShipInfo>();
 
     // Load transactions
-    var txCmd = new SQLiteCommand(
-      AppendWhereOnFilters(
-        "SELECT id, full_name, time, sector, station, operation, ware_name, price, volume, trade_sum, profit FROM player_ships_transactions_log"
-      ),
-      conn
-    );
-    var txReader = txCmd.ExecuteReader();
-    while (txReader.Read())
+    foreach (
+      var trans in MainViewModel.AllTransactions.Where(t =>
+        (IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid")
+      )
+    )
     {
-      var id = Convert.ToInt32(txReader["id"]);
-      var fullName = txReader["full_name"].ToString() ?? string.Empty;
-      var profit = Convert.ToDecimal(txReader["profit"]);
-
       // aggregate ships
-      if (!ships.TryGetValue(id, out var info))
+      if (!ships.TryGetValue(trans.ShipId, out var info))
       {
         info = new ShipInfo
         {
-          ShipId = id,
-          ShipName = fullName,
+          ShipId = trans.ShipId,
+          ShipName = trans.FullName,
           EstimatedProfit = 0m,
         };
-        ships.Add(id, info);
+        ships.Add(trans.ShipId, info);
       }
-      info.EstimatedProfit = (info.EstimatedProfit ?? 0m) + profit;
+      info.EstimatedProfit = (info.EstimatedProfit ?? 0m) + trans.EstimatedProfit;
 
-      var ms = Convert.ToInt64(txReader["time"]);
       allTransactions.Add(
         new ShipTransaction
         {
-          ShipId = id,
-          RawTimeMs = Math.Abs(ms),
-          Time = TimeFormatter.FormatHms(Convert.ToInt64(txReader["time"])),
-          Sector = txReader["sector"].ToString() ?? string.Empty,
-          Station = txReader["station"].ToString() ?? string.Empty,
-          Operation = txReader["operation"].ToString() ?? string.Empty,
-          Product = txReader["ware_name"].ToString() ?? string.Empty,
-          Price = Convert.ToDecimal(txReader["price"]),
-          VolumeValue = Convert.ToInt32(txReader["volume"]),
-          Quantity = Convert.ToInt32(txReader["volume"]),
-          Total = Convert.ToDecimal(txReader["trade_sum"]),
-          EstimatedProfit = profit,
+          ShipId = trans.ShipId,
+          RawTime = trans.RawTime,
+          Time = trans.Time,
+          Sector = trans.Sector,
+          Station = trans.Station,
+          Operation = trans.Operation,
+          Product = trans.Product,
+          Price = trans.Price,
+          Quantity = trans.Quantity,
+          Total = trans.Total,
+          EstimatedProfit = trans.EstimatedProfit,
         }
       );
     }
@@ -166,10 +144,10 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
       // accumulate items and profit
       if (tx.Operation == "sell")
       {
-        itemsTotal += tx.VolumeValue;
+        itemsTotal += Convert.ToInt64(tx.Quantity.GetValueOrDefault());
         if (prevOp == "buy" && prevWare == tx.Product)
         {
-          var dt = Math.Abs(tx.RawTimeMs - prevMs);
+          var dt = Math.Abs(tx.RawTime - prevMs);
           tripSum += dt;
           tripCount++;
           if (dt < tripMin)
@@ -181,15 +159,15 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
       profitTotal += tx.EstimatedProfit ?? 0m;
 
       // update window
-      if (tx.RawTimeMs < firstMs)
-        firstMs = tx.RawTimeMs;
-      if (tx.RawTimeMs > lastMs)
-        lastMs = tx.RawTimeMs;
+      if (tx.RawTime < firstMs)
+        firstMs = tx.RawTime;
+      if (tx.RawTime > lastMs)
+        lastMs = tx.RawTime;
 
       // carry last op/ware/time
       prevOp = tx.Operation ?? string.Empty;
       prevWare = tx.Product ?? string.Empty;
-      prevMs = tx.RawTimeMs;
+      prevMs = tx.RawTime;
     }
 
     if (count > 0)

@@ -15,6 +15,7 @@ namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
 public sealed class MainViewModel : INotifyPropertyChanged
 {
+  public static List<Transaction> AllTransactions = new();
   public static List<FullTrade> AllTrades = new();
   public ObservableCollection<Ware> Wares { get; } = new();
 
@@ -110,7 +111,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
   public static void LoadData()
   {
-    AllTrades.Clear();
+    Transaction.GetAllTransactions(ref AllTransactions);
     FullTrade.GetFullTrades(ref AllTrades);
   }
 

@@ -87,7 +87,7 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
   public Axis[] XAxes { get; set; }
   public Axis[] YAxes { get; set; }
 
-  public ObservableCollection<GraphShipItem> ShipList { get; } = new();
+  public ObservableCollection<GraphShipItem> ShipList { get; set; } = new();
 
   protected readonly HashSet<int> _activeShipIds = new();
   protected readonly Dictionary<int, ISeries> _seriesByShipId = new();

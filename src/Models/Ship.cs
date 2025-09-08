@@ -12,8 +12,7 @@ public class ShipTransaction
   public int ShipId { get; set; }
 
   // raw numeric fields for aggregation
-  public long RawTimeMs { get; set; }
-  public int VolumeValue { get; set; }
+  public long RawTime { get; set; }
   public string? Time { get; set; }
   public string? Sector { get; set; }
   public string? Station { get; set; }

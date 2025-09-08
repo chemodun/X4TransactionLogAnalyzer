@@ -55,38 +55,13 @@ public sealed class WaresStatsTransactionsModel : WaresStatsBaseModel
   public WaresStatsTransactionsModel()
     : base() { }
 
-  private string AppendWhereOnFilters(string baseQuery)
-  {
-    var filters = new List<string>();
-    if (IsContainerChecked)
-      filters.Add("transport == 'container'");
-    if (IsSolidChecked)
-      filters.Add("transport == 'solid'");
-    if (filters.Count > 0)
-      return $"{baseQuery} WHERE {string.Join(" OR ", filters)}";
-    return baseQuery;
-  }
-
   protected override List<(string WareId, string WareName, double Profit)> LoadData()
   {
-    var rows = new List<(string WareId, string WareName, double Profit)>();
-
-    using var conn = MainWindow.GameData.Connection;
-    // sum profit per ware from the prepared view
-    var cmd = new SQLiteCommand(
-      AppendWhereOnFilters("SELECT ware, ware_name, SUM(profit) AS total_profit FROM player_ships_transactions_log")
-        + " GROUP BY ware, ware_name ORDER BY total_profit DESC",
-      conn
-    );
-    using var reader = cmd.ExecuteReader();
-    while (reader.Read())
-    {
-      var id = reader["ware"].ToString() ?? string.Empty;
-      var name = reader["ware_name"].ToString() ?? id;
-      var profit = Convert.ToDouble(reader["total_profit"]);
-      rows.Add((id, name, profit));
-    }
-
-    return rows;
+    return MainViewModel
+      .AllTransactions.Where(t => (IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid"))
+      .GroupBy(t => (t.Ware, t.Product))
+      .Select(g => (WareId: g.Key.Ware, WareName: g.Key.Product, Profit: Convert.ToDouble(g.Sum(t => t.EstimatedProfit))))
+      .OrderByDescending(r => r.Profit)
+      .ToList();
   }
 }
