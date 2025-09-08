@@ -370,7 +370,7 @@ public partial class MainWindow : Window
         break;
       case "ReadmeTab":
         // ensure content is present
-        // LoadReadme();
+        LoadReadme();
         break;
     }
   }
