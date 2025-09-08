@@ -9,6 +9,7 @@ using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Views;
 using RectGeometry = LiveChartsCore.SkiaSharpView.Drawing.Geometries.RectangleGeometry;
 
@@ -16,37 +17,15 @@ namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
 public sealed class WaresStatsTransactionsModel : WaresStatsBaseModel
 {
-  private bool _isContainerChecked = true;
-  public bool IsContainerChecked
+  private TransportFilter _transport = TransportFilter.Container;
+  public TransportFilter Transport
   {
-    get => _isContainerChecked;
+    get => _transport;
     set
     {
-      if (_isContainerChecked == value)
+      if (_transport == value)
         return;
-      if (!value && !_isSolidChecked)
-      {
-        IsSolidChecked = true; // enforce at least one
-      }
-      _isContainerChecked = value;
-      OnPropertyChanged();
-      Reload();
-    }
-  }
-
-  private bool _isSolidChecked;
-  public bool IsSolidChecked
-  {
-    get => _isSolidChecked;
-    set
-    {
-      if (_isSolidChecked == value)
-        return;
-      if (!value && !_isContainerChecked)
-      {
-        IsContainerChecked = true; // enforce at least one
-      }
-      _isSolidChecked = value;
+      _transport = value;
       OnPropertyChanged();
       Reload();
     }
@@ -57,9 +36,15 @@ public sealed class WaresStatsTransactionsModel : WaresStatsBaseModel
 
   protected override List<(string WareId, string WareName, double Profit)> LoadData()
   {
-    return MainViewModel
-      .AllTransactions.Where(t => (IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid"))
-      .GroupBy(t => (t.Ware, t.Product))
+    IEnumerable<Transaction> q = MainViewModel.AllTransactions;
+    q = Transport switch
+    {
+      TransportFilter.Container => q.Where(t => t.Transport == "container"),
+      TransportFilter.Solid => q.Where(t => t.Transport == "solid"),
+      TransportFilter.Liquid => q.Where(t => t.Transport == "liquid"),
+      _ => q,
+    };
+    return q.GroupBy(t => (t.Ware, t.Product))
       .Select(g => (WareId: g.Key.Ware, WareName: g.Key.Product, Profit: Convert.ToDouble(g.Sum(t => t.EstimatedProfit))))
       .OrderByDescending(r => r.Profit)
       .ToList();

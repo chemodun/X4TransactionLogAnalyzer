@@ -10,6 +10,7 @@ using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using X4PlayerShipTradeAnalyzer.Utils;
 using X4PlayerShipTradeAnalyzer.Views;
 using RectGeometry = LiveChartsCore.SkiaSharpView.Drawing.Geometries.RectangleGeometry;
 
@@ -112,17 +113,8 @@ public abstract class WaresStatsBaseModel : INotifyPropertyChanged
 
   protected static SKColor GetColorForWare(string wareId)
   {
-    if (string.IsNullOrEmpty(wareId))
-      return new SKColor(33, 150, 243, 200);
-    unchecked
-    {
-      int hash = 17;
-      foreach (var ch in wareId)
-        hash = hash * 31 + ch;
-      var idx = Math.Abs(hash) % MainViewModel.Palette.Length;
-      var baseColor = MainViewModel.Palette[idx];
-      return new SKColor(baseColor.Red, baseColor.Green, baseColor.Blue, 200);
-    }
+    var baseColor = ChartPalette.PickForString(wareId);
+    return ChartPalette.WithAlpha(baseColor, 200);
   }
 
   public event PropertyChangedEventHandler? PropertyChanged;

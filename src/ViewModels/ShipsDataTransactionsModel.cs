@@ -15,38 +15,15 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
 
   private List<ShipTransaction> allTransactions = new();
 
-  // Transport type filters (shared across ship-based views)
-  private bool _isContainerChecked = true;
-  public bool IsContainerChecked
+  private TransportFilter _transport = TransportFilter.Container;
+  public TransportFilter Transport
   {
-    get => _isContainerChecked;
+    get => _transport;
     set
     {
-      if (_isContainerChecked == value)
+      if (_transport == value)
         return;
-      if (!value && !_isSolidChecked)
-      {
-        IsSolidChecked = true; // enforce at least one
-      }
-      _isContainerChecked = value;
-      OnPropertyChanged();
-      LoadData();
-    }
-  }
-
-  private bool _isSolidChecked;
-  public bool IsSolidChecked
-  {
-    get => _isSolidChecked;
-    set
-    {
-      if (_isSolidChecked == value)
-        return;
-      if (!value && !_isContainerChecked)
-      {
-        IsContainerChecked = true; // enforce at least one
-      }
-      _isSolidChecked = value;
+      _transport = value;
       OnPropertyChanged();
       LoadData();
     }
@@ -63,12 +40,15 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
     var ships = new Dictionary<int, ShipInfo>();
 
     // Load transactions
-    foreach (
-      var trans in MainViewModel
-        .AllTransactions.Where(t => (IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid"))
-        .OrderBy(t => t.ShipId)
-        .ThenBy(t => t.RawTime)
-    )
+    IEnumerable<Transaction> q = MainViewModel.AllTransactions;
+    q = Transport switch
+    {
+      TransportFilter.Container => q.Where(t => t.Transport == "container"),
+      TransportFilter.Solid => q.Where(t => t.Transport == "solid"),
+      TransportFilter.Liquid => q.Where(t => t.Transport == "liquid"),
+      _ => q,
+    };
+    foreach (var trans in q.OrderBy(t => t.ShipId).ThenBy(t => t.RawTime))
     {
       // aggregate ships
       if (!ships.TryGetValue(trans.ShipId, out var info))

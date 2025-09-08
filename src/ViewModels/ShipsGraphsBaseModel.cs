@@ -9,6 +9,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using X4PlayerShipTradeAnalyzer.Models;
+using X4PlayerShipTradeAnalyzer.Utils;
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
@@ -230,9 +231,7 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
   {
     if (_colorByShipId.TryGetValue(shipId, out var color))
       return color;
-    var idx = Math.Abs(shipId.GetHashCode()) % MainViewModel.Palette.Length;
-    color = MainViewModel.Palette[idx];
-    _colorByShipId[shipId] = color;
-    return color;
+    _colorByShipId[shipId] = ChartPalette.PickForInt(shipId);
+    return _colorByShipId[shipId];
   }
 }

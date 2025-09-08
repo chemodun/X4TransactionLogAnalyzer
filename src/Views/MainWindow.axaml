@@ -36,191 +36,214 @@
       <TabControl x:Name="ByTransactionsTabs">
         <TabItem Header="Ships Transactions" x:Name="ShipsTransactionsTab">
           <Grid DataContext="{Binding ShipsTransactionsData}">
-          <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
-          <Grid.RowDefinitions>
-              <RowDefinition Height="28" />
-              <RowDefinition Height="36" />
-              <RowDefinition />
-          </Grid.RowDefinitions>
-          <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-              <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
-              <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
-            </StackPanel>
-          </Border>
-          <!-- Row 0, Column 1: summary values -->
-          <Border Grid.Row="0" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="24">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Ship:"/>
-                <TextBlock Text="{Binding SelectedShip.ShipName}" FontWeight="Bold"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="34" />
+                <RowDefinition />
+                <RowDefinition Height="34" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0">
+                <TextBlock Text="Sort:" VerticalAlignment="Center"/>
+                <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
+                              IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
+                <RadioButton Content="Profit" GroupName="ShipsSort" Margin="8,0,0,0"
+                              IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Total Profit:"/>
-                <TextBlock Text="{Binding TotalProfit}" FontWeight="Bold"/>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+              <ListBox ItemsSource="{Binding ShipList}"
+                      SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
+                      Margin="0" Width="340">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="*,8,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}"/>
+                      <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="SemiBold" Classes="RightAligned"  Margin="0"/>
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" Margin="0">
+                <TextBlock Text="Transport:" VerticalAlignment="Center"/>
+                <RadioButton Content="All" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=All}"/>
+                <RadioButton Content="Container" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Container}"/>
+                <RadioButton Content="Solid" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Solid}"/>
+                <RadioButton Content="Liquid" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Liquid}"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Items Traded:"/>
-                <TextBlock Text="{Binding ItemsTraded}" FontWeight="Bold"/>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Time in Service:"/>
-                <TextBlock Text="{Binding TimeInService}" FontWeight="Bold"/>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Elapsed Time (Buy→Sell):"/>
+            </Border>
+
+                      <!-- Row 0, Column 1: summary values -->
+            <Border Grid.Row="0" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="24">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <TextBlock Text="Min:"/>
-                  <TextBlock Text="{Binding TimeMin}" FontWeight="Bold"/>
+                  <TextBlock Text="Ship:"/>
+                  <TextBlock Text="{Binding SelectedShip.ShipName}" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <TextBlock Text="Avg:"/>
-                  <TextBlock Text="{Binding TimeAvg}" FontWeight="Bold"/>
+                  <TextBlock Text="Total Profit:"/>
+                  <TextBlock Text="{Binding TotalProfit}" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <TextBlock Text="Max:"/>
-                  <TextBlock Text="{Binding TimeMax}" FontWeight="Bold"/>
+                  <TextBlock Text="Items Traded:"/>
+                  <TextBlock Text="{Binding ItemsTraded}" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Time in Service:"/>
+                  <TextBlock Text="{Binding TimeInService}" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Elapsed Time (Buy→Sell):"/>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Min:"/>
+                    <TextBlock Text="{Binding TimeMin}" FontWeight="Bold"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Avg:"/>
+                    <TextBlock Text="{Binding TimeAvg}" FontWeight="Bold"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Max:"/>
+                    <TextBlock Text="{Binding TimeMax}" FontWeight="Bold"/>
+                  </StackPanel>
                 </StackPanel>
               </StackPanel>
-            </StackPanel>
-          </Border>
+            </Border>
 
-          <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <StackPanel Orientation="Horizontal" Spacing="6" Margin="16,0,0,0">
-              <TextBlock Text="Sort:" VerticalAlignment="Center"/>
-              <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
-                            IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
-              <RadioButton Content="Profit" GroupName="ShipsSort" Margin="8,0,0,0"
-                            IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
-            </StackPanel>
-          </Border>
+            <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
 
-          <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <ListBox ItemsSource="{Binding ShipList}"
-                    SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
-                    Margin="8" Width="340">
-              <ListBox.ItemTemplate>
-                <DataTemplate>
-                  <Grid ColumnDefinitions="*,8,Auto">
-                    <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}"/>
-                    <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="SemiBold" Classes="RightAligned"  Margin="0"/>
-                  </Grid>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </Border>
+              <DataGrid ItemsSource="{Binding FilteredTransactions}"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        Margin="8">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
+                  <DataGridTextColumn Header="Sector" Binding="{Binding Sector}" Width="180"/>
+                  <DataGridTextColumn Header="Station" Binding="{Binding Station}" Width="400"/>
+                  <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
+                  <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="240"/>
+                  <DataGridTemplateColumn Header="Price" SortMemberPath="Price" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Price, StringFormat=N2}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Quantity" SortMemberPath="Quantity" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Quantity, StringFormat=N0}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Total" SortMemberPath="Total" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Total, StringFormat=N2}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Estimated Profit" SortMemberPath="EstimatedProfit" Width="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding EstimatedProfit, StringFormat=N2}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
 
-          <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
-
-            <DataGrid ItemsSource="{Binding FilteredTransactions}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      Margin="8">
-              <DataGrid.Columns>
-                <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
-                <DataGridTextColumn Header="Sector" Binding="{Binding Sector}" Width="180"/>
-                <DataGridTextColumn Header="Station" Binding="{Binding Station}" Width="400"/>
-                <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
-                <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="240"/>
-                <DataGridTemplateColumn Header="Price" SortMemberPath="Price" Width="100">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding Price, StringFormat=N2}" Classes="RightAlignedPadded" />
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Quantity" SortMemberPath="Quantity" Width="100">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding Quantity, StringFormat=N0}" Classes="RightAlignedPadded" />
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Total" SortMemberPath="Total" Width="100">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding Total, StringFormat=N2}" Classes="RightAlignedPadded" />
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Estimated Profit" SortMemberPath="EstimatedProfit" Width="140">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding EstimatedProfit, StringFormat=N2}" Classes="RightAlignedPadded" />
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-              </DataGrid.Columns>
-            </DataGrid>
-
-          </Border>
+            </Border>
           </Grid>
         </TabItem>
 
         <TabItem Header="Ships Graphs" x:Name="ShipsTransactionsGraphsTab">
           <Grid DataContext="{Binding ShipsTransactionsGraphs}">
-              <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <Grid.RowDefinitions>
-                  <RowDefinition Height="28" />
-                  <RowDefinition Height="36" />
-                  <RowDefinition />
-              </Grid.RowDefinitions>
-              <!-- Filters row -->
-              <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="12">
-                  <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
-                  <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
-                </StackPanel>
-              </Border>
-              <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
-                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,0">
-                  <TextBlock Text="Sort:" VerticalAlignment="Center"/>
-                  <RadioButton Content="Name" GroupName="ShipsSortGraphsTx" Margin="8,0,0,0"
-                                IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
-                  <RadioButton Content="Profit" GroupName="ShipsSortGraphsTx" Margin="8,0,0,0"
-                                IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
-                </StackPanel>
-              </Border>
-              <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-                <ListBox ItemsSource="{Binding ShipList}"
-                    Margin="8" Width="340"
-                    DoubleTapped="ShipGraphsList_DoubleTapped">
-                  <ListBox.ItemTemplate>
-                    <DataTemplate>
-                      <Grid ColumnDefinitions="*,8,Auto">
-                        <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}"
-                                   FontWeight="{Binding FontWeight}" Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
-                        <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="SemiBold" Classes="RightAligned"  Margin="0"/>
-                      </Grid>
-                    </DataTemplate>
-                  </ListBox.ItemTemplate>
-                </ListBox>
-              </Border>
-              <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
-                <lvc:CartesianChart Series="{Binding Series}"
-                                    XAxes="{Binding XAxes}"
-                                    YAxes="{Binding YAxes}"/>
-              </Border>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="34" />
+                <RowDefinition />
+                <RowDefinition Height="34" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0">
+                <TextBlock Text="Sort:" VerticalAlignment="Center"/>
+                <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
+                              IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
+                <RadioButton Content="Profit" GroupName="ShipsSort" Margin="8,0,0,0"
+                              IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
+              </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+              <ListBox ItemsSource="{Binding ShipList}"
+                      Margin="0" Width="340"
+                      DoubleTapped="ShipGraphsList_DoubleTapped">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="*,8,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}"
+                                  FontWeight="{Binding FontWeight}" Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                      <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="SemiBold" Classes="RightAligned"  Margin="0"/>
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" Margin="0">
+                <TextBlock Text="Transport:" VerticalAlignment="Center"/>
+                <RadioButton Content="All" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=All}"/>
+                <RadioButton Content="Container" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Container}"/>
+                <RadioButton Content="Solid" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Solid}"/>
+                <RadioButton Content="Liquid" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Liquid}"/>
+              </StackPanel>
+            </Border>
+            <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
+              <lvc:CartesianChart Series="{Binding Series}"
+                                  XAxes="{Binding XAxes}"
+                                  YAxes="{Binding YAxes}"/>
+            </Border>
           </Grid>
         </TabItem>
 
         <TabItem Header="Wares Stats" x:Name="ShipsTransactionsWaresStatsTab">
           <Grid DataContext="{Binding ShipsTransactionsWaresStats}">
             <Grid.RowDefinitions>
-              <RowDefinition Height="28" />
+              <RowDefinition Height="34" />
               <RowDefinition />
             </Grid.RowDefinitions>
             <!-- Filters row -->
             <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-                <CheckBox Content="Container" Margin="0,0,8,0" IsChecked="{Binding IsContainerChecked, Mode=TwoWay}"/>
-                <CheckBox Content="Solid" IsChecked="{Binding IsSolidChecked, Mode=TwoWay}"/>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" Margin="0">
+                <TextBlock Text="Transport:" VerticalAlignment="Center"/>
+                <RadioButton Content="All" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=All}"/>
+                <RadioButton Content="Container" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Container}"/>
+                <RadioButton Content="Solid" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Solid}"/>
+                <RadioButton Content="Liquid" GroupName="TxTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Liquid}"/>
               </StackPanel>
             </Border>
             <!-- Chart + custom legend -->
@@ -257,214 +280,215 @@
       <TabControl x:Name="ByTradesTabs">
         <TabItem Header="Ships Trades" x:Name="ShipsTradesTab">
           <Grid DataContext="{Binding ShipsTradesData}">
-          <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition Width="Auto"/>
-          </Grid.ColumnDefinitions>
-          <Grid.RowDefinitions>
-              <RowDefinition Height="28" />
-              <RowDefinition Height="36" />
-              <RowDefinition />
-          </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="34" />
+                <RowDefinition />
+                <RowDefinition Height="34" />
+            </Grid.RowDefinitions>
 
-          <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-              <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="24">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                  <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
-                </StackPanel>
-              </StackPanel>
-          </Border>
-          <!-- Filters / summary row -->
-          <Border Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="24">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Ship:"/>
-                <TextBlock Text="{Binding SelectedShip.ShipName}" FontWeight="Bold"/>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Total Profit:"/>
-                <TextBlock Text="{Binding TotalProfit}" FontWeight="Bold"/>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Items Traded:"/>
-                <TextBlock Text="{Binding ItemsTraded}" FontWeight="Bold"/>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Time in Service:"/>
-                <TextBlock Text="{Binding TimeInService}" FontWeight="Bold"/>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Trade Time:"/>
+            <!-- Filters / summary row -->
+            <Border Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="24">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <TextBlock Text="Min:"/>
-                  <TextBlock Text="{Binding TimeMin}" FontWeight="Bold"/>
+                  <TextBlock Text="Ship:"/>
+                  <TextBlock Text="{Binding SelectedShip.ShipName}" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <TextBlock Text="Avg:"/>
-                  <TextBlock Text="{Binding TimeAvg}" FontWeight="Bold"/>
+                  <TextBlock Text="Total Profit:"/>
+                  <TextBlock Text="{Binding TotalProfit}" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <TextBlock Text="Max:"/>
-                  <TextBlock Text="{Binding TimeMax}" FontWeight="Bold"/>
+                  <TextBlock Text="Items Traded:"/>
+                  <TextBlock Text="{Binding ItemsTraded}" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Time in Service:"/>
+                  <TextBlock Text="{Binding TimeInService}" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Trade Time:"/>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Min:"/>
+                    <TextBlock Text="{Binding TimeMin}" FontWeight="Bold"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Avg:"/>
+                    <TextBlock Text="{Binding TimeAvg}" FontWeight="Bold"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Max:"/>
+                    <TextBlock Text="{Binding TimeMax}" FontWeight="Bold"/>
+                  </StackPanel>
                 </StackPanel>
               </StackPanel>
-            </StackPanel>
-          </Border>
+            </Border>
 
-          <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="Gray" BorderThickness="0" Padding="4">
+            <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
 
-            <StackPanel Orientation="Horizontal" Spacing="6" Margin="16,0,0,0">
-              <TextBlock Text="Sort:" VerticalAlignment="Center"/>
-              <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
-                            IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
-              <RadioButton Content="Profit" GroupName="ShipsSort" Margin="8,0,0,0"
-                            IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
-            </StackPanel>
-          </Border>
+              <StackPanel Orientation="Horizontal" Spacing="6" Margin="0" HorizontalAlignment="Center">
+                <TextBlock Text="Sort:" VerticalAlignment="Center"/>
+                <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
+                              IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
+                <RadioButton Content="Profit" GroupName="ShipsSort" Margin="8,0,0,0"
+                              IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
+              </StackPanel>
+            </Border>
 
-          <!-- Left: ships list -->
-          <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <ListBox ItemsSource="{Binding ShipList}"
-                    SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
-                    Margin="8" Width="340">
-              <ListBox.ItemTemplate>
-                <DataTemplate>
-                  <Grid ColumnDefinitions="*,8,Auto">
-                    <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}"/>
-                    <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="SemiBold" Classes="RightAligned"  Margin="0"/>
-                  </Grid>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </Border>
+            <!-- Left: ships list -->
+            <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+              <ListBox ItemsSource="{Binding ShipList}"
+                      SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
+                      Margin="8" Width="340">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="*,8,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}"/>
+                      <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="SemiBold" Classes="RightAligned"  Margin="0"/>
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Border>
 
-  <!-- Middle: full trades grid -->
-          <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <DataGrid ItemsSource="{Binding FilteredFullTrades}"
-                      SelectedItem="{Binding SelectedFullTrade, Mode=TwoWay}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      Margin="8">
-              <DataGrid.Columns>
-              <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
-              <DataGridTextColumn Header="Ware" Binding="{Binding WareName}" Width="200"/>
-              <DataGridTemplateColumn Header="Bought" SortMemberPath="BoughtVolume" Width="80">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding BoughtVolume, StringFormat=N0}" Classes="RightAlignedPadded" />
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Sold" SortMemberPath="SoldVolume" Width="80">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding SoldVolume, StringFormat=N0}" Classes="RightAlignedPadded" />
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Profit" SortMemberPath="Profit" Width="120">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding Profit, StringFormat=N2}" Classes="RightAlignedPadded" />
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Spent Time" Binding="{Binding SpentTime}" Width="100"/>
-              </DataGrid.Columns>
-            </DataGrid>
-          </Border>
+            <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
+                  </StackPanel>
+                </StackPanel>
+            </Border>
 
-  <!-- Right: combined steps grid -->
-          <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
-            <DataGrid ItemsSource="{Binding TradeSteps}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      Margin="8">
-              <DataGrid.Columns>
-              <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
-              <DataGridTextColumn Header="Op." Binding="{Binding Operation}" Width="60"/>
-              <DataGridTemplateColumn Header="Vol."  SortMemberPath="Volume" Width="80">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding Volume, StringFormat=N0}" Classes="RightAlignedPadded"/>
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Price" SortMemberPath="Price" Width="80">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding Price, StringFormat=N2}" Classes="RightAlignedPadded" />
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Sector" SortMemberPath="Sector" Width="140">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding Sector}" ToolTip.Tip="{Binding Sector}" Margin="8"/>
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Station" SortMemberPath="Station" Width="Auto">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding Station}" ToolTip.Tip="{Binding Station}" Margin="8"/>
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              </DataGrid.Columns>
-            </DataGrid>
-          </Border>
+    <!-- Middle: full trades grid -->
+            <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+              <DataGrid ItemsSource="{Binding FilteredFullTrades}"
+                        SelectedItem="{Binding SelectedFullTrade, Mode=TwoWay}"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        Margin="8">
+                <DataGrid.Columns>
+                <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
+                <DataGridTextColumn Header="Ware" Binding="{Binding WareName}" Width="200"/>
+                <DataGridTemplateColumn Header="Bought" SortMemberPath="BoughtVolume" Width="80">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding BoughtVolume, StringFormat=N0}" Classes="RightAlignedPadded" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Sold" SortMemberPath="SoldVolume" Width="80">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding SoldVolume, StringFormat=N0}" Classes="RightAlignedPadded" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Profit" SortMemberPath="Profit" Width="120">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Profit, StringFormat=N2}" Classes="RightAlignedPadded" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Spent Time" Binding="{Binding SpentTime}" Width="100"/>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Border>
+
+    <!-- Right: combined steps grid -->
+            <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
+              <DataGrid ItemsSource="{Binding TradeSteps}"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        Margin="8">
+                <DataGrid.Columns>
+                <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
+                <DataGridTextColumn Header="Op." Binding="{Binding Operation}" Width="60"/>
+                <DataGridTemplateColumn Header="Vol."  SortMemberPath="Volume" Width="80">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Volume, StringFormat=N0}" Classes="RightAlignedPadded"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Price" SortMemberPath="Price" Width="80">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Price, StringFormat=N2}" Classes="RightAlignedPadded" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Sector" SortMemberPath="Sector" Width="140">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Sector}" ToolTip.Tip="{Binding Sector}" Margin="8"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Station" SortMemberPath="Station" Width="Auto">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Station}" ToolTip.Tip="{Binding Station}" Margin="8"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Border>
           </Grid>
         </TabItem>
         <TabItem Header="Ships Graphs" x:Name="ShipsTradesGraphsTab">
           <Grid DataContext="{Binding ShipsTradesGraphs}">
-              <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <Grid.RowDefinitions>
-                  <RowDefinition Height="28" />
-                  <RowDefinition Height="36" />
-                  <RowDefinition />
-              </Grid.RowDefinitions>
-              <!-- Filters row -->
-              <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-                  <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="24">
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                      <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
-                    </StackPanel>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="34" />
+                <RowDefinition />
+                <RowDefinition Height="34" />
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0,0,0,0">
+                <TextBlock Text="Sort:" VerticalAlignment="Center"/>
+                <RadioButton Content="Name" GroupName="ShipsSortGraphsTr" Margin="8,0,0,0"
+                              IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
+                <RadioButton Content="Profit" GroupName="ShipsSortGraphsTr" Margin="8,0,0,0"
+                              IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
+              </StackPanel>
+            </Border>
+            <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+              <ListBox ItemsSource="{Binding ShipList}"
+                  Margin="8" Width="340"
+                  DoubleTapped="ShipGraphsList_DoubleTapped">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="*,8,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}"
+                                  FontWeight="{Binding FontWeight}" Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                      <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="SemiBold" Classes="RightAligned"  Margin="0"/>
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Border>
+            <!-- Filters row -->
+            <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
                   </StackPanel>
-              </Border>
-              <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" BorderBrush="Gray" BorderThickness="0" Padding="4">
-                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,0">
-                  <TextBlock Text="Sort:" VerticalAlignment="Center"/>
-                  <RadioButton Content="Name" GroupName="ShipsSortGraphsTr" Margin="8,0,0,0"
-                                IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
-                  <RadioButton Content="Profit" GroupName="ShipsSortGraphsTr" Margin="8,0,0,0"
-                                IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
                 </StackPanel>
-              </Border>
-              <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-                <ListBox ItemsSource="{Binding ShipList}"
-                    Margin="8" Width="340"
-                    DoubleTapped="ShipGraphsList_DoubleTapped">
-                  <ListBox.ItemTemplate>
-                    <DataTemplate>
-                      <Grid ColumnDefinitions="*,8,Auto">
-                        <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}"
-                                   FontWeight="{Binding FontWeight}" Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
-                        <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="SemiBold" Classes="RightAligned"  Margin="0"/>
-                      </Grid>
-                    </DataTemplate>
-                  </ListBox.ItemTemplate>
-                </ListBox>
-              </Border>
-              <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
-                <lvc:CartesianChart Series="{Binding Series}"
-                                    XAxes="{Binding XAxes}"
-                                    YAxes="{Binding YAxes}"/>
-              </Border>
+            </Border>
+            <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
+              <lvc:CartesianChart Series="{Binding Series}"
+                                  XAxes="{Binding XAxes}"
+                                  YAxes="{Binding YAxes}"/>
+            </Border>
           </Grid>
         </TabItem>
         <TabItem Header="Wares Stats" x:Name="ShipsTradesWaresStatsTab">
@@ -475,7 +499,7 @@
             </Grid.RowDefinitions>
               <!-- Filters row -->
             <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="24">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
                   <StackPanel Orientation="Horizontal" Spacing="12">
                     <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
                   </StackPanel>

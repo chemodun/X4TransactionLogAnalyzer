@@ -55,3 +55,11 @@ public class Transaction
     }
   }
 }
+
+public enum TransportFilter
+{
+  All,
+  Container,
+  Solid,
+  Liquid,
+}

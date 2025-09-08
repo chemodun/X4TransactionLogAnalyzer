@@ -9,6 +9,7 @@ using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Views;
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
@@ -16,37 +17,15 @@ namespace X4PlayerShipTradeAnalyzer.ViewModels;
 public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
 {
   // Transport filters
-  private bool _isContainerChecked = true;
-  public bool IsContainerChecked
+  private TransportFilter _transport = TransportFilter.Container;
+  public TransportFilter Transport
   {
-    get => _isContainerChecked;
+    get => _transport;
     set
     {
-      if (_isContainerChecked == value)
+      if (_transport == value)
         return;
-      if (!value && !_isSolidChecked)
-      {
-        IsSolidChecked = true; // enforce at least one
-      }
-      _isContainerChecked = value;
-      OnPropertyChanged();
-      ReloadShipsAndRebuildActiveSeries();
-    }
-  }
-
-  private bool _isSolidChecked;
-  public bool IsSolidChecked
-  {
-    get => _isSolidChecked;
-    set
-    {
-      if (_isSolidChecked == value)
-        return;
-      if (!value && !_isContainerChecked)
-      {
-        IsContainerChecked = true; // enforce at least one
-      }
-      _isSolidChecked = value;
+      _transport = value;
       OnPropertyChanged();
       ReloadShipsAndRebuildActiveSeries();
     }
@@ -57,10 +36,16 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
 
   protected override void LoadShips()
   {
+    IEnumerable<Transaction> q = MainViewModel.AllTransactions;
+    q = Transport switch
+    {
+      TransportFilter.Container => q.Where(t => t.Transport == "container"),
+      TransportFilter.Solid => q.Where(t => t.Transport == "solid"),
+      TransportFilter.Liquid => q.Where(t => t.Transport == "liquid"),
+      _ => q,
+    };
     ShipList = new ObservableCollection<GraphShipItem>(
-      MainViewModel
-        .AllTransactions.Where(t => (IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid"))
-        .GroupBy(t => (t.ShipId, t.FullName))
+      q.GroupBy(t => (t.ShipId, t.FullName))
         .Select(g => new GraphShipItem
         {
           ShipId = g.Key.ShipId,
@@ -77,10 +62,15 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
   protected override List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(int shipId)
   {
     decimal sum = 0m;
-    return MainViewModel
-      .AllTransactions.Where(t =>
-        ((IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid")) && t.ShipId == shipId
-      )
+    IEnumerable<Transaction> q = MainViewModel.AllTransactions;
+    q = Transport switch
+    {
+      TransportFilter.Container => q.Where(t => t.Transport == "container"),
+      TransportFilter.Solid => q.Where(t => t.Transport == "solid"),
+      TransportFilter.Liquid => q.Where(t => t.Transport == "liquid"),
+      _ => q,
+    };
+    return q.Where(t => t.ShipId == shipId)
       .OrderBy(t => t.RawTime)
       .Select(t =>
       {
