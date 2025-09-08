@@ -52,6 +52,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
+  private ShipsWaresStatsTransactionsModel? _shipsTransactionsShipsWaresStats;
+  public ShipsWaresStatsTransactionsModel? ShipsTransactionsShipsWaresStats
+  {
+    get => _shipsTransactionsShipsWaresStats;
+    set
+    {
+      _shipsTransactionsShipsWaresStats = value;
+      OnPropertyChanged();
+    }
+  }
+
   private ShipsDataTradesModel? _shipsTradesData;
   public ShipsDataTradesModel? ShipsTradesData
   {
@@ -106,6 +117,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     ShipsTradesData = new ShipsDataTradesModel();
     ShipsTradesGraphs = new ShipsGraphTradesModel();
     ShipsTradesWaresStats = new WaresStatsTradesModel();
+    ShipsTransactionsShipsWaresStats = new ShipsWaresStatsTransactionsModel();
     Configuration = new ConfigurationViewModel();
   }
 
@@ -133,4 +145,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
   private void OnPropertyChanged([CallerMemberName] string? name = null) =>
     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+}
+
+public enum TopNFilter
+{
+  Top10 = 10,
+  Top25 = 25,
+  Top50 = 50,
+  Top100 = 100,
 }

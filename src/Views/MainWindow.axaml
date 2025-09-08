@@ -272,6 +272,46 @@
             </Border>
           </Grid>
         </TabItem>
+        <TabItem Header="Ships per Wares Stats" x:Name="ShipsTransactionsShipsWaresStatsTab">
+          <Grid DataContext="{Binding ShipsTransactionsShipsWaresStats}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="34" />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+            <!-- Filters row -->
+            <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+              <Grid Grid.ColumnDefinitions="*,Auto" >
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" Margin="0">
+                  <TextBlock Text="Transport:" VerticalAlignment="Center"/>
+                  <RadioButton Content="All" GroupName="TxTransport"
+                              IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=All}"/>
+                  <RadioButton Content="Container" GroupName="TxTransport"
+                              IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Container}"/>
+                  <RadioButton Content="Solid" GroupName="TxTransport"
+                              IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Solid}"/>
+                  <RadioButton Content="Liquid" GroupName="TxTransport"
+                              IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Liquid}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
+                  <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
+                  <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+            <!-- Chart + custom legend -->
+            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Border MinWidth="{Binding ChartMinWidth}" MinHeight="{Binding ChartMinHeight}">
+                  <lvc:CartesianChart Grid.Column="0"
+                                      Series="{Binding Series}"
+                                      XAxes="{Binding XAxes}"
+                                      YAxes="{Binding YAxes}"
+                                      LegendPosition="Left"/>
+                </Border>
+              </ScrollViewer>
+            </Border>
+          </Grid>
+        </TabItem>
       </TabControl>
     </TabItem>
 
