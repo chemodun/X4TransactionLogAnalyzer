@@ -452,7 +452,7 @@
                         Margin="8">
                 <DataGrid.Columns>
                 <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
-                <DataGridTextColumn Header="Ware" Binding="{Binding Product}" Width="200"/>
+                <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="200"/>
                 <DataGridTemplateColumn Header="Bought" SortMemberPath="BoughtVolume" Width="80">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
@@ -488,7 +488,7 @@
                 <DataGrid.Columns>
                 <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
                 <DataGridTextColumn Header="Op." Binding="{Binding Operation}" Width="60"/>
-                <DataGridTemplateColumn Header="Vol."  SortMemberPath="Volume" Width="80">
+                <DataGridTemplateColumn Header="Qnt."  SortMemberPath="Volume" Width="80">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                       <TextBlock Text="{Binding Volume, StringFormat=N0}" Classes="RightAlignedPadded"/>
