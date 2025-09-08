@@ -170,9 +170,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
     TransactionsData?.Refresh();
     TransactionsGraphs?.Refresh();
     TransactionsWaresStats?.Refresh();
+    TransactionsShipsWaresStats?.Refresh();
+    TransactionsWaresShipsStats?.Refresh();
     TradesGraphs?.Refresh();
     TradesData?.Refresh();
     TradesWaresStats?.Refresh();
+    TradesShipsWaresStats?.Refresh();
+    TradesWaresShipsStats?.Refresh();
     Configuration?.RefreshStats();
   }
 
