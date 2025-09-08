@@ -23,7 +23,9 @@ public abstract class ShipsWaresStatsBaseModel : INotifyPropertyChanged
 
   protected List<string> _labels = new();
   public IReadOnlyList<string> Labels => _labels;
+#pragma warning disable CA1822 // Mark members as static
   public IEnumerable<TopNFilter> TopNOptions => Enum.GetValues(typeof(TopNFilter)).Cast<TopNFilter>();
+#pragma warning restore CA1822 // Mark members as static
   private TopNFilter _topN = TopNFilter.Top25;
   public TopNFilter TopN
   {

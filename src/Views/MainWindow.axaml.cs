@@ -25,13 +25,14 @@ public partial class MainWindow : Window
   private TabItem? _currentTab;
   private bool _didStartupStatsCheck;
   private TabItem? _byTransactionsTab;
-  private TabItem? _shipsTransactionsTab;
-  private TabItem? _shipsTransactionsGraphsTab;
-  private TabItem? _shipsTransactionsWaresStatsTab;
+  private TabItem? _transactionsTab;
+  private TabItem? _transactionsGraphsTab;
+  private TabItem? _transactionsWaresStatsTab;
+  private TabItem? _transactionsShipsWaresStatsTab;
   private TabItem? _byTradesTab;
-  private TabItem? _shipsTradesTab;
-  private TabItem? _shipsTradesGraphsTab;
-  private TabItem? _shipsTradesWaresStatsTab;
+  private TabItem? _tradesTab;
+  private TabItem? _tradesGraphsTab;
+  private TabItem? _tradesWaresStatsTab;
   private TabItem? _configurationTab;
   private TabItem? _readmeTab;
 
@@ -70,13 +71,14 @@ public partial class MainWindow : Window
 
     _currentTab = this.FindControl<TabItem>("ByTransactionsTab");
     _byTransactionsTab = this.FindControl<TabItem>("ByTransactionsTab");
-    _shipsTransactionsTab = this.FindControl<TabItem>("ShipsTransactionsTab");
-    _shipsTransactionsGraphsTab = this.FindControl<TabItem>("ShipsTransactionsGraphsTab");
-    _shipsTransactionsWaresStatsTab = this.FindControl<TabItem>("ShipsTransactionsWaresStatsTab");
+    _transactionsTab = this.FindControl<TabItem>("TransactionsTab");
+    _transactionsGraphsTab = this.FindControl<TabItem>("TransactionsGraphsTab");
+    _transactionsWaresStatsTab = this.FindControl<TabItem>("TransactionsWaresStatsTab");
+    _transactionsShipsWaresStatsTab = this.FindControl<TabItem>("TransactionsShipsWaresStatsTab");
     _byTradesTab = this.FindControl<TabItem>("ByTradesTab");
-    _shipsTradesTab = this.FindControl<TabItem>("ShipsTradesTab");
-    _shipsTradesGraphsTab = this.FindControl<TabItem>("ShipsTradesGraphsTab");
-    _shipsTradesWaresStatsTab = this.FindControl<TabItem>("ShipsTradesWaresStatsTab");
+    _tradesTab = this.FindControl<TabItem>("TradesTab");
+    _tradesGraphsTab = this.FindControl<TabItem>("TradesGraphsTab");
+    _tradesWaresStatsTab = this.FindControl<TabItem>("TradesWaresStatsTab");
     _configurationTab = this.FindControl<TabItem>("ConfigurationTab");
     _readmeTab = this.FindControl<TabItem>("ReadmeTab");
     this.Opened += (_, __) => LoadReadme();
@@ -141,16 +143,18 @@ public partial class MainWindow : Window
       _byTransactionsTab.IsEnabled = dataReady;
     if (_byTradesTab != null)
       _byTradesTab.IsEnabled = dataReady;
-    if (_shipsTransactionsTab != null)
-      _shipsTransactionsTab.IsEnabled = dataReady;
-    if (_shipsTransactionsGraphsTab != null)
-      _shipsTransactionsGraphsTab.IsEnabled = dataReady;
-    if (_shipsTradesGraphsTab != null)
-      _shipsTradesGraphsTab.IsEnabled = dataReady;
-    if (_shipsTradesTab != null)
-      _shipsTradesTab.IsEnabled = dataReady;
-    if (_shipsTransactionsWaresStatsTab != null)
-      _shipsTransactionsWaresStatsTab.IsEnabled = dataReady;
+    if (_transactionsTab != null)
+      _transactionsTab.IsEnabled = dataReady;
+    if (_transactionsGraphsTab != null)
+      _transactionsGraphsTab.IsEnabled = dataReady;
+    if (_tradesGraphsTab != null)
+      _tradesGraphsTab.IsEnabled = dataReady;
+    if (_tradesTab != null)
+      _tradesTab.IsEnabled = dataReady;
+    if (_transactionsWaresStatsTab != null)
+      _transactionsWaresStatsTab.IsEnabled = dataReady;
+    if (_transactionsShipsWaresStatsTab != null)
+      _transactionsShipsWaresStatsTab.IsEnabled = dataReady;
     if (_configurationTab != null)
       _configurationTab.IsEnabled = true;
     if (_readmeTab != null)

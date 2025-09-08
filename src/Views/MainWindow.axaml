@@ -34,8 +34,8 @@
     <!-- Parent: By Transactions -->
     <TabItem Header="By Transactions" x:Name="ByTransactionsTab">
       <TabControl x:Name="ByTransactionsTabs">
-        <TabItem Header="Ships Transactions" x:Name="ShipsTransactionsTab">
-          <Grid DataContext="{Binding ShipsTransactionsData}">
+        <TabItem Header="Ships Transactions" x:Name="TransactionsTab">
+          <Grid DataContext="{Binding TransactionsData}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -168,8 +168,8 @@
           </Grid>
         </TabItem>
 
-        <TabItem Header="Ships Graphs" x:Name="ShipsTransactionsGraphsTab">
-          <Grid DataContext="{Binding ShipsTransactionsGraphs}">
+        <TabItem Header="Ships Graphs" x:Name="TransactionsGraphsTab">
+          <Grid DataContext="{Binding TransactionsGraphs}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -226,8 +226,8 @@
           </Grid>
         </TabItem>
 
-        <TabItem Header="Wares Stats" x:Name="ShipsTransactionsWaresStatsTab">
-          <Grid DataContext="{Binding ShipsTransactionsWaresStats}">
+        <TabItem Header="Wares Stats" x:Name="TransactionsWaresStatsTab">
+          <Grid DataContext="{Binding TransactionsWaresStats}">
             <Grid.RowDefinitions>
               <RowDefinition Height="34" />
               <RowDefinition />
@@ -272,8 +272,8 @@
             </Border>
           </Grid>
         </TabItem>
-        <TabItem Header="Ships per Wares Stats" x:Name="ShipsTransactionsShipsWaresStatsTab">
-          <Grid DataContext="{Binding ShipsTransactionsShipsWaresStats}">
+        <TabItem Header="Ships per Wares Stats" x:Name="TransactionsShipsWaresStatsTab">
+          <Grid DataContext="{Binding TransactionsShipsWaresStats}">
             <Grid.RowDefinitions>
               <RowDefinition Height="34" />
               <RowDefinition />
@@ -318,8 +318,8 @@
     <!-- Parent: By Trades -->
     <TabItem Header="By Trades" x:Name="ByTradesTab">
       <TabControl x:Name="ByTradesTabs">
-        <TabItem Header="Ships Trades" x:Name="ShipsTradesTab">
-          <Grid DataContext="{Binding ShipsTradesData}">
+        <TabItem Header="Ships Trades" x:Name="TradesTab">
+          <Grid DataContext="{Binding TradesData}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
@@ -481,8 +481,8 @@
             </Border>
           </Grid>
         </TabItem>
-        <TabItem Header="Ships Graphs" x:Name="ShipsTradesGraphsTab">
-          <Grid DataContext="{Binding ShipsTradesGraphs}">
+        <TabItem Header="Ships Graphs" x:Name="TradesGraphsTab">
+          <Grid DataContext="{Binding TradesGraphs}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -531,8 +531,8 @@
             </Border>
           </Grid>
         </TabItem>
-        <TabItem Header="Wares Stats" x:Name="ShipsTradesWaresStatsTab">
-          <Grid DataContext="{Binding ShipsTradesWaresStats}">
+        <TabItem Header="Wares Stats" x:Name="TradesWaresStatsTab">
+          <Grid DataContext="{Binding TradesWaresStats}">
             <Grid.RowDefinitions>
               <RowDefinition Height="28" />
               <RowDefinition />
@@ -568,6 +568,42 @@
                   </ItemsControl>
                 </ScrollViewer>
               </Grid>
+            </Border>
+          </Grid>
+        </TabItem>
+        <TabItem Header="Ships per Wares Stats" x:Name="TradesShipsWaresStatsTab">
+          <Grid DataContext="{Binding TradesShipsWaresStats}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="34" />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+            <!-- Filters row -->
+            <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+              <Grid Grid.ColumnDefinitions="*,Auto" >
+                <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="4">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
+                      <StackPanel Orientation="Horizontal" Spacing="12">
+                        <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
+                      </StackPanel>
+                    </StackPanel>
+                </Border>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
+                  <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
+                  <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+            <!-- Chart + custom legend -->
+            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Border MinWidth="{Binding ChartMinWidth}" MinHeight="{Binding ChartMinHeight}">
+                  <lvc:CartesianChart Grid.Column="0"
+                                      Series="{Binding Series}"
+                                      XAxes="{Binding XAxes}"
+                                      YAxes="{Binding YAxes}"
+                                      LegendPosition="Left"/>
+                </Border>
+              </ScrollViewer>
             </Border>
           </Grid>
         </TabItem>
