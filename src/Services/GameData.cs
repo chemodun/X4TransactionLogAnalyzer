@@ -220,7 +220,7 @@ public sealed class GameData
   private int _factionsProcessed;
   private int _processedFiles;
   private int _clusterSectorNamesProcessed;
-  private long _dbSchemaVersion = 1;
+  private long _dbSchemaVersion = 2;
 
   public GameData()
   {
@@ -440,7 +440,12 @@ FROM (
       t.volume AS volume,
       t.trade_sum / 100.0 AS trade_sum,
       w.transport AS transport,
-      (t.trade_sum - w.price_avg * t.volume) / 100.0 AS profit,
+      CASE
+        WHEN w.transport = 'container' THEN
+          (t.trade_sum - w.price_avg * t.volume) / 100.0
+        ELSE
+          t.trade_sum / 100.0
+      END AS profit,
       t.volume * w.volume AS capacity
   FROM trade AS t
   JOIN component AS ship
@@ -484,7 +489,12 @@ UNION ALL
       t.volume AS volume,
       -t.trade_sum/ 100.0 AS trade_sum,
       w.transport AS transport,
-      (w.price_avg * t.volume - t.trade_sum) / 100.0 AS profit,
+      CASE
+        WHEN w.transport = 'container' THEN
+          (w.price_avg * t.volume - t.trade_sum) / 100.0
+        ELSE
+          -t.trade_sum / 100.0
+      END AS profit,
       t.volume * w.volume AS capacity
   FROM trade AS t
   JOIN component AS ship
@@ -507,6 +517,7 @@ ORDER BY full_name, time
 
   private void UpdateDBSchema(long currentVersion)
   {
+    bool clearData = false;
     // Placeholder for future schema updates
     if (currentVersion < _dbSchemaVersion)
     {
@@ -514,6 +525,8 @@ ORDER BY full_name, time
       {
         if (currentVersion == 0)
         {
+          clearData = true;
+          ReOpenConnection();
           using (var deleteCmd = _conn.CreateCommand())
           {
             deleteCmd.CommandText = @"DROP TABLE IF EXISTS ware;";
@@ -524,9 +537,10 @@ ORDER BY full_name, time
             vacuumCmd.CommandText = "VACUUM;";
             vacuumCmd.ExecuteNonQuery();
           }
-          using var cmd = _conn.CreateCommand();
-          cmd.CommandText =
-            @"CREATE TABLE ware (
+          using (var cmd = _conn.CreateCommand())
+          {
+            cmd.CommandText =
+              @"CREATE TABLE ware (
   id         TEXT PRIMARY KEY,
   name       TEXT NOT NULL,
   group_of   TEXT NOT NULL,
@@ -540,8 +554,134 @@ ORDER BY full_name, time
 );
 CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
 ";
-          cmd.ExecuteNonQuery();
+            cmd.ExecuteNonQuery();
+          }
           // Perform schema updates here
+          currentVersion = 1;
+        }
+        if (currentVersion == 1)
+        {
+          ReOpenConnection();
+          using (var deleteCmd = _conn.CreateCommand())
+          {
+            deleteCmd.CommandText = @"DROP VIEW IF EXISTS player_ships_transactions_log;";
+            deleteCmd.ExecuteNonQuery();
+          }
+          using (var vacuumCmd = _conn.CreateCommand())
+          {
+            vacuumCmd.CommandText = "VACUUM;";
+            vacuumCmd.ExecuteNonQuery();
+          }
+          using (var cmd = _conn.CreateCommand())
+          {
+            cmd.CommandText =
+              @"-- View player_ships_transactions_log
+CREATE VIEW player_ships_transactions_log AS
+SELECT *
+FROM (
+  SELECT
+      ship.id AS id,
+      ship.code AS code,
+      ship.name AS name,
+      ship.class AS class,
+      ship.name || ' (' || ship.code || ')' AS full_name,
+      cp.code   AS counterpart_code,
+      cp.name   AS counterpart_name,
+      cp.owner  AS counterpart_faction,
+      sn.name   AS sector,
+      CASE
+        WHEN cp.owner = 'player'
+          THEN cp.name || ' (' || cp.code || ')'
+        ELSE CASE
+              WHEN f.shortname IS NULL THEN ''
+              ELSE f.shortname
+            END
+            || ' ' || cp.name || cp.nameindex || ' (' || cp.code || ')'
+      END AS station,
+      t.time AS time,
+      'sell' AS operation,
+      t.ware AS ware,
+      w.text AS ware_name,
+      t.price / 100.0 AS price,
+      t.volume AS volume,
+      t.trade_sum / 100.0 AS trade_sum,
+      w.transport AS transport,
+      CASE
+        WHEN w.transport = 'container' THEN
+          (t.trade_sum - w.price_avg * t.volume) / 100.0
+        ELSE
+          t.trade_sum / 100.0
+      END AS profit,
+      t.volume * w.volume AS capacity
+  FROM trade AS t
+  JOIN component AS ship
+    ON ship.id = t.seller
+  JOIN component AS cp
+    ON cp.id = t.buyer
+  LEFT JOIN faction AS f
+    ON f.id = cp.owner
+  LEFT JOIN cluster_sector_name AS sn
+    ON cp.sector = sn.macro
+  JOIN ware AS w
+    ON w.id = t.ware
+  WHERE ship.type = 'ship'
+    AND ship.owner = 'player'
+UNION ALL
+-- Case 2: player ship is the buyer
+  SELECT
+      ship.id AS id,
+      ship.code AS code,
+      ship.name AS name,
+      ship.class AS class,
+      ship.name || ' (' || ship.code || ')' AS full_name,
+      cp.code   AS counterpart_code,
+      cp.name   AS counterpart_name,
+      cp.owner  AS counterpart_faction,
+      sn.name   AS sector,
+      CASE
+        WHEN cp.owner = 'player'
+          THEN cp.name || ' (' || cp.code || ')'
+        ELSE CASE
+              WHEN f.shortname IS NULL THEN ''
+              ELSE f.shortname
+            END
+            || ' ' || cp.name || cp.nameindex || ' (' || cp.code || ')'
+      END AS station,
+      t.time AS time,
+      'buy' AS operation,
+      t.ware AS ware,
+      w.text AS ware_name,
+      t.price / 100.0 AS price,
+      t.volume AS volume,
+      -t.trade_sum/ 100.0 AS trade_sum,
+      w.transport AS transport,
+      CASE
+        WHEN w.transport = 'container' THEN
+          (w.price_avg * t.volume - t.trade_sum) / 100.0
+        ELSE
+          -t.trade_sum / 100.0
+      END AS profit,
+      t.volume * w.volume AS capacity
+  FROM trade AS t
+  JOIN component AS ship
+    ON ship.id = t.buyer
+  JOIN component AS cp
+    ON cp.id = t.seller
+  LEFT JOIN faction AS f
+    ON f.id = cp.owner
+  LEFT JOIN cluster_sector_name AS sn
+    ON cp.sector = sn.macro
+  JOIN ware AS w
+    ON w.id = t.ware
+  WHERE ship.type = 'ship'
+    AND ship.owner = 'player'
+) AS combined
+ORDER BY full_name, time
+";
+            cmd.ExecuteNonQuery();
+          }
+          // Future updates here
+          currentVersion = 2;
         }
       }
       catch (Exception ex)
@@ -552,8 +692,11 @@ CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
       finally
       {
         SetDBSchemaVersion(_dbSchemaVersion);
+        if (clearData)
+        {
+          ClearTablesTradeAndComponent();
+        }
       }
-      ClearTablesTradeAndComponent();
     }
   }
 
