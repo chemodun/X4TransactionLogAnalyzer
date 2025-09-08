@@ -91,7 +91,7 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
         info = new ShipInfo
         {
           ShipId = (int)ft.ShipId,
-          ShipName = $"{ft.ShipName} ({ft.ShipCode})",
+          ShipName = ft.ShipFullName,
           EstimatedProfit = 0m,
         };
         ships.Add(ft.ShipId, info);
@@ -137,7 +137,7 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
       FilteredFullTrades.Add(ft);
 
       // accumulate summaries inline
-      itemsTotal += ft.SoldVolume;
+      itemsTotal += ft.SoldQuantity;
       profitTotal += ft.Profit;
       long spent = (long)ft.SpentTimeRaw;
       spentSum += spent;

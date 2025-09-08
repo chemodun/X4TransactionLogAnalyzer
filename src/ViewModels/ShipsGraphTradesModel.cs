@@ -35,11 +35,11 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
     ShipList = new ObservableCollection<GraphShipItem>(
       MainViewModel
         .AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft))
-        .GroupBy(t => (t.ShipId, t.ShipName, t.ShipCode))
+        .GroupBy(t => (t.ShipId, t.ShipFullName))
         .Select(g => new GraphShipItem
         {
           ShipId = Convert.ToInt32(g.Key.ShipId),
-          ShipName = $"{g.Key.ShipName} ({g.Key.ShipCode})",
+          ShipName = g.Key.ShipFullName,
           EstimatedProfit = g.Sum(t => t.Profit),
         })
     );

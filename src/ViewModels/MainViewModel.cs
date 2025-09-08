@@ -112,7 +112,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
   public static void LoadData()
   {
     Transaction.GetAllTransactions(ref AllTransactions);
-    FullTrade.GetFullTrades(ref AllTrades);
+    FullTrade.GetFullTrades(ref AllTrades, AllTransactions);
   }
 
   public void Refresh()

@@ -14,6 +14,8 @@ public class Transaction
   public string Product { get; set; } = string.Empty;
   public string Transport { get; set; } = string.Empty;
   public string Station { get; set; } = string.Empty;
+  public string StationOwner { get; set; } = string.Empty;
+  public string StationCode { get; set; } = string.Empty;
   public string Sector { get; set; } = string.Empty;
   public decimal Price { get; set; }
   public int Quantity { get; set; }
@@ -29,7 +31,7 @@ public class Transaction
       return;
     using var cmd = conn.CreateCommand();
     cmd.CommandText =
-      "SELECT id, full_name, time, sector, station, operation, ware, ware_name, transport, price, volume, trade_sum, profit FROM player_ships_transactions_log";
+      "SELECT id, full_name, time, sector, station, counterpart_faction, counterpart_code, operation, ware, ware_name, transport, price, volume, trade_sum, profit FROM player_ships_transactions_log";
     using var rdr = cmd.ExecuteReader();
     trans.Clear();
     while (rdr.Read())
@@ -42,6 +44,8 @@ public class Transaction
           FullName = rdr["full_name"].ToString() ?? string.Empty,
           Sector = rdr["sector"].ToString() ?? string.Empty,
           Station = rdr["station"].ToString() ?? string.Empty,
+          StationOwner = rdr["counterpart_faction"].ToString() ?? string.Empty,
+          StationCode = rdr["counterpart_code"].ToString() ?? string.Empty,
           Operation = rdr["operation"].ToString() ?? string.Empty,
           Ware = rdr["ware"].ToString() ?? string.Empty,
           Product = rdr["ware_name"].ToString() ?? string.Empty,

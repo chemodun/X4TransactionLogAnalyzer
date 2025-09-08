@@ -39,8 +39,8 @@ public sealed class WaresStatsTradesModel : WaresStatsBaseModel
   {
     return MainViewModel
       .AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft))
-      .GroupBy(t => (t.WareId, t.WareName))
-      .Select(g => (WareId: g.Key.WareId, WareName: g.Key.WareName, Profit: Convert.ToDouble(g.Sum(t => t.Profit))))
+      .GroupBy(t => (t.Ware, t.Product))
+      .Select(g => (WareId: g.Key.Ware, WareName: g.Key.Product, Profit: Convert.ToDouble(g.Sum(t => t.Profit))))
       .OrderByDescending(r => r.Profit)
       .ToList();
   }
