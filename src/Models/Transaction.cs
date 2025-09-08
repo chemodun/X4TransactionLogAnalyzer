@@ -19,7 +19,7 @@ public class Transaction
   public int Quantity { get; set; }
   public decimal Total { get; set; }
   public decimal EstimatedProfit { get; set; } // sign shows direction
-  public string Time => TimeSpan.FromSeconds(RawTime).ToString(@"hh\:mm\:ss");
+  public string Time => TimeFormatter.FormatHms(RawTime);
 
   public static void GetAllTransactions(ref List<Transaction> transactions)
   { //MIC-510

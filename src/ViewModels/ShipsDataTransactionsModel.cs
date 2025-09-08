@@ -64,9 +64,10 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
 
     // Load transactions
     foreach (
-      var trans in MainViewModel.AllTransactions.Where(t =>
-        (IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid")
-      )
+      var trans in MainViewModel
+        .AllTransactions.Where(t => (IsContainerChecked && t.Transport == "container") || (IsSolidChecked && t.Transport == "solid"))
+        .OrderBy(t => t.ShipId)
+        .ThenBy(t => t.RawTime)
     )
     {
       // aggregate ships
@@ -136,7 +137,7 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
     long prevMs = 0;
 
     int count = 0;
-    foreach (var tx in allTransactions.Where(t => t.ShipId == SelectedShip.ShipId))
+    foreach (var tx in allTransactions.Where(t => t.ShipId == SelectedShip.ShipId).OrderBy(t => t.RawTime))
     {
       FilteredTransactions.Add(tx);
       count++;

@@ -37,22 +37,11 @@ public sealed class WaresStatsTradesModel : WaresStatsBaseModel
 
   protected override List<(string WareId, string WareName, double Profit)> LoadData()
   {
-    List<FullTrade> filteredTrades = MainViewModel.AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft)).ToList();
-    var rows = new List<(string WareId, string WareName, double Profit)>();
-    filteredTrades.ForEach(ft =>
-    {
-      var existing = rows.Find(r => r.WareId == ft.WareId);
-      if (existing != default)
-      {
-        rows.Remove(existing);
-        rows.Add((existing.WareId, existing.WareName, existing.Profit + decimal.ToDouble(ft.Profit)));
-      }
-      else
-      {
-        rows.Add((ft.WareId, ft.WareName, decimal.ToDouble(ft.Profit)));
-      }
-    });
-
-    return rows.OrderByDescending(r => r.Profit).ToList();
+    return MainViewModel
+      .AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft))
+      .GroupBy(t => (t.WareId, t.WareName))
+      .Select(g => (WareId: g.Key.WareId, WareName: g.Key.WareName, Profit: Convert.ToDouble(g.Sum(t => t.Profit))))
+      .OrderByDescending(r => r.Profit)
+      .ToList();
   }
 }

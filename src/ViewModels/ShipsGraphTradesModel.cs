@@ -32,30 +32,17 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
 
   private void ApplyTradeFilter()
   {
-    ShipList.Clear();
-    GraphShipItem? ship = null;
-    foreach (var ft in MainViewModel.AllTrades)
-    {
-      if (!WithInternalTrades && FullTrade.IsInternalTrade(ft))
-        continue;
-
-      //   FullTrades.Add(ft);
-
-      if (!ShipList.Any(s => s.ShipId == ft.ShipId))
-      {
-        ship = new GraphShipItem
+    ShipList = new ObservableCollection<GraphShipItem>(
+      MainViewModel
+        .AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft))
+        .GroupBy(t => (t.ShipId, t.ShipName, t.ShipCode))
+        .Select(g => new GraphShipItem
         {
-          ShipId = (int)ft.ShipId,
-          ShipName = $"{ft.ShipName} ({ft.ShipCode})",
-          EstimatedProfit = 0m,
-        };
-        ShipList.Add(ship);
-      }
-      if (ship != null)
-      {
-        ship.EstimatedProfit += ft.Profit;
-      }
-    }
+          ShipId = Convert.ToInt32(g.Key.ShipId),
+          ShipName = $"{g.Key.ShipName} ({g.Key.ShipCode})",
+          EstimatedProfit = g.Sum(t => t.Profit),
+        })
+    );
     ResortShips();
     OnPropertyChanged(nameof(ShipList));
   }
@@ -70,18 +57,15 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
 
   protected override List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(int shipId)
   {
-    // Build cumulative profit using buy/sell operations by time for the ship
-    var list = new List<LiveChartsCore.Defaults.ObservablePoint>();
-    List<FullTrade> shipTrades = MainViewModel.AllTrades.Where(ft => ft.ShipId == shipId).OrderBy(ft => ft.EndTime).ToList();
-    foreach (var ft in shipTrades)
-    {
-      var t = ft.EndTime;
-      var p = ft.Profit;
-      if (list.Count == 0)
-        list.Add(new LiveChartsCore.Defaults.ObservablePoint(t, (double)p));
-      else
-        list.Add(new LiveChartsCore.Defaults.ObservablePoint(t, list.Last().Y + (double)p));
-    }
-    return list;
+    decimal sum = 0m;
+    return MainViewModel
+      .AllTrades.Where(ft => (WithInternalTrades || !FullTrade.IsInternalTrade(ft)) && ft.ShipId == shipId)
+      .OrderBy(t => t.EndTime)
+      .Select(t =>
+      {
+        sum += t.Profit;
+        return new LiveChartsCore.Defaults.ObservablePoint(t.EndTime, (double)sum);
+      })
+      .ToList();
   }
 }
