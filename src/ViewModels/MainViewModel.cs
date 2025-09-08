@@ -15,7 +15,7 @@ namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
 public sealed class MainViewModel : INotifyPropertyChanged
 {
-  public ObservableCollection<TradeOperation> Trades { get; } = new();
+  public static List<FullTrade> AllTrades = new();
   public ObservableCollection<Ware> Wares { get; } = new();
 
   private ShipsDataTransactionsModel? _shipsTransactionsData;
@@ -98,6 +98,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
   public MainViewModel()
   {
     Console.WriteLine($"Connection state: {MainWindow.GameData.Connection.State}");
+    LoadData();
     ShipsTransactionsData = new ShipsDataTransactionsModel();
     ShipsTransactionsGraphs = new ShipsGraphTransactionsModel();
     ShipsTransactionsWaresStats = new WaresStatsTransactionsModel();
@@ -107,9 +108,16 @@ public sealed class MainViewModel : INotifyPropertyChanged
     Configuration = new ConfigurationViewModel();
   }
 
+  public static void LoadData()
+  {
+    AllTrades.Clear();
+    FullTrade.GetFullTrades(ref AllTrades);
+  }
+
   public void Refresh()
   {
     // Reload data for all models
+    LoadData();
     ShipsTransactionsData?.Refresh();
     ShipsTransactionsGraphs?.Refresh();
     ShipsTransactionsWaresStats?.Refresh();

@@ -17,7 +17,6 @@ namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
 public sealed class WaresStatsTradesModel : WaresStatsBaseModel
 {
-  private List<FullTrade> _allFullTrades = new();
   private bool _withInternalTrades = true;
   public bool WithInternalTrades
   {
@@ -38,10 +37,7 @@ public sealed class WaresStatsTradesModel : WaresStatsBaseModel
 
   protected override List<(string WareId, string WareName, double Profit)> LoadData()
   {
-    if (_allFullTrades.Count == 0)
-      FullTrade.GetFullTrades(ref _allFullTrades);
-
-    List<FullTrade> filteredTrades = _allFullTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft)).ToList();
+    List<FullTrade> filteredTrades = MainViewModel.AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft)).ToList();
     var rows = new List<(string WareId, string WareName, double Profit)>();
     filteredTrades.ForEach(ft =>
     {

@@ -23,8 +23,6 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
   // Combined purchase/sale steps of SelectedFullTrade
   public ObservableCollection<TradeStep> TradeSteps { get; } = new();
 
-  private List<FullTrade> _allFullTrades = new();
-
   private bool _withInternalTrades = true;
   public bool WithInternalTrades
   {
@@ -63,7 +61,6 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
   {
     try
     {
-      FullTrade.GetFullTrades(ref _allFullTrades);
       ApplyTradeFilter();
     }
     catch
@@ -82,7 +79,7 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
     SelectedFullTrade = null;
 
     var ships = new Dictionary<long, ShipInfo>();
-    foreach (var ft in _allFullTrades)
+    foreach (var ft in MainViewModel.AllTrades)
     {
       if (!WithInternalTrades && FullTrade.IsInternalTrade(ft))
         continue;

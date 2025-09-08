@@ -15,7 +15,6 @@ namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
 public class ShipsGraphTradesModel : ShipsGraphsBaseModel
 {
-  private List<FullTrade> _allFullTrades = new();
   private bool _withInternalTrades = true;
   public bool WithInternalTrades
   {
@@ -35,7 +34,7 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
   {
     ShipList.Clear();
     GraphShipItem? ship = null;
-    foreach (var ft in _allFullTrades)
+    foreach (var ft in MainViewModel.AllTrades)
     {
       if (!WithInternalTrades && FullTrade.IsInternalTrade(ft))
         continue;
@@ -66,8 +65,6 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
 
   protected override void LoadShips()
   {
-    if (_allFullTrades.Count == 0)
-      FullTrade.GetFullTrades(ref _allFullTrades);
     ApplyTradeFilter();
   }
 
@@ -75,7 +72,7 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
   {
     // Build cumulative profit using buy/sell operations by time for the ship
     var list = new List<LiveChartsCore.Defaults.ObservablePoint>();
-    List<FullTrade> shipTrades = _allFullTrades.Where(ft => ft.ShipId == shipId).OrderBy(ft => ft.EndTime).ToList();
+    List<FullTrade> shipTrades = MainViewModel.AllTrades.Where(ft => ft.ShipId == shipId).OrderBy(ft => ft.EndTime).ToList();
     foreach (var ft in shipTrades)
     {
       var t = ft.EndTime;
