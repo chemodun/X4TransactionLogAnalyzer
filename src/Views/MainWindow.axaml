@@ -128,7 +128,13 @@
                         IsReadOnly="True"
                         Margin="8">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
+                  <DataGridTemplateColumn Header="Time" SortMemberPath="Time" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Time}" Classes="RightAlignedPadded"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Sector" Binding="{Binding Sector}" Width="180"/>
                   <DataGridTextColumn Header="Station" Binding="{Binding Station}" Width="400"/>
                   <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
@@ -451,30 +457,42 @@
                         IsReadOnly="True"
                         Margin="8">
                 <DataGrid.Columns>
-                <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
-                <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="200"/>
-                <DataGridTemplateColumn Header="Bought" SortMemberPath="BoughtVolume" Width="80">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding BoughtQuantity, StringFormat=N0}" Classes="RightAlignedPadded" />
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Sold" SortMemberPath="SoldVolume" Width="80">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding SoldQuantity, StringFormat=N0}" Classes="RightAlignedPadded" />
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Profit" SortMemberPath="Profit" Width="120">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding Profit, StringFormat=N2}" Classes="RightAlignedPadded" />
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Spent Time" Binding="{Binding SpentTime}" Width="100"/>
+                  <DataGridTemplateColumn Header="Time" SortMemberPath="Time" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Time}" Classes="RightAlignedPadded"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="200"/>
+                  <DataGridTemplateColumn Header="Bought" SortMemberPath="BoughtVolume" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding BoughtQuantity, StringFormat=N0}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Sold" SortMemberPath="SoldVolume" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding SoldQuantity, StringFormat=N0}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Profit" SortMemberPath="Profit" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Profit, StringFormat=N2}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Spent Time" SortMemberPath="SpentTime" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding SpentTime}" Classes="RightAlignedPadded"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </Border>
@@ -486,7 +504,13 @@
                         IsReadOnly="True"
                         Margin="8">
                 <DataGrid.Columns>
-                <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
+                <DataGridTemplateColumn Header="Time" SortMemberPath="Time" Width="90">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Time}" Classes="RightAlignedPadded"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Op." Binding="{Binding Operation}" Width="60"/>
                 <DataGridTemplateColumn Header="Qnt."  SortMemberPath="Volume" Width="80">
                   <DataGridTemplateColumn.CellTemplate>
