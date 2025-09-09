@@ -9,6 +9,7 @@ using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Utils;
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
@@ -21,6 +22,30 @@ public abstract class WaresShipsStatsBaseModel : INotifyPropertyChanged
   public Axis[] XAxes { get; }
   public Axis[] YAxes { get; }
 
+  private bool _showToolTip; // controls whether data labels (tool tips) are shown
+  public bool ShowToolTip
+  {
+    get => _showToolTip;
+    set
+    {
+      if (_showToolTip == value)
+        return;
+      _showToolTip = value;
+      OnPropertyChanged();
+    }
+  }
+
+  public ObservableCollection<GraphShipItem> WareShipsList { get; set; } = new();
+  public string PressedWareName { get; set; } = string.Empty;
+  public string PressedWareTotal
+  {
+    get
+    {
+      if (string.IsNullOrWhiteSpace(PressedWareName) || WareShipsList.Count == 0)
+        return string.Empty;
+      return WareShipsList.Sum(w => w.EstimatedProfit).ToString("N2");
+    }
+  }
   protected List<string> _labels = new();
   public IReadOnlyList<string> Labels => _labels;
 
@@ -42,8 +67,7 @@ public abstract class WaresShipsStatsBaseModel : INotifyPropertyChanged
     }
   }
 
-  public double ChartMinWidth => Labels.Count * 56 + 600;
-  public double ChartMinHeight => Legend.Count * 32;
+  public double ChartMinWidth => Labels.Count * 56 + 200;
 
   protected WaresShipsStatsBaseModel()
   {
@@ -146,11 +170,63 @@ public abstract class WaresShipsStatsBaseModel : INotifyPropertyChanged
 
     XAxes[0].Labels = wares;
 
+    PressedWareName = string.Empty;
+    WareShipsList.Clear();
     OnPropertyChanged(nameof(ChartMinWidth));
-    OnPropertyChanged(nameof(ChartMinHeight));
     OnPropertyChanged(nameof(Series));
     OnPropertyChanged(nameof(Legend));
     OnPropertyChanged(nameof(Labels));
+    OnPropertyChanged(nameof(PressedWareName));
+    OnPropertyChanged(nameof(PressedWareTotal));
+    OnPropertyChanged(nameof(WareShipsList));
+  }
+
+  public void OnChartPointPressed(int shipIndex)
+  {
+    if (shipIndex < 0 || shipIndex >= Labels.Count)
+      return;
+    List<GraphShipItem> shipList = new();
+    PressedWareName = Labels[shipIndex];
+    for (int i = Series.Count - 1; i >= 0; i--)
+    {
+      var series = Series[i];
+      if (
+        series is StackedColumnSeries<double?> scs
+        && scs.Name != null
+        && scs.Values != null
+        && shipIndex < scs.Values.Count()
+        && i < Legend.Count
+      )
+      {
+        var val = scs.Values.ToList()[shipIndex];
+        if (val.HasValue)
+        {
+          var originalBrush = Legend[i].Brush;
+          if (originalBrush is ISolidColorBrush solidBrush)
+          {
+            var color = solidBrush.Color;
+
+            // Boost alpha by 20%, capped at 255
+            byte newAlpha = (byte)Math.Min(255, color.A * 1.2);
+
+            var intensifiedColor = Color.FromArgb(255, color.R, color.G, color.B);
+
+            shipList.Add(
+              new GraphShipItem
+              {
+                ShipName = scs.Name,
+                EstimatedProfit = (decimal)val.Value,
+                GraphBrush = new SolidColorBrush(intensifiedColor),
+              }
+            );
+          }
+        }
+      }
+    }
+    WareShipsList = new ObservableCollection<GraphShipItem>(shipList);
+    OnPropertyChanged(nameof(PressedWareName));
+    OnPropertyChanged(nameof(PressedWareTotal));
+    OnPropertyChanged(nameof(WareShipsList));
   }
 
   protected static SKColor GetColorForShip(int shipId)

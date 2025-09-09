@@ -13,6 +13,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using LiveChartsCore.SkiaSharpView.Avalonia;
 using MarkdownViewer.Core.Controls;
 using X4PlayerShipTradeAnalyzer.Services;
 using X4PlayerShipTradeAnalyzer.ViewModels;
@@ -50,9 +51,11 @@ public partial class MainWindow : Window
     DataContext = new MainViewModel();
 
     // React to configuration changes affecting tab enablement
-    if (DataContext is MainViewModel vm && vm.Configuration != null)
+    if (DataContext is MainViewModel vm)
     {
-      vm.Configuration.PropertyChanged += Configuration_PropertyChanged;
+      vm.RegisterCharts(this.FindControl<CartesianChart>);
+      if (vm.Configuration != null)
+        vm.Configuration.PropertyChanged += Configuration_PropertyChanged;
     }
 
     // Set base title from assembly metadata (Product + Version)
@@ -95,6 +98,8 @@ public partial class MainWindow : Window
   {
     AvaloniaXamlLoader.Load(this);
   }
+
+  public CartesianChart? FindChart(string name) => this.FindControl<CartesianChart>(name);
 
   private void MainWindow_Opened(object? sender, System.EventArgs e)
   {
@@ -197,7 +202,7 @@ public partial class MainWindow : Window
     if (tea.Source is Control c)
     {
       var container = c as ListBoxItem ?? c.FindAncestorOfType<ListBoxItem>();
-      if (container?.DataContext is ShipsGraphsBaseModel.GraphShipItem ship)
+      if (container?.DataContext is Models.GraphShipItem ship)
         model.ToggleShip(ship);
     }
   }

@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace X4PlayerShipTradeAnalyzer.Models;
 
 public class ShipInfo
@@ -22,6 +24,73 @@ public class ShipTransaction
   public int? Quantity { get; set; }
   public decimal? Total { get; set; }
   public decimal? EstimatedProfit { get; set; }
+}
+
+public class GraphShipItem : INotifyPropertyChanged
+{
+  public int ShipId { get; init; }
+  public string ShipName { get; init; } = string.Empty;
+
+  protected decimal _estimatedProfit;
+  public decimal EstimatedProfit
+  {
+    get => _estimatedProfit;
+    set
+    {
+      if (_estimatedProfit != value)
+      {
+        _estimatedProfit = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private bool _isActive;
+  public bool IsActive
+  {
+    get => _isActive;
+    set
+    {
+      if (_isActive != value)
+      {
+        _isActive = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private Avalonia.Media.IBrush? _graphBrush;
+  public Avalonia.Media.IBrush? GraphBrush
+  {
+    get => _graphBrush;
+    set
+    {
+      if (_graphBrush != value)
+      {
+        _graphBrush = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private Avalonia.Media.FontWeight _fontWeight = Avalonia.Media.FontWeight.Normal;
+  public Avalonia.Media.FontWeight FontWeight
+  {
+    get => _fontWeight;
+    set
+    {
+      if (_fontWeight != value)
+      {
+        _fontWeight = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  public event PropertyChangedEventHandler? PropertyChanged;
+
+  private void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? name = null) =>
+    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
 public enum ShipSortOrder

@@ -10,6 +10,7 @@ using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Utils;
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
@@ -20,6 +21,31 @@ public abstract class ShipsWaresStatsBaseModel : INotifyPropertyChanged
   public ObservableCollection<LegendItem> Legend { get; } = new();
   public Axis[] XAxes { get; }
   public Axis[] YAxes { get; }
+
+  private bool _showToolTip; // controls whether data labels (tool tips) are shown
+  public bool ShowToolTip
+  {
+    get => _showToolTip;
+    set
+    {
+      if (_showToolTip == value)
+        return;
+      _showToolTip = value;
+      OnPropertyChanged();
+    }
+  }
+
+  public ObservableCollection<GraphWareItem> ShipWaresList { get; set; } = new();
+  public string PressedShipName { get; set; } = string.Empty;
+  public string PressedShipTotal
+  {
+    get
+    {
+      if (string.IsNullOrWhiteSpace(PressedShipName) || ShipWaresList.Count == 0)
+        return string.Empty;
+      return ShipWaresList.Sum(w => w.Money).ToString("N2");
+    }
+  }
 
   protected List<string> _labels = new();
   public IReadOnlyList<string> Labels => _labels;
@@ -39,8 +65,7 @@ public abstract class ShipsWaresStatsBaseModel : INotifyPropertyChanged
       Reload();
     }
   }
-  public double ChartMinWidth => Labels.Count * 56 + 300;
-  public double ChartMinHeight => Legend.Count * 32;
+  public double ChartMinWidth => Labels.Count * 56 + 200;
 
   protected ShipsWaresStatsBaseModel()
   {
@@ -102,7 +127,6 @@ public abstract class ShipsWaresStatsBaseModel : INotifyPropertyChanged
 
     Series.Clear();
     Legend.Clear();
-
     foreach (var (wareId, wareName) in wares)
     {
       var values = new List<double?>(ships.Count);
@@ -123,19 +147,6 @@ public abstract class ShipsWaresStatsBaseModel : INotifyPropertyChanged
         Stroke = null,
         Fill = new SolidColorPaint(sk),
         MaxBarWidth = 48,
-
-        // New API: separate formatters for X and Y
-        XToolTipLabelFormatter = cp =>
-        {
-          // cp.Coordinate.SecondaryValue is the X index
-          var shipIdx = (int)Math.Round(cp.Coordinate.SecondaryValue);
-          return (shipIdx >= 0 && shipIdx < ships.Count) ? ships[shipIdx] : string.Empty;
-        },
-        YToolTipLabelFormatter = cp =>
-        {
-          // cp.Coordinate.PrimaryValue is the Y value
-          return cp.Coordinate.PrimaryValue.ToString("N2");
-        },
       };
 
       Series.Add(series);
@@ -145,11 +156,63 @@ public abstract class ShipsWaresStatsBaseModel : INotifyPropertyChanged
     // Update X axis labels to ship names
     XAxes[0].Labels = ships;
 
+    PressedShipName = string.Empty;
+    ShipWaresList.Clear();
     OnPropertyChanged(nameof(ChartMinWidth));
-    OnPropertyChanged(nameof(ChartMinHeight));
     OnPropertyChanged(nameof(Series));
     OnPropertyChanged(nameof(Legend));
     OnPropertyChanged(nameof(Labels));
+    OnPropertyChanged(nameof(PressedShipName));
+    OnPropertyChanged(nameof(PressedShipTotal));
+    OnPropertyChanged(nameof(ShipWaresList));
+  }
+
+  public void OnChartPointPressed(int shipIndex)
+  {
+    if (shipIndex < 0 || shipIndex >= Labels.Count)
+      return;
+    List<GraphWareItem> wareList = new();
+    PressedShipName = Labels[shipIndex];
+    for (int i = Series.Count - 1; i >= 0; i--)
+    {
+      var series = Series[i];
+      if (
+        series is StackedColumnSeries<double?> scs
+        && scs.Name != null
+        && scs.Values != null
+        && shipIndex < scs.Values.Count()
+        && i < Legend.Count
+      )
+      {
+        var val = scs.Values.ToList()[shipIndex];
+        if (val.HasValue)
+        {
+          var originalBrush = Legend[i].Brush;
+          if (originalBrush is ISolidColorBrush solidBrush)
+          {
+            var color = solidBrush.Color;
+
+            // Boost alpha by 20%, capped at 255
+            byte newAlpha = (byte)Math.Min(255, color.A * 1.2);
+
+            var intensifiedColor = Color.FromArgb(255, color.R, color.G, color.B);
+
+            wareList.Add(
+              new GraphWareItem
+              {
+                Name = scs.Name,
+                Money = (decimal)val.Value,
+                GraphBrush = new SolidColorBrush(intensifiedColor),
+              }
+            );
+          }
+        }
+      }
+    }
+    ShipWaresList = new ObservableCollection<GraphWareItem>(wareList);
+    OnPropertyChanged(nameof(PressedShipName));
+    OnPropertyChanged(nameof(PressedShipTotal));
+    OnPropertyChanged(nameof(ShipWaresList));
   }
 
   protected static SKColor GetColorForWare(string wareId)

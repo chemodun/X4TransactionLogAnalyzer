@@ -13,6 +13,7 @@
   <conv:ZeroToRedBrushConverter x:Key="ZeroToRed" />
   <conv:ZeroToRedIfEnabledConverter x:Key="ZeroToRedIfEnabled" />
   <conv:EnumEqualsConverter x:Key="EnumEquals" />
+  <conv:BoolToChartPositionConverter x:Key="BoolToChartPos" />
   </Window.Resources>
   <Window.Styles>
     <Style Selector="TextBlock.RightAligned">
@@ -305,17 +306,50 @@
               </Grid>
             </Border>
             <!-- Chart + custom legend -->
-            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
-              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <Border MinWidth="{Binding ChartMinWidth}" MinHeight="{Binding ChartMinHeight}">
-                  <lvc:CartesianChart Grid.Column="0"
-                                      Series="{Binding Series}"
-                                      XAxes="{Binding XAxes}"
-                                      YAxes="{Binding YAxes}"
-                                      LegendPosition="Left"/>
-                </Border>
-              </ScrollViewer>
-            </Border>
+            <Grid Grid.Row="1" ColumnDefinitions="340, *" RowDefinitions="Auto,*,34">
+              <Border Grid.Column="0" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Width="340" Padding="0">
+                <Grid ColumnDefinitions="12,168,8,140,12" RowDefinitions="36, Auto">
+                  <TextBlock Grid.Column="0" Grid.Row="0"  Grid.ColumnSpan="5" Text="Selected Ship:" FontWeight="Bold" HorizontalAlignment="Center"/>
+                  <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PressedShipName}" ToolTip.Tip="{Binding PressedShipName}" FontWeight="SemiBold"/>
+                  <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding PressedShipTotal}" FontWeight="Bold" Classes="RightAligned"/>
+                </Grid>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+                <ListBox ItemsSource="{Binding ShipWaresList}"
+                        Background="Transparent"
+                        Margin="0" Width="340">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="*,8,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" ToolTip.Tip="{Binding Name}" FontWeight="SemiBold"
+                                    Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Money, StringFormat=N2}" FontWeight="Bold" Classes="RightAligned"  Margin="0"
+                                    Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="2" BorderBrush="Gray" BorderThickness="0" Padding="0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+                  <TextBlock Text="Display Tooltip:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                  <CheckBox IsChecked="{Binding ShowToolTip}" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" BorderBrush="Gray" BorderThickness="0" Padding="8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                  <Border MinWidth="{Binding ChartMinWidth}">
+                    <lvc:CartesianChart Grid.Column="0"
+                                        Series="{Binding Series}"
+                                        XAxes="{Binding XAxes}"
+                                        YAxes="{Binding YAxes}"
+                                        x:Name="TransactionsShipsByWaresChart"
+                                        TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}"
+                                        LegendPosition="Hidden"/>
+                  </Border>
+                </ScrollViewer>
+              </Border>
+            </Grid>
           </Grid>
         </TabItem>
         <TabItem Header="Wares by Ships Stats" x:Name="TransactionsWaresShipsStatsTab">
@@ -345,17 +379,50 @@
               </Grid>
             </Border>
             <!-- Chart + custom legend -->
-            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
-              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <Border MinWidth="{Binding ChartMinWidth}" MinHeight="{Binding ChartMinHeight}">
-                  <lvc:CartesianChart Grid.Column="0"
-                                      Series="{Binding Series}"
-                                      XAxes="{Binding XAxes}"
-                                      YAxes="{Binding YAxes}"
-                                      LegendPosition="Left"/>
-                </Border>
-              </ScrollViewer>
-            </Border>
+            <Grid Grid.Row="1" ColumnDefinitions="340, *" RowDefinitions="Auto,*,34">
+              <Border Grid.Column="0" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Width="340" Padding="0">
+                <Grid ColumnDefinitions="12,168,8,140,12" RowDefinitions="36, Auto">
+                  <TextBlock Grid.Column="0" Grid.Row="0"  Grid.ColumnSpan="5" Text="Selected Ware:" FontWeight="Bold" HorizontalAlignment="Center"/>
+                  <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PressedWareName}" ToolTip.Tip="{Binding PressedWareName}" FontWeight="SemiBold"/>
+                  <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding PressedWareTotal}" FontWeight="Bold" Classes="RightAligned"/>
+                </Grid>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+                <ListBox ItemsSource="{Binding WareShipsList}"
+                        Background="Transparent"
+                        Margin="0" Width="340">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="*,8,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}" FontWeight="SemiBold"
+                                    Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="Bold" Classes="RightAligned"  Margin="0"
+                                    Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="2" BorderBrush="Gray" BorderThickness="0" Padding="0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+                  <TextBlock Text="Display Tooltip:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                  <CheckBox IsChecked="{Binding ShowToolTip}" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" BorderBrush="Gray" BorderThickness="0" Padding="8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                  <Border MinWidth="{Binding ChartMinWidth}">
+                    <lvc:CartesianChart Grid.Column="0"
+                                        Series="{Binding Series}"
+                                        XAxes="{Binding XAxes}"
+                                        YAxes="{Binding YAxes}"
+                                        x:Name="TransactionsWaresByShipsChart"
+                                        TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}"
+                                        LegendPosition="Hidden"/>
+                  </Border>
+                </ScrollViewer>
+              </Border>
+            </Grid>
           </Grid>
         </TabItem>
       </TabControl>
@@ -658,17 +725,50 @@
               </Grid>
             </Border>
             <!-- Chart + custom legend -->
-            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
-              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <Border MinWidth="{Binding ChartMinWidth}" MinHeight="{Binding ChartMinHeight}">
-                  <lvc:CartesianChart Grid.Column="0"
-                                      Series="{Binding Series}"
-                                      XAxes="{Binding XAxes}"
-                                      YAxes="{Binding YAxes}"
-                                      LegendPosition="Left"/>
-                </Border>
-              </ScrollViewer>
-            </Border>
+            <Grid Grid.Row="1" ColumnDefinitions="340, *" RowDefinitions="Auto,*,34">
+              <Border Grid.Column="0" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Width="340" Padding="0">
+                <Grid ColumnDefinitions="12,168,8,140,12" RowDefinitions="36, Auto">
+                  <TextBlock Grid.Column="0" Grid.Row="0"  Grid.ColumnSpan="5" Text="Selected Ship:" FontWeight="Bold" HorizontalAlignment="Center"/>
+                  <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PressedShipName}" ToolTip.Tip="{Binding PressedShipName}" FontWeight="SemiBold"/>
+                  <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding PressedShipTotal}" FontWeight="Bold" Classes="RightAligned"/>
+                </Grid>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+                <ListBox ItemsSource="{Binding ShipWaresList}"
+                        Background="Transparent"
+                        Margin="0" Width="340">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="*,8,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" ToolTip.Tip="{Binding Name}" FontWeight="SemiBold"
+                                    Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Money, StringFormat=N2}" FontWeight="Bold" Classes="RightAligned"  Margin="0"
+                                    Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="2" BorderBrush="Gray" BorderThickness="0" Padding="0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+                  <TextBlock Text="Display Tooltip:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                  <CheckBox IsChecked="{Binding ShowToolTip}" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" BorderBrush="Gray" BorderThickness="0" Padding="8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                  <Border MinWidth="{Binding ChartMinWidth}">
+                    <lvc:CartesianChart Grid.Column="0"
+                                        Series="{Binding Series}"
+                                        XAxes="{Binding XAxes}"
+                                        YAxes="{Binding YAxes}"
+                                        x:Name="TradesShipsByWaresChart"
+                                        TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}"
+                                        LegendPosition="Hidden"/>
+                  </Border>
+                </ScrollViewer>
+              </Border>
+            </Grid>
           </Grid>
         </TabItem>
         <TabItem Header="Wares by Ships Stats" x:Name="TradesWaresShipsStatsTab">
@@ -694,17 +794,50 @@
               </Grid>
             </Border>
             <!-- Chart + custom legend -->
-            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
-              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <Border MinWidth="{Binding ChartMinWidth}" MinHeight="{Binding ChartMinHeight}">
-                  <lvc:CartesianChart Grid.Column="0"
-                                      Series="{Binding Series}"
-                                      XAxes="{Binding XAxes}"
-                                      YAxes="{Binding YAxes}"
-                                      LegendPosition="Left"/>
-                </Border>
-              </ScrollViewer>
-            </Border>
+            <Grid Grid.Row="1" ColumnDefinitions="340, *" RowDefinitions="Auto,*,34">
+              <Border Grid.Column="0" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Width="340" Padding="0">
+                <Grid ColumnDefinitions="12,168,8,140,12" RowDefinitions="36, Auto">
+                  <TextBlock Grid.Column="0" Grid.Row="0"  Grid.ColumnSpan="5" Text="Selected Ware:" FontWeight="Bold" HorizontalAlignment="Center"/>
+                  <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PressedWareName}" ToolTip.Tip="{Binding PressedWareName}" FontWeight="SemiBold"/>
+                  <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding PressedWareTotal}" FontWeight="Bold" Classes="RightAligned"/>
+                </Grid>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
+                <ListBox ItemsSource="{Binding WareShipsList}"
+                        Background="Transparent"
+                        Margin="0" Width="340">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="*,8,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding ShipName}" ToolTip.Tip="{Binding ShipName}" FontWeight="SemiBold"
+                                    Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding EstimatedProfit, StringFormat=N2}" FontWeight="Bold" Classes="RightAligned"  Margin="0"
+                                    Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="2" BorderBrush="Gray" BorderThickness="0" Padding="0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+                  <TextBlock Text="Display Tooltip:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                  <CheckBox IsChecked="{Binding ShowToolTip}" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" BorderBrush="Gray" BorderThickness="0" Padding="8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                  <Border MinWidth="{Binding ChartMinWidth}">
+                    <lvc:CartesianChart Grid.Column="0"
+                                        Series="{Binding Series}"
+                                        XAxes="{Binding XAxes}"
+                                        YAxes="{Binding YAxes}"
+                                        x:Name="TradesWaresByShipsChart"
+                                        TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}"
+                                        LegendPosition="Hidden"/>
+                  </Border>
+                </ScrollViewer>
+              </Border>
+            </Grid>
           </Grid>
         </TabItem>
       </TabControl>

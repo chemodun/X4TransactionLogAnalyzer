@@ -2,9 +2,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using LiveChartsCore;
+using LiveChartsCore.Drawing;
 using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Avalonia;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using X4PlayerShipTradeAnalyzer.Models;
@@ -161,6 +165,60 @@ public sealed class MainViewModel : INotifyPropertyChanged
   {
     Transaction.GetAllTransactions(ref AllTransactions);
     FullTrade.GetFullTrades(ref AllTrades, AllTransactions);
+  }
+
+  public void RegisterCharts(Func<string, CartesianChart?> getChart)
+  {
+    var chart = getChart("TransactionsShipsByWaresChart");
+    if (chart is null)
+      return;
+
+    chart.PointerPressed += OnChartPointerPressed;
+    chart = getChart("TransactionsWaresByShipsChart");
+    if (chart != null)
+      chart.PointerPressed += OnChartPointerPressed;
+    chart = getChart("TradesShipsByWaresChart");
+    if (chart != null)
+      chart.PointerPressed += OnChartPointerPressed;
+    chart = getChart("TradesWaresByShipsChart");
+    if (chart != null)
+      chart.PointerPressed += OnChartPointerPressed;
+  }
+
+  private void OnChartPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+  {
+    if (sender is not CartesianChart chart)
+      return;
+
+    // Get Avalonia point
+    var avaloniaPoint = e.GetPosition(chart);
+
+    // Convert to LvcPointD
+    var lvcPoint = new LvcPointD(avaloniaPoint.X, avaloniaPoint.Y);
+
+    // Pass to ScalePixelsToData
+    var data = chart.ScalePixelsToData(lvcPoint);
+
+    var itemIndex = (int)Math.Round(data.X);
+    switch (chart.Name)
+    {
+      case "TransactionsShipsByWaresChart":
+        if (TransactionsShipsWaresStats != null)
+          TransactionsShipsWaresStats.OnChartPointPressed(itemIndex);
+        break;
+      case "TransactionsWaresByShipsChart":
+        if (TransactionsWaresShipsStats != null)
+          TransactionsWaresShipsStats.OnChartPointPressed(itemIndex);
+        break;
+      case "TradesShipsByWaresChart":
+        if (TradesShipsWaresStats != null)
+          TradesShipsWaresStats.OnChartPointPressed(itemIndex);
+        break;
+      case "TradesWaresByShipsChart":
+        if (TradesWaresShipsStats != null)
+          TradesWaresShipsStats.OnChartPointPressed(itemIndex);
+        break;
+    }
   }
 
   public void Refresh()
