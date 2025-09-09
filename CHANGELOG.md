@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.1](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.3.0...v1.3.1) (2025-09-09)
+
+
+### Code Refactoring
+
+* **Converters:** add BoolToChartPositionConverter for tooltip and legend positioning ([4461a1e](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/4461a1e0319ea9809558b36deee2dd5b38c57808))
+* **Models:** add GraphShipItem and GraphWareItem classes ([4461a1e](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/4461a1e0319ea9809558b36deee2dd5b38c57808))
+* **ViewModels:** enhance MainViewModel with chart registration ([4461a1e](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/4461a1e0319ea9809558b36deee2dd5b38c57808))
+* **ViewModels:** enhance WaresShipsStatsBaseModel with new properties ([4461a1e](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/4461a1e0319ea9809558b36deee2dd5b38c57808))
+* **ViewModels:** update ShipsGraphsBaseModel and ShipsWaresStatsBaseModel ([4461a1e](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/4461a1e0319ea9809558b36deee2dd5b38c57808))
+* **Views:** enhance MainWindow.axaml.cs for chart functionality ([4461a1e](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/4461a1e0319ea9809558b36deee2dd5b38c57808))
+* **Views:** update MainWindow.axaml for new UI elements ([4461a1e](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/4461a1e0319ea9809558b36deee2dd5b38c57808))
+
+
+### Documentation
+
+* **README:** update YouTube video link and add version 1.3.1 changes ([5089a96](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/commit/5089a96aa3b34b0f56b1bf6407caceb5d736372f))
+
 ## [1.3.0](https://github.com/chemodun/X4PlayerShipTradeAnalyzer/compare/v1.2.0...v1.3.0) (2025-09-08)
 
 
