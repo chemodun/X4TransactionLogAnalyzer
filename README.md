@@ -150,7 +150,8 @@ The app runs locally and reads only your X4 files. Nothing is uploaded. **Nothin
 
 ## Video
 
-There is short video available on [YouTube](https://www.youtube.com/watch?v=z1xCXBDdpFk) demonstrating the app's features and usage.
+- There is short video available on [YouTube](https://www.youtube.com/watch?v=z1xCXBDdpFk) demonstrating the app's features and usage.
+- Stats Diagrams UI improvement in version 1.3.1: [YouTube](https://www.youtube.com/watch?v=NqAwX8Rl4Dc).
 
 ## Tips & troubleshooting
 
@@ -168,6 +169,9 @@ There is short video available on [YouTube](https://www.youtube.com/watch?v=z1xC
 
 ## Change log
 
+- 1.3.1 (2025-09-09)
+  - Improved:
+    - Stats Diagrams UI: replacement for the tooltip is implemented as a custom "legend" on a left side of the charts.
 - 1.3.0 (2025-09-08)
   - Introduced:
     - Total profit summary in all Ships Lists
