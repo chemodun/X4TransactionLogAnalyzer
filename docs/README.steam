@@ -207,10 +207,12 @@ The app runs locally and reads only your X4 files. Nothing is uploaded. [b]Nothi
 [/list]
 [/list]
 [h2][b]Video[/b][/h2]
-
-There is short video available on YouTube
+[list]
+[*] There is short video available on YouTube
 [previewyoutube=z1xCXBDdpFk;full][/previewyoutube] demonstrating the app's features and usage.
-
+[*] Stats Diagrams UI improvement in version 1.3.1: YouTube
+[previewyoutube=NqAwX8Rl4Dc;full][/previewyoutube].
+[/list]
 [h2][b]Tips & troubleshooting[/b][/h2]
 [list]
 [*] I see zeros / tabs are disabled
@@ -232,6 +234,13 @@ There is short video available on YouTube
 [/list]
 [h2][b]Change log[/b][/h2]
 [list]
+[*] 1.3.1 (2025-09-09)
+[list]
+[*] Improved:
+[list]
+[*] Stats Diagrams UI: replacement for the tooltip is implemented as a custom "legend" on a left side of the charts.
+[/list]
+[/list]
 [*] 1.3.0 (2025-09-08)
 [list]
 [*] Introduced:
