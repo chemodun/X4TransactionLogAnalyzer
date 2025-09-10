@@ -89,6 +89,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
         var operation = trans.Operation;
         var price = trans.Price;
         var volume = trans.Quantity;
+        var maxQuantity = trans.MaxQuantity;
         // No counterpart_id in the view
         var stationOwner = trans.StationOwner;
         var stationSector = trans.Sector;
@@ -128,6 +129,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
               SoldQuantity = 0,
               TotalBuyCost = price * volume,
               TotalRevenue = 0,
+              MaxQuantity = maxQuantity,
             };
             inSegment = true;
             cumVolume = volume;
@@ -231,6 +233,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
     public decimal TotalBuyCost { get; set; }
     public decimal TotalRevenue { get; set; }
     public decimal Profit => TotalRevenue - TotalBuyCost;
+    public int MaxQuantity { get; set; }
 
     // Ordered lists of legs where the ware was bought/sold by this ship during the segment
     public TradeLeg[] Purchases { get; set; } = Array.Empty<TradeLeg>();

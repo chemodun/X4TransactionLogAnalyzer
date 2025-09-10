@@ -22,6 +22,7 @@ public class Transaction
   public decimal Total { get; set; }
   public decimal EstimatedProfit { get; set; } // sign shows direction
   public string Time => TimeFormatter.FormatHms(RawTime);
+  public int MaxQuantity { get; set; }
 
   public static void GetAllTransactions(ref List<Transaction> transactions)
   { //MIC-510
@@ -31,7 +32,7 @@ public class Transaction
       return;
     using var cmd = conn.CreateCommand();
     cmd.CommandText =
-      "SELECT id, full_name, time, sector, station, counterpart_faction, counterpart_code, operation, ware, ware_name, transport, price, volume, trade_sum, profit FROM player_ships_transactions_log";
+      "SELECT id, full_name, time, sector, station, counterpart_faction, counterpart_code, operation, ware, ware_name, transport, price, volume, trade_sum, profit, cargo_volume FROM player_ships_transactions_log";
     using var rdr = cmd.ExecuteReader();
     trans.Clear();
     while (rdr.Read())
@@ -54,6 +55,7 @@ public class Transaction
           Quantity = Convert.ToInt32(rdr["volume"]),
           Total = Convert.ToDecimal(rdr["trade_sum"]),
           EstimatedProfit = Convert.ToDecimal(rdr["profit"]),
+          MaxQuantity = Convert.ToInt32(rdr["cargo_volume"]),
         }
       );
     }

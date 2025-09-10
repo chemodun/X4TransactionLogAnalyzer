@@ -5,6 +5,7 @@ public class GameComponent
   public long Id { get; set; }
   public string? Type { get; set; }
   public string? ComponentClass { get; set; }
+  public string? Macro { get; set; }
   public string? Owner { get; set; }
   public string? Sector { get; set; }
   public string? Name { get; set; }

@@ -343,12 +343,12 @@ CREATE TABLE component (
     id      INTEGER PRIMARY KEY,
     type    TEXT NOT NULL,
     class   TEXT NOT NULL,
+    macro   TEXT NOT NULL,
     owner   TEXT NOT NULL,
     sector  TEXT NOT NULL,
     name    TEXT NOT NULL,
     nameindex TEXT NOT NULL,
-    code    TEXT NOT NULL,
-    capacity INTEGER NOT NULL DEFAULT 0
+    code    TEXT NOT NULL
 );
 CREATE TABLE trade (
     id         INTEGER PRIMARY KEY,
@@ -390,12 +390,10 @@ CREATE TABLE cluster_sector_name (
     name       TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS storage (
-    macro         STRING PRIMARY KEY,
-    capacity      INTEGER NOT NULL,
-    container     BOOLEAN NOT NULL,
-    solid         BOOLEAN NOT NULL,
-    liquid        BOOLEAN NOT NULL,
-    gas           BOOLEAN NOT NULL
+    id            INTEGER PRIMARY KEY,
+    macro         STRING NOT NULL,
+    transport     STRING NOT NULL,
+    capacity      INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS ship_storage (
     id          INTEGER PRIMARY KEY,
@@ -416,12 +414,27 @@ CREATE INDEX idx_text_language_page_id    ON text(language, page, id);
 CREATE INDEX idx_text_id                  ON text(id);
 CREATE INDEX idx_text_language_id         ON text(language, id);
 CREATE INDEX idx_ship_storage_ship_macro  ON ship_storage(ship_macro);
+CREATE INDEX idx_storage_transport        ON storage(transport);
+CREATE INDEX idx_storage_macro_transport  ON storage(macro, transport);
 -- View lang
 CREATE VIEW lang AS
 SELECT t.page, t.id, t.text
 FROM text AS t
 JOIN settings AS s
   ON t.language = s.current_language;
+-- View ships_macro_transport_capacity
+CREATE VIEW ships_macro_transport_capacity AS
+SELECT
+    ss.ship_macro,
+    s.transport,
+    SUM(s.capacity) AS total_capacity
+FROM
+    ship_storage ss
+JOIN
+    storage s ON ss.storage_macro = s.macro
+GROUP BY
+    ss.ship_macro,
+    s.transport;
 -- View stations
 CREATE VIEW stations AS
 SELECT *
@@ -491,7 +504,7 @@ FROM (
         ELSE
           t.trade_sum / 100.0
       END AS profit,
-      t.volume * w.volume AS capacity
+      tc.total_capacity / w.volume AS cargo_volume
   FROM trade AS t
   JOIN component AS ship
     ON ship.id = t.seller
@@ -503,6 +516,8 @@ FROM (
     ON cp.sector = sn.macro
   JOIN ware AS w
     ON w.id = t.ware
+  LEFT JOIN ships_macro_transport_capacity AS tc
+    ON ship.macro = tc.ship_macro AND w.transport = tc.transport
   WHERE ship.type = 'ship'
     AND ship.owner = 'player'
 UNION ALL
@@ -540,7 +555,7 @@ UNION ALL
         ELSE
           -t.trade_sum / 100.0
       END AS profit,
-      t.volume * w.volume AS capacity
+      tc.total_capacity / w.volume AS cargo_volume
   FROM trade AS t
   JOIN component AS ship
     ON ship.id = t.buyer
@@ -552,10 +567,12 @@ UNION ALL
     ON cp.sector = sn.macro
   JOIN ware AS w
     ON w.id = t.ware
+  LEFT JOIN ships_macro_transport_capacity AS tc
+    ON ship.macro = tc.ship_macro AND w.transport = tc.transport
   WHERE ship.type = 'ship'
     AND ship.owner = 'player'
 ) AS combined
-ORDER BY full_name, time
+ORDER BY full_name, time;
 ";
     cmd.ExecuteNonQuery();
   }
@@ -750,20 +767,18 @@ CREATE TABLE component (
     id      INTEGER PRIMARY KEY,
     type    TEXT NOT NULL,
     class   TEXT NOT NULL,
+    macro   TEXT NOT NULL,
     owner   TEXT NOT NULL,
     sector  TEXT NOT NULL,
     name    TEXT NOT NULL,
     nameindex TEXT NOT NULL,
-    code    TEXT NOT NULL,
-    capacity INTEGER NOT NULL DEFAULT 0
+    code    TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS storage (
-    macro         STRING PRIMARY KEY,
-    capacity      INTEGER NOT NULL,
-    container     BOOLEAN NOT NULL,
-    solid         BOOLEAN NOT NULL,
-    liquid        BOOLEAN NOT NULL,
-    gas           BOOLEAN NOT NULL
+    id            INTEGER PRIMARY KEY,
+    macro         STRING NOT NULL,
+    transport     STRING NOT NULL,
+    capacity      INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS ship_storage (
     id          INTEGER PRIMARY KEY,
@@ -774,6 +789,21 @@ CREATE INDEX idx_component_type           ON component(type);
 CREATE INDEX idx_component_type_owner     ON component(type, owner);
 CREATE INDEX idx_component_type_owner_id  ON component (type, owner, id);
 CREATE INDEX idx_ship_storage_ship_macro  ON ship_storage(ship_macro);
+CREATE INDEX idx_storage_transport        ON storage(transport);
+CREATE INDEX idx_storage_macro_transport  ON storage(macro, transport);
+-- View ships_macro_transport_capacity
+CREATE VIEW ships_macro_transport_capacity AS
+SELECT
+    ss.ship_macro,
+    s.transport,
+    SUM(s.capacity) AS total_capacity
+FROM
+    ship_storage ss
+JOIN
+    storage s ON ss.storage_macro = s.macro
+GROUP BY
+    ss.ship_macro,
+    s.transport;
 -- View player_ships_transactions_log
 CREATE VIEW player_ships_transactions_log AS
 SELECT *
@@ -783,7 +813,6 @@ FROM (
       ship.code AS code,
       ship.name AS name,
       ship.class AS class,
-      ship.capacity AS capacity,
       ship.name || ' (' || ship.code || ')' AS full_name,
       cp.code   AS counterpart_code,
       cp.name   AS counterpart_name,
@@ -812,7 +841,7 @@ FROM (
         ELSE
           t.trade_sum / 100.0
       END AS profit,
-      t.volume * w.volume AS capacity
+      tc.total_capacity / w.volume AS cargo_volume
   FROM trade AS t
   JOIN component AS ship
     ON ship.id = t.seller
@@ -824,6 +853,8 @@ FROM (
     ON cp.sector = sn.macro
   JOIN ware AS w
     ON w.id = t.ware
+  LEFT JOIN ships_macro_transport_capacity AS tc
+    ON ship.macro = tc.ship_macro AND w.transport = tc.transport
   WHERE ship.type = 'ship'
     AND ship.owner = 'player'
 UNION ALL
@@ -833,7 +864,6 @@ UNION ALL
       ship.code AS code,
       ship.name AS name,
       ship.class AS class,
-      ship.capacity AS capacity,
       ship.name || ' (' || ship.code || ')' AS full_name,
       cp.code   AS counterpart_code,
       cp.name   AS counterpart_name,
@@ -862,7 +892,7 @@ UNION ALL
         ELSE
           -t.trade_sum / 100.0
       END AS profit,
-      t.volume * w.volume AS capacity
+      tc.total_capacity / w.volume AS cargo_volume
   FROM trade AS t
   JOIN component AS ship
     ON ship.id = t.buyer
@@ -874,10 +904,12 @@ UNION ALL
     ON cp.sector = sn.macro
   JOIN ware AS w
     ON w.id = t.ware
+  LEFT JOIN ships_macro_transport_capacity AS tc
+    ON ship.macro = tc.ship_macro AND w.transport = tc.transport
   WHERE ship.type = 'ship'
     AND ship.owner = 'player'
 ) AS combined
-ORDER BY full_name, time
+ORDER BY full_name, time;
 ";
             cmd.ExecuteNonQuery();
           }
@@ -965,6 +997,7 @@ ORDER BY full_name, time
 
   private void LoadStoragesAndShipStorages(ContentExtractor contentExtractor, Action<ProgressUpdate>? progress = null)
   {
+    HashSet<string> allowedTransports = new(StringComparer.OrdinalIgnoreCase) { "container", "solid", "liquid", "gas" };
     ReOpenConnection();
     var entries = contentExtractor.GetFilesByMask("assets/units/size_*/macros/*.xml");
     entries = entries.Concat(contentExtractor.GetFilesByMask("assets/props/StorageModules/macros/*.xml")).ToList();
@@ -973,16 +1006,13 @@ ORDER BY full_name, time
 
     SQLiteTransaction txn = _conn.BeginTransaction();
     using var insertStorage = new SQLiteCommand(
-      "INSERT OR REPLACE INTO storage(macro, capacity, container, solid, liquid, gas) VALUES (@macro,@capacity,@container,@solid,@liquid,@gas)",
+      "INSERT OR REPLACE INTO storage(macro, transport, capacity) VALUES (@macro,@transport,@capacity)",
       _conn,
       txn
     );
     insertStorage.Parameters.Add("@macro", System.Data.DbType.String);
+    insertStorage.Parameters.Add("@transport", System.Data.DbType.String);
     insertStorage.Parameters.Add("@capacity", System.Data.DbType.Int64);
-    insertStorage.Parameters.Add("@container", System.Data.DbType.Boolean);
-    insertStorage.Parameters.Add("@solid", System.Data.DbType.Boolean);
-    insertStorage.Parameters.Add("@liquid", System.Data.DbType.Boolean);
-    insertStorage.Parameters.Add("@gas", System.Data.DbType.Boolean);
 
     using var insertShipStorage = new SQLiteCommand(
       "INSERT OR IGNORE INTO ship_storage(ship_macro, storage_macro) VALUES (@ship,@storage)",
@@ -1014,10 +1044,6 @@ ORDER BY full_name, time
             {
               // Parse storage properties
               long capacity = 0;
-              bool container = false;
-              bool solid = false;
-              bool liquid = false;
-              bool gas = false;
 
               if (!xr.IsEmptyElement)
               {
@@ -1038,21 +1064,15 @@ ORDER BY full_name, time
                         {
                           foreach (var tag in tagsAttr.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                           {
-                            if (string.Equals(tag, "container", StringComparison.OrdinalIgnoreCase))
+                            if (allowedTransports.Contains(tag))
                             {
-                              container = true;
-                            }
-                            else if (string.Equals(tag, "solid", StringComparison.OrdinalIgnoreCase))
-                            {
-                              solid = true;
-                            }
-                            else if (string.Equals(tag, "liquid", StringComparison.OrdinalIgnoreCase))
-                            {
-                              liquid = true;
-                            }
-                            else if (string.Equals(tag, "gas", StringComparison.OrdinalIgnoreCase))
-                            {
-                              gas = true;
+                              insertStorage.Parameters["@macro"].Value = name.ToLowerInvariant();
+                              insertStorage.Parameters["@transport"].Value = tag.ToLowerInvariant();
+                              insertStorage.Parameters["@capacity"].Value = capacity;
+                              insertStorage.ExecuteNonQuery();
+                              writes++;
+                              _storagesProcessed++;
+                              progress?.Invoke(new ProgressUpdate { StoragesProcessed = (int)Math.Min(int.MaxValue, _storagesProcessed) });
                             }
                           }
                         }
@@ -1070,21 +1090,7 @@ ORDER BY full_name, time
                 }
               }
 
-              if (!(container || solid || liquid || gas))
-              {
-                capacity = 0;
-              }
-
-              insertStorage.Parameters["@macro"].Value = name.ToLowerInvariant();
-              insertStorage.Parameters["@capacity"].Value = capacity;
-              insertStorage.Parameters["@container"].Value = container;
-              insertStorage.Parameters["@solid"].Value = solid;
-              insertStorage.Parameters["@liquid"].Value = liquid;
-              insertStorage.Parameters["@gas"].Value = gas;
-              insertStorage.ExecuteNonQuery();
-              writes++;
-              _storagesProcessed++;
-              progress?.Invoke(new ProgressUpdate { StoragesProcessed = (int)Math.Min(int.MaxValue, _storagesProcessed) });
+              // capacity already recorded per transport tag; no additional handling needed here
             }
             else if (cls.StartsWith("ship_", StringComparison.OrdinalIgnoreCase))
             {
@@ -2226,13 +2232,14 @@ ORDER BY full_name, time
     SQLiteTransaction txn = _conn.BeginTransaction();
 
     using var insertComp = new SQLiteCommand(
-      "INSERT OR IGNORE INTO component(id, type, class, owner, sector, name, nameindex, code) VALUES (@id,@type,@class,@owner,@sector,@name,@nameindex,@code)",
+      "INSERT OR IGNORE INTO component(id, type, class, macro, owner, sector, name, nameindex, code) VALUES (@id,@type,@class,@macro,@owner,@sector,@name,@nameindex,@code)",
       _conn,
       txn
     );
     insertComp.Parameters.Add("@id", System.Data.DbType.Int64);
     insertComp.Parameters.Add("@type", System.Data.DbType.String);
     insertComp.Parameters.Add("@class", System.Data.DbType.String);
+    insertComp.Parameters.Add("@macro", System.Data.DbType.String);
     insertComp.Parameters.Add("@owner", System.Data.DbType.String);
     insertComp.Parameters.Add("@sector", System.Data.DbType.String);
     insertComp.Parameters.Add("@name", System.Data.DbType.String);
@@ -2341,6 +2348,7 @@ ORDER BY full_name, time
                 insertComp.Parameters["@id"].Value = currentStation.Id;
                 insertComp.Parameters["@type"].Value = currentStation.Type;
                 insertComp.Parameters["@class"].Value = currentStation.ComponentClass;
+                insertComp.Parameters["@macro"].Value = macro;
                 insertComp.Parameters["@sector"].Value = currentStation.Sector;
                 insertComp.Parameters["@owner"].Value = currentStation.Owner;
                 insertComp.Parameters["@code"].Value = currentStation.Code;
@@ -2417,6 +2425,7 @@ ORDER BY full_name, time
               continue;
             }
             string nameIndex = _nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
+            string macro = "";
             if (componentClass == "station")
             {
               if (string.IsNullOrEmpty(name))
@@ -2426,6 +2435,7 @@ ORDER BY full_name, time
                   Id = id,
                   Type = type,
                   ComponentClass = componentClass,
+                  Macro = macro,
                   Owner = owner,
                   Sector = currentSector,
                   NameIndex = nameIndex,
@@ -2451,9 +2461,9 @@ ORDER BY full_name, time
               {
                 progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
               }
+              macro = xr.GetAttribute("macro") ?? string.Empty;
               if (string.IsNullOrEmpty(name))
               {
-                string macro = xr.GetAttribute("macro") ?? string.Empty;
                 if (!string.IsNullOrEmpty(macro))
                 {
                   name = wareComponentNames.TryGetValue(macro.ToLowerInvariant(), out var n) ? n : string.Empty;
@@ -2464,6 +2474,7 @@ ORDER BY full_name, time
             insertComp.Parameters["@id"].Value = id;
             insertComp.Parameters["@type"].Value = type;
             insertComp.Parameters["@class"].Value = componentClass;
+            insertComp.Parameters["@macro"].Value = macro;
             insertComp.Parameters["@sector"].Value = currentSector;
             insertComp.Parameters["@owner"].Value = owner;
             insertComp.Parameters["@code"].Value = code;
@@ -2495,6 +2506,7 @@ ORDER BY full_name, time
               insertComp.Parameters["@id"].Value = id;
               insertComp.Parameters["@type"].Value = nextComp.Type;
               insertComp.Parameters["@class"].Value = nextComp.ComponentClass;
+              insertComp.Parameters["@macro"].Value = nextComp.Macro;
               insertComp.Parameters["@sector"].Value = nextComp.Sector;
               insertComp.Parameters["@owner"].Value = nextComp.Owner;
               insertComp.Parameters["@code"].Value = nextComp.Code;
@@ -2547,6 +2559,7 @@ ORDER BY full_name, time
           insertComp.Parameters["@id"].Value = id;
           insertComp.Parameters["@type"].Value = type;
           insertComp.Parameters["@class"].Value = type;
+          insertComp.Parameters["@macro"].Value = "";
           insertComp.Parameters["@sector"].Value = sector;
           insertComp.Parameters["@owner"].Value = owner;
           insertComp.Parameters["@code"].Value = code;
@@ -2627,6 +2640,7 @@ ORDER BY full_name, time
               insertComp.Parameters["@id"].Value = currentStation.Id;
               insertComp.Parameters["@type"].Value = currentStation.Type;
               insertComp.Parameters["@class"].Value = currentStation.ComponentClass;
+              insertComp.Parameters["@macro"].Value = currentStation.Macro;
               insertComp.Parameters["@sector"].Value = currentStation.Sector;
               insertComp.Parameters["@owner"].Value = currentStation.Owner;
               insertComp.Parameters["@code"].Value = currentStation.Code;
