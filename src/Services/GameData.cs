@@ -967,6 +967,7 @@ ORDER BY full_name, time
   {
     ReOpenConnection();
     var entries = contentExtractor.GetFilesByMask("assets/units/size_*/macros/*.xml");
+    entries = entries.Concat(contentExtractor.GetFilesByMask("assets/props/StorageModules/macros/*.xml")).ToList();
     if (entries.Count == 0)
       return;
 
