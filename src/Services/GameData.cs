@@ -129,6 +129,34 @@ public sealed class GameDataStats : INotifyPropertyChanged
     }
   }
 
+  int _storagesCount;
+  public int StoragesCount
+  {
+    get => _storagesCount;
+    set
+    {
+      if (_storagesCount != value)
+      {
+        _storagesCount = value;
+        OnPropertyChanged(nameof(StoragesCount));
+      }
+    }
+  }
+
+  int _shipStoragesCount;
+  public int ShipStoragesCount
+  {
+    get => _shipStoragesCount;
+    set
+    {
+      if (_shipStoragesCount != value)
+      {
+        _shipStoragesCount = value;
+        OnPropertyChanged(nameof(ShipStoragesCount));
+      }
+    }
+  }
+
   int _currentLanguageTextCount;
   public int CurrentLanguageTextCount
   {
@@ -218,9 +246,11 @@ public sealed class GameData
 
   private int _waresProcessed;
   private int _factionsProcessed;
+  private int _storagesProcessed;
+  private int _shipStoragesProcessed;
   private int _processedFiles;
   private int _clusterSectorNamesProcessed;
-  private long _dbSchemaVersion = 2;
+  private long _dbSchemaVersion = 3;
 
   public GameData()
   {
@@ -317,7 +347,8 @@ CREATE TABLE component (
     sector  TEXT NOT NULL,
     name    TEXT NOT NULL,
     nameindex TEXT NOT NULL,
-    code    TEXT NOT NULL
+    code    TEXT NOT NULL,
+    capacity INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE trade (
     id         INTEGER PRIMARY KEY,
@@ -358,6 +389,19 @@ CREATE TABLE cluster_sector_name (
     macro      TEXT PRIMARY KEY,
     name       TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS storage (
+    macro         STRING PRIMARY KEY,
+    capacity      INTEGER NOT NULL,
+    container     BOOLEAN NOT NULL,
+    solid         BOOLEAN NOT NULL,
+    liquid        BOOLEAN NOT NULL,
+    gas           BOOLEAN NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ship_storage (
+    id          INTEGER PRIMARY KEY,
+    ship_macro  STRING NOT NULL,
+    storage_macro STRING NOT NULL
+);
 CREATE INDEX idx_component_type           ON component(type);
 CREATE INDEX idx_component_type_owner     ON component(type, owner);
 CREATE INDEX idx_component_type_owner_id  ON component (type, owner, id);
@@ -371,6 +415,7 @@ CREATE INDEX idx_text_language_page       ON text(language, page);
 CREATE INDEX idx_text_language_page_id    ON text(language, page, id);
 CREATE INDEX idx_text_id                  ON text(id);
 CREATE INDEX idx_text_language_id         ON text(language, id);
+CREATE INDEX idx_ship_storage_ship_macro  ON ship_storage(ship_macro);
 -- View lang
 CREATE VIEW lang AS
 SELECT t.page, t.id, t.text
@@ -683,6 +728,162 @@ ORDER BY full_name, time
           // Future updates here
           currentVersion = 2;
         }
+        if (currentVersion == 2)
+        {
+          clearData = true;
+          ReOpenConnection();
+          using (var deleteCmd = _conn.CreateCommand())
+          {
+            deleteCmd.CommandText = @"DROP TABLE IF EXISTS component;DROP VIEW IF EXISTS player_ships_transactions_log;";
+            deleteCmd.ExecuteNonQuery();
+          }
+          using (var vacuumCmd = _conn.CreateCommand())
+          {
+            vacuumCmd.CommandText = "VACUUM;";
+            vacuumCmd.ExecuteNonQuery();
+          }
+          using (var cmd = _conn.CreateCommand())
+          {
+            cmd.CommandText =
+              @"--
+CREATE TABLE component (
+    id      INTEGER PRIMARY KEY,
+    type    TEXT NOT NULL,
+    class   TEXT NOT NULL,
+    owner   TEXT NOT NULL,
+    sector  TEXT NOT NULL,
+    name    TEXT NOT NULL,
+    nameindex TEXT NOT NULL,
+    code    TEXT NOT NULL,
+    capacity INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS storage (
+    macro         STRING PRIMARY KEY,
+    capacity      INTEGER NOT NULL,
+    container     BOOLEAN NOT NULL,
+    solid         BOOLEAN NOT NULL,
+    liquid        BOOLEAN NOT NULL,
+    gas           BOOLEAN NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ship_storage (
+    id          INTEGER PRIMARY KEY,
+    ship_macro  STRING NOT NULL,
+    storage_macro STRING NOT NULL
+);
+CREATE INDEX idx_component_type           ON component(type);
+CREATE INDEX idx_component_type_owner     ON component(type, owner);
+CREATE INDEX idx_component_type_owner_id  ON component (type, owner, id);
+CREATE INDEX idx_ship_storage_ship_macro  ON ship_storage(ship_macro);
+-- View player_ships_transactions_log
+CREATE VIEW player_ships_transactions_log AS
+SELECT *
+FROM (
+  SELECT
+      ship.id AS id,
+      ship.code AS code,
+      ship.name AS name,
+      ship.class AS class,
+      ship.capacity AS capacity,
+      ship.name || ' (' || ship.code || ')' AS full_name,
+      cp.code   AS counterpart_code,
+      cp.name   AS counterpart_name,
+      cp.owner  AS counterpart_faction,
+      sn.name   AS sector,
+      CASE
+        WHEN cp.owner = 'player'
+          THEN cp.name || ' (' || cp.code || ')'
+        ELSE CASE
+              WHEN f.shortname IS NULL THEN ''
+              ELSE f.shortname
+            END
+            || ' ' || cp.name || cp.nameindex || ' (' || cp.code || ')'
+      END AS station,
+      t.time AS time,
+      'sell' AS operation,
+      t.ware AS ware,
+      w.text AS ware_name,
+      t.price / 100.0 AS price,
+      t.volume AS volume,
+      t.trade_sum / 100.0 AS trade_sum,
+      w.transport AS transport,
+      CASE
+        WHEN w.transport = 'container' THEN
+          (t.trade_sum - w.price_avg * t.volume) / 100.0
+        ELSE
+          t.trade_sum / 100.0
+      END AS profit,
+      t.volume * w.volume AS capacity
+  FROM trade AS t
+  JOIN component AS ship
+    ON ship.id = t.seller
+  JOIN component AS cp
+    ON cp.id = t.buyer
+  LEFT JOIN faction AS f
+    ON f.id = cp.owner
+  LEFT JOIN cluster_sector_name AS sn
+    ON cp.sector = sn.macro
+  JOIN ware AS w
+    ON w.id = t.ware
+  WHERE ship.type = 'ship'
+    AND ship.owner = 'player'
+UNION ALL
+-- Case 2: player ship is the buyer
+  SELECT
+      ship.id AS id,
+      ship.code AS code,
+      ship.name AS name,
+      ship.class AS class,
+      ship.capacity AS capacity,
+      ship.name || ' (' || ship.code || ')' AS full_name,
+      cp.code   AS counterpart_code,
+      cp.name   AS counterpart_name,
+      cp.owner  AS counterpart_faction,
+      sn.name   AS sector,
+      CASE
+        WHEN cp.owner = 'player'
+          THEN cp.name || ' (' || cp.code || ')'
+        ELSE CASE
+              WHEN f.shortname IS NULL THEN ''
+              ELSE f.shortname
+            END
+            || ' ' || cp.name || cp.nameindex || ' (' || cp.code || ')'
+      END AS station,
+      t.time AS time,
+      'buy' AS operation,
+      t.ware AS ware,
+      w.text AS ware_name,
+      t.price / 100.0 AS price,
+      t.volume AS volume,
+      -t.trade_sum/ 100.0 AS trade_sum,
+      w.transport AS transport,
+      CASE
+        WHEN w.transport = 'container' THEN
+          (w.price_avg * t.volume - t.trade_sum) / 100.0
+        ELSE
+          -t.trade_sum / 100.0
+      END AS profit,
+      t.volume * w.volume AS capacity
+  FROM trade AS t
+  JOIN component AS ship
+    ON ship.id = t.buyer
+  JOIN component AS cp
+    ON cp.id = t.seller
+  LEFT JOIN faction AS f
+    ON f.id = cp.owner
+  LEFT JOIN cluster_sector_name AS sn
+    ON cp.sector = sn.macro
+  JOIN ware AS w
+    ON w.id = t.ware
+  WHERE ship.type = 'ship'
+    AND ship.owner = 'player'
+) AS combined
+ORDER BY full_name, time
+";
+            cmd.ExecuteNonQuery();
+          }
+          // Future updates here
+          currentVersion = 3;
+        }
       }
       catch (Exception ex)
       {
@@ -722,10 +923,14 @@ ORDER BY full_name, time
     ClearTableWare();
     ClearTableFaction();
     ClearTableClusterSectorName();
+    ClearTableStorage();
+    ClearTableShipStorage();
     _waresProcessed = 0;
     _factionsProcessed = 0;
     _processedFiles = 0;
     _clusterSectorNamesProcessed = 0;
+    _storagesProcessed = 0;
+    _shipStoragesProcessed = 0;
     // dlcPathList.Prepend(string.Empty); // base game first
     foreach (var extensionRelPath in extensionsPathList)
     {
@@ -752,8 +957,484 @@ ORDER BY full_name, time
       LoadWaresXml(contentExtractor, progress);
       progress?.Invoke(new ProgressUpdate { Status = "Parsing factions..." });
       LoadFactionsXml(contentExtractor, progress);
+      progress?.Invoke(new ProgressUpdate { Status = "Parsing storages & ship storages..." });
+      LoadStoragesAndShipStorages(contentExtractor, progress);
     }
     RefreshStats();
+  }
+
+  private void LoadStoragesAndShipStorages(ContentExtractor contentExtractor, Action<ProgressUpdate>? progress = null)
+  {
+    ReOpenConnection();
+    var entries = contentExtractor.GetFilesByMask("assets/units/size_*/macros/*.xml");
+    if (entries.Count == 0)
+      return;
+
+    SQLiteTransaction txn = _conn.BeginTransaction();
+    using var insertStorage = new SQLiteCommand(
+      "INSERT OR REPLACE INTO storage(macro, capacity, container, solid, liquid, gas) VALUES (@macro,@capacity,@container,@solid,@liquid,@gas)",
+      _conn,
+      txn
+    );
+    insertStorage.Parameters.Add("@macro", System.Data.DbType.String);
+    insertStorage.Parameters.Add("@capacity", System.Data.DbType.Int64);
+    insertStorage.Parameters.Add("@container", System.Data.DbType.Boolean);
+    insertStorage.Parameters.Add("@solid", System.Data.DbType.Boolean);
+    insertStorage.Parameters.Add("@liquid", System.Data.DbType.Boolean);
+    insertStorage.Parameters.Add("@gas", System.Data.DbType.Boolean);
+
+    using var insertShipStorage = new SQLiteCommand(
+      "INSERT OR IGNORE INTO ship_storage(ship_macro, storage_macro) VALUES (@ship,@storage)",
+      _conn,
+      txn
+    );
+    insertShipStorage.Parameters.Add("@ship", System.Data.DbType.String);
+    insertShipStorage.Parameters.Add("@storage", System.Data.DbType.String);
+
+    long writes = 0;
+    foreach (var entry in entries)
+    {
+      try
+      {
+        using var cs = ContentExtractor.OpenEntryStream(entry);
+        var settings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+        using var xr = XmlReader.Create(cs, settings);
+
+        while (xr.Read())
+        {
+          if (xr.NodeType == XmlNodeType.Element && xr.Name == "macro")
+          {
+            string cls = xr.GetAttribute("class") ?? string.Empty;
+            string name = xr.GetAttribute("name") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name))
+              continue;
+
+            if (string.Equals(cls, "storage", StringComparison.OrdinalIgnoreCase))
+            {
+              // Parse storage properties
+              long capacity = 0;
+              bool container = false;
+              bool solid = false;
+              bool liquid = false;
+              bool gas = false;
+
+              if (!xr.IsEmptyElement)
+              {
+                int depth = xr.Depth;
+                while (xr.Read())
+                {
+                  if (xr.NodeType == XmlNodeType.Element && xr.Name == "properties")
+                  {
+                    int pDepth = xr.Depth;
+                    while (xr.Read())
+                    {
+                      if (xr.NodeType == XmlNodeType.Element && xr.Name == "cargo")
+                      {
+                        var maxAttr = xr.GetAttribute("max") ?? "0";
+                        long.TryParse(maxAttr, NumberStyles.Any, CultureInfo.InvariantCulture, out capacity);
+                        var tagsAttr = xr.GetAttribute("tags") ?? string.Empty;
+                        if (!string.IsNullOrWhiteSpace(tagsAttr))
+                        {
+                          foreach (var tag in tagsAttr.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                          {
+                            if (string.Equals(tag, "container", StringComparison.OrdinalIgnoreCase))
+                            {
+                              container = true;
+                            }
+                            else if (string.Equals(tag, "solid", StringComparison.OrdinalIgnoreCase))
+                            {
+                              solid = true;
+                            }
+                            else if (string.Equals(tag, "liquid", StringComparison.OrdinalIgnoreCase))
+                            {
+                              liquid = true;
+                            }
+                            else if (string.Equals(tag, "gas", StringComparison.OrdinalIgnoreCase))
+                            {
+                              gas = true;
+                            }
+                          }
+                        }
+                      }
+                      else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "properties" && xr.Depth == pDepth)
+                      {
+                        break;
+                      }
+                    }
+                  }
+                  else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "macro" && xr.Depth == depth)
+                  {
+                    break;
+                  }
+                }
+              }
+
+              if (!(container || solid || liquid || gas))
+              {
+                capacity = 0;
+              }
+
+              insertStorage.Parameters["@macro"].Value = name.ToLowerInvariant();
+              insertStorage.Parameters["@capacity"].Value = capacity;
+              insertStorage.Parameters["@container"].Value = container;
+              insertStorage.Parameters["@solid"].Value = solid;
+              insertStorage.Parameters["@liquid"].Value = liquid;
+              insertStorage.Parameters["@gas"].Value = gas;
+              insertStorage.ExecuteNonQuery();
+              writes++;
+              _storagesProcessed++;
+              progress?.Invoke(new ProgressUpdate { StoragesProcessed = (int)Math.Min(int.MaxValue, _storagesProcessed) });
+            }
+            else if (cls.StartsWith("ship_", StringComparison.OrdinalIgnoreCase))
+            {
+              string shipMacro = name;
+              if (!xr.IsEmptyElement)
+              {
+                int depth = xr.Depth;
+                while (xr.Read())
+                {
+                  if (xr.NodeType == XmlNodeType.Element && xr.Name == "connections")
+                  {
+                    int cDepth = xr.Depth;
+                    while (xr.Read())
+                    {
+                      if (xr.NodeType == XmlNodeType.Element && xr.Name == "connection")
+                      {
+                        if (!xr.IsEmptyElement)
+                        {
+                          int d2 = xr.Depth;
+                          while (xr.Read())
+                          {
+                            if (xr.NodeType == XmlNodeType.Element && xr.Name == "macro")
+                            {
+                              string conn = xr.GetAttribute("connection") ?? string.Empty;
+                              if (!string.Equals(conn, "ShipConnection", StringComparison.Ordinal))
+                                continue;
+                              string storageRef = xr.GetAttribute("ref") ?? string.Empty;
+                              if (!string.IsNullOrWhiteSpace(storageRef))
+                              {
+                                insertShipStorage.Parameters["@ship"].Value = shipMacro.ToLowerInvariant();
+                                insertShipStorage.Parameters["@storage"].Value = storageRef.ToLowerInvariant();
+                                insertShipStorage.ExecuteNonQuery();
+                                writes++;
+                                _shipStoragesProcessed++;
+                                progress?.Invoke(
+                                  new ProgressUpdate { ShipStoragesProcessed = (int)Math.Min(int.MaxValue, _shipStoragesProcessed) }
+                                );
+                              }
+                            }
+                            else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "connection" && xr.Depth == d2)
+                            {
+                              break;
+                            }
+                          }
+                        }
+                      }
+                      else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "connections" && xr.Depth == cDepth)
+                      {
+                        break;
+                      }
+                    }
+                  }
+                  else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "macro" && xr.Depth == depth)
+                  {
+                    break;
+                  }
+                }
+              }
+            }
+
+            if (writes > 0 && writes % _batchSize == 0)
+            {
+              txn.Commit();
+              txn = _conn.BeginTransaction();
+              insertStorage.Transaction = txn;
+              insertShipStorage.Transaction = txn;
+            }
+          }
+        }
+      }
+      catch
+      {
+        // ignore malformed files
+      }
+      finally
+      {
+        _processedFiles++;
+        progress?.Invoke(new ProgressUpdate { ProcessedFiles = _processedFiles });
+      }
+    }
+
+    txn.Commit();
+
+    // Final report for this package
+    progress?.Invoke(
+      new ProgressUpdate
+      {
+        StoragesProcessed = (int)Math.Min(int.MaxValue, _storagesProcessed),
+        ShipStoragesProcessed = (int)Math.Min(int.MaxValue, _shipStoragesProcessed),
+        Status = "Storages parsing complete.",
+      }
+    );
+    RefreshStats();
+  }
+
+  private void ClearTableStorage()
+  {
+    ReOpenConnection();
+    using (var deleteCmd = _conn.CreateCommand())
+    {
+      deleteCmd.CommandText = @"DELETE FROM storage;";
+      deleteCmd.ExecuteNonQuery();
+    }
+    using (var vacuumCmd = _conn.CreateCommand())
+    {
+      vacuumCmd.CommandText = "VACUUM;";
+      vacuumCmd.ExecuteNonQuery();
+    }
+  }
+
+  private void ClearTableShipStorage()
+  {
+    ReOpenConnection();
+    using (var deleteCmd = _conn.CreateCommand())
+    {
+      deleteCmd.CommandText = @"DELETE FROM ship_storage;";
+      deleteCmd.ExecuteNonQuery();
+    }
+    using (var vacuumCmd = _conn.CreateCommand())
+    {
+      vacuumCmd.CommandText = "VACUUM;";
+      vacuumCmd.ExecuteNonQuery();
+    }
+  }
+
+  // Parse all storage macros: libraries/assets that define class="storage" and cargo capacities
+  private void LoadStorages(ContentExtractor contentExtractor, Action<ProgressUpdate>? progress = null)
+  {
+    ReOpenConnection();
+    // storage macros typically reside in assets/props/ or assets/components; search all macros xmls
+    var entries = contentExtractor.GetFilesByMask("assets/units/size_*/macros/*.xml");
+    if (entries.Count == 0)
+      return;
+
+    SQLiteTransaction txn = _conn.BeginTransaction();
+    using var cmd = new SQLiteCommand(
+      "INSERT OR REPLACE INTO storage(macro, capacity, container, solid, liquid, gas) VALUES (@macro,@capacity,@container,@solid,@liquid,@gas)",
+      _conn,
+      txn
+    );
+    cmd.Parameters.Add("@macro", System.Data.DbType.String);
+    cmd.Parameters.Add("@capacity", System.Data.DbType.Int64);
+    cmd.Parameters.Add("@container", System.Data.DbType.Boolean);
+    cmd.Parameters.Add("@solid", System.Data.DbType.Boolean);
+    cmd.Parameters.Add("@liquid", System.Data.DbType.Boolean);
+    cmd.Parameters.Add("@gas", System.Data.DbType.Boolean);
+
+    long stored = 0;
+    foreach (var entry in entries)
+    {
+      try
+      {
+        using var cs = ContentExtractor.OpenEntryStream(entry);
+        var settings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+        using var xr = XmlReader.Create(cs, settings);
+
+        // find <macro class="storage" name="...">
+        while (xr.Read())
+        {
+          if (xr.NodeType == XmlNodeType.Element && xr.Name == "macro")
+          {
+            var cls = xr.GetAttribute("class") ?? string.Empty;
+            if (!string.Equals(cls, "storage", StringComparison.OrdinalIgnoreCase))
+              continue;
+            var macroName = xr.GetAttribute("name") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(macroName))
+              continue;
+
+            long capacity = 0;
+            bool hasTag(string t, string tags) =>
+              tags.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Any(s => string.Equals(s, t, StringComparison.OrdinalIgnoreCase));
+
+            bool container = false,
+              solid = false,
+              liquid = false,
+              gas = false;
+            if (!xr.IsEmptyElement)
+            {
+              int depth = xr.Depth;
+              while (xr.Read())
+              {
+                if (xr.NodeType == XmlNodeType.Element && xr.Name == "component")
+                {
+                  // must be generic_storage per spec, but not strictly enforced
+                }
+                else if (xr.NodeType == XmlNodeType.Element && xr.Name == "properties")
+                {
+                  // dive into properties
+                  int pDepth = xr.Depth;
+                  while (xr.Read())
+                  {
+                    if (xr.NodeType == XmlNodeType.Element && xr.Name == "cargo")
+                    {
+                      var maxAttr = xr.GetAttribute("max") ?? "0";
+                      long.TryParse(maxAttr, NumberStyles.Any, CultureInfo.InvariantCulture, out capacity);
+                      var tagsAttr = xr.GetAttribute("tags") ?? string.Empty;
+                      container = hasTag("container", tagsAttr);
+                      solid = hasTag("solid", tagsAttr);
+                      liquid = hasTag("liquid", tagsAttr);
+                      gas = hasTag("gas", tagsAttr);
+                    }
+                    else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "properties" && xr.Depth == pDepth)
+                    {
+                      break;
+                    }
+                  }
+                }
+                else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "macro" && xr.Depth == depth)
+                {
+                  break;
+                }
+              }
+            }
+
+            // If no known tag present, store with zero capacity
+            if (!(container || solid || liquid || gas))
+            {
+              capacity = 0;
+            }
+
+            cmd.Parameters["@macro"].Value = macroName.ToLowerInvariant();
+            cmd.Parameters["@capacity"].Value = capacity;
+            cmd.Parameters["@container"].Value = container;
+            cmd.Parameters["@solid"].Value = solid;
+            cmd.Parameters["@liquid"].Value = liquid;
+            cmd.Parameters["@gas"].Value = gas;
+            cmd.ExecuteNonQuery();
+            stored++;
+            if (stored % _batchSize == 0)
+            {
+              txn.Commit();
+              txn = _conn.BeginTransaction();
+            }
+          }
+        }
+      }
+      catch
+      {
+        // ignore malformed files
+      }
+      finally
+      {
+        _processedFiles++;
+        progress?.Invoke(new ProgressUpdate { ProcessedFiles = _processedFiles });
+      }
+    }
+    txn.Commit();
+  }
+
+  // Parse ship macros of classes ship_s/m/l/xl and map to storage macros connected via connection="ShipConnection"
+  private void LoadShipStorages(ContentExtractor contentExtractor, Action<ProgressUpdate>? progress = null)
+  {
+    ReOpenConnection();
+    // Scan assets/units/size_?/macros/*.xml
+    var entries = new List<X4Unpack.CatEntry>();
+    entries.AddRange(contentExtractor.GetFilesByMask("assets/units/size_*/macros/*.xml"));
+    if (entries.Count == 0)
+      return;
+
+    SQLiteTransaction txn = _conn.BeginTransaction();
+    using var cmd = new SQLiteCommand("INSERT OR IGNORE INTO ship_storage(ship_macro, storage_macro) VALUES (@ship,@storage)", _conn, txn);
+    cmd.Parameters.Add("@ship", System.Data.DbType.String);
+    cmd.Parameters.Add("@storage", System.Data.DbType.String);
+
+    long stored = 0;
+    foreach (var entry in entries)
+    {
+      try
+      {
+        using var cs = ContentExtractor.OpenEntryStream(entry);
+        var settings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+        using var xr = XmlReader.Create(cs, settings);
+
+        while (xr.Read())
+        {
+          if (xr.NodeType == XmlNodeType.Element && xr.Name == "macro")
+          {
+            string cls = xr.GetAttribute("class") ?? string.Empty;
+            if (!cls.StartsWith("ship_", StringComparison.OrdinalIgnoreCase))
+              continue;
+            string shipMacro = xr.GetAttribute("name") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(shipMacro))
+              continue;
+
+            if (!xr.IsEmptyElement)
+            {
+              int depth = xr.Depth;
+              while (xr.Read())
+              {
+                if (xr.NodeType == XmlNodeType.Element && xr.Name == "connections")
+                {
+                  int cDepth = xr.Depth;
+                  while (xr.Read())
+                  {
+                    if (xr.NodeType == XmlNodeType.Element && xr.Name == "connection")
+                    {
+                      string? cref = xr.GetAttribute("ref");
+                      // look for child <macro ref="..." connection="ShipConnection" />
+                      if (!xr.IsEmptyElement)
+                      {
+                        int d2 = xr.Depth;
+                        while (xr.Read())
+                        {
+                          if (xr.NodeType == XmlNodeType.Element && xr.Name == "macro")
+                          {
+                            string conn = xr.GetAttribute("connection") ?? string.Empty;
+                            if (!string.Equals(conn, "ShipConnection", StringComparison.Ordinal))
+                              continue;
+                            string storageRef = xr.GetAttribute("ref") ?? string.Empty;
+                            if (!string.IsNullOrWhiteSpace(storageRef))
+                            {
+                              cmd.Parameters["@ship"].Value = shipMacro.ToLowerInvariant();
+                              cmd.Parameters["@storage"].Value = storageRef.ToLowerInvariant();
+                              cmd.ExecuteNonQuery();
+                              stored++;
+                            }
+                          }
+                          else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "connection" && xr.Depth == d2)
+                          {
+                            break;
+                          }
+                        }
+                      }
+                    }
+                    else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "connections" && xr.Depth == cDepth)
+                    {
+                      break;
+                    }
+                  }
+                }
+                else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "macro" && xr.Depth == depth)
+                {
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+      catch
+      {
+        // ignore malformed files
+      }
+      finally
+      {
+        _processedFiles++;
+        progress?.Invoke(new ProgressUpdate { ProcessedFiles = _processedFiles });
+      }
+    }
+    txn.Commit();
   }
 
   private void ClearTableText()
@@ -2055,6 +2736,10 @@ ORDER BY full_name, time
       Stats.FactionsCount = TableExists("faction") ? ExecuteScalarInt("SELECT COUNT(1) FROM faction") : 0;
       // cluster/sector names count if table exists
       Stats.ClusterSectorNamesCount = TableExists("cluster_sector_name") ? ExecuteScalarInt("SELECT COUNT(1) FROM cluster_sector_name") : 0;
+
+      // storages related counts if tables exist
+      Stats.StoragesCount = TableExists("storage") ? ExecuteScalarInt("SELECT COUNT(1) FROM storage") : 0;
+      Stats.ShipStoragesCount = TableExists("ship_storage") ? ExecuteScalarInt("SELECT COUNT(1) FROM ship_storage") : 0;
 
       // languages present in text table
       if (TableExists("text"))

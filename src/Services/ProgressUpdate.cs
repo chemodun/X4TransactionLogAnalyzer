@@ -12,6 +12,8 @@ public sealed class ProgressUpdate
   public int? WaresProcessed { get; init; }
   public int? FactionsProcessed { get; init; }
   public int? ClusterSectorNamesProcessed { get; init; }
+  public int? StoragesProcessed { get; init; }
+  public int? ShipStoragesProcessed { get; init; }
 
   // Save import metrics
   public int? ElementsProcessed { get; init; }

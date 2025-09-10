@@ -110,6 +110,8 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
     WaresCount > 0
     && FactionsCount > 0
     && ClusterSectorNamesCount > 0
+    && StoragesCount > 0
+    && ShipStoragesCount > 0
     && LanguagesCount > 0
     && CurrentLanguageId > 0
     && CurrentLanguageTextCount > 0;
@@ -223,6 +225,34 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
     }
   }
 
+  private int _storagesCount;
+  public int StoragesCount
+  {
+    get => _storagesCount;
+    private set
+    {
+      if (_storagesCount != value)
+      {
+        _storagesCount = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  private int _shipStoragesCount;
+  public int ShipStoragesCount
+  {
+    get => _shipStoragesCount;
+    private set
+    {
+      if (_shipStoragesCount != value)
+      {
+        _shipStoragesCount = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
   private int _currentLanguageTextCount;
   public int CurrentLanguageTextCount
   {
@@ -311,6 +341,8 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
       TradesCount = gameData.Stats.TradesCount;
       FactionsCount = gameData.Stats.FactionsCount;
       ClusterSectorNamesCount = gameData.Stats.ClusterSectorNamesCount;
+      StoragesCount = gameData.Stats.StoragesCount;
+      ShipStoragesCount = gameData.Stats.ShipStoragesCount;
       LanguagesCount = gameData.Stats.LanguagesCount;
       CurrentLanguageTextCount = gameData.Stats.CurrentLanguageTextCount;
       CurrentLanguageId = gameData.Stats.CurrentLanguageId;

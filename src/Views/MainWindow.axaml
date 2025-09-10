@@ -903,6 +903,14 @@
               <TextBlock Text="Cluster/Sector names:" Foreground="{Binding ClusterSectorNamesCount, Converter={StaticResource ZeroToRed}}"/>
               <TextBlock Text="{Binding ClusterSectorNamesCount}" FontWeight="Bold" Foreground="{Binding ClusterSectorNamesCount, Converter={StaticResource ZeroToRed}}"/>
             </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Storages:" Foreground="{Binding StoragesCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding StoragesCount}" FontWeight="Bold" Foreground="{Binding StoragesCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Ship storages:" Foreground="{Binding ShipStoragesCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding ShipStoragesCount}" FontWeight="Bold" Foreground="{Binding ShipStoragesCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
           </StackPanel>
         </Border>
 

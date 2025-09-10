@@ -84,6 +84,8 @@ public partial class ProgressWindow : Window
     Set("StoredTItems", update.StoredTItems);
     Set("WaresProcessed", update.WaresProcessed);
     Set("FactionsProcessed", update.FactionsProcessed);
+    Set("StoragesProcessed", update.StoragesProcessed);
+    Set("ShipStoragesProcessed", update.ShipStoragesProcessed);
     Set("ClusterSectorNamesProcessed", update.ClusterSectorNamesProcessed);
     Set("ElementsProcessed", update.ElementsProcessed);
     Set("SectorsProcessed", update.SectorsProcessed);
@@ -134,6 +136,10 @@ public partial class ProgressWindow : Window
       "WaresProcessed",
       "LblFactionsProcessed",
       "FactionsProcessed",
+      "LblStoragesProcessed",
+      "StoragesProcessed",
+      "LblShipStoragesProcessed",
+      "ShipStoragesProcessed",
       "LblClusterSectorNamesProcessed",
       "ClusterSectorNamesProcessed",
     };
