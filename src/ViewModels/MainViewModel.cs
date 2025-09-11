@@ -45,17 +45,6 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
-  private WaresStatsTransactionsModel? _transactionsWaresStats;
-  public WaresStatsTransactionsModel? TransactionsWaresStats
-  {
-    get => _transactionsWaresStats;
-    set
-    {
-      _transactionsWaresStats = value;
-      OnPropertyChanged();
-    }
-  }
-
   private ShipsWaresStatsTransactionsModel? _transactionsShipsWaresStats;
   public ShipsWaresStatsTransactionsModel? TransactionsShipsWaresStats
   {
@@ -100,17 +89,6 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
-  private WaresStatsTradesModel? _tradesWaresStats;
-  public WaresStatsTradesModel? TradesWaresStats
-  {
-    get => _tradesWaresStats;
-    set
-    {
-      _tradesWaresStats = value;
-      OnPropertyChanged();
-    }
-  }
-
   private ShipsWaresStatsTradesModel? _tradesShipsWaresStats;
   public ShipsWaresStatsTradesModel? TradesShipsWaresStats
   {
@@ -150,12 +128,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
     LoadData();
     TransactionsData = new ShipsDataTransactionsModel();
     TransactionsGraphs = new ShipsGraphTransactionsModel();
-    TransactionsWaresStats = new WaresStatsTransactionsModel();
     TransactionsShipsWaresStats = new ShipsWaresStatsTransactionsModel();
     TransactionsWaresShipsStats = new WaresShipsStatsTransactionsModel();
     TradesData = new ShipsDataTradesModel();
     TradesGraphs = new ShipsGraphTradesModel();
-    TradesWaresStats = new WaresStatsTradesModel();
     TradesShipsWaresStats = new ShipsWaresStatsTradesModel();
     TradesWaresShipsStats = new WaresShipsStatsTradesModel();
     Configuration = new ConfigurationViewModel();
@@ -227,12 +203,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
     LoadData();
     TransactionsData?.Refresh();
     TransactionsGraphs?.Refresh();
-    TransactionsWaresStats?.Refresh();
     TransactionsShipsWaresStats?.Refresh();
     TransactionsWaresShipsStats?.Refresh();
     TradesGraphs?.Refresh();
     TradesData?.Refresh();
-    TradesWaresStats?.Refresh();
     TradesShipsWaresStats?.Refresh();
     TradesWaresShipsStats?.Refresh();
     Configuration?.RefreshStats();
