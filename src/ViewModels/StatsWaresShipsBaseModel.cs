@@ -194,7 +194,8 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
         series is StackedColumnSeries<double?> scs
         && scs.Name != null
         && scs.Values != null
-        && shipIndex < scs.Values.Count()
+        && scs.Values is IList<double?> valueList
+        && shipIndex < valueList.Count
         && i < Legend.Count
       )
       {
