@@ -5,7 +5,7 @@ using X4PlayerShipTradeAnalyzer.Models;
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
-public sealed class ShipsWaresStatsTradesModel : ShipsWaresStatsBaseModel
+public sealed class StatsShipsWaresTradesModel : StatsShipsWaresBaseModel
 {
   private bool _withInternalTrades = true;
   public bool WithInternalTrades
@@ -21,7 +21,7 @@ public sealed class ShipsWaresStatsTradesModel : ShipsWaresStatsBaseModel
     }
   }
 
-  public ShipsWaresStatsTradesModel()
+  public StatsShipsWaresTradesModel()
     : base() { }
 
   protected override List<(int ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData()

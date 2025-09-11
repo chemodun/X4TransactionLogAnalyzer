@@ -5,7 +5,7 @@ using X4PlayerShipTradeAnalyzer.Models;
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
-public sealed class WaresShipsStatsTransactionsModel : WaresShipsStatsBaseModel
+public sealed class StatsShipsWaresTransactionsModel : StatsShipsWaresBaseModel
 {
   private TransportFilter _transport = TransportFilter.Container;
   public TransportFilter Transport
@@ -21,7 +21,7 @@ public sealed class WaresShipsStatsTransactionsModel : WaresShipsStatsBaseModel
     }
   }
 
-  public WaresShipsStatsTransactionsModel()
+  public StatsShipsWaresTransactionsModel()
     : base() { }
 
   protected override List<(int ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData()
@@ -37,7 +37,7 @@ public sealed class WaresShipsStatsTransactionsModel : WaresShipsStatsBaseModel
     };
 
     // Group by Ship + Ware
-    return q.GroupBy(t => (t.Ware, t.Product, t.ShipId, t.FullName))
+    return q.GroupBy(t => (t.ShipId, t.FullName, t.Ware, t.Product))
       .Select(g =>
         (
           ShipId: g.Key.ShipId,

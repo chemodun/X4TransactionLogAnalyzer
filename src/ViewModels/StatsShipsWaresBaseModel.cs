@@ -15,7 +15,7 @@ using X4PlayerShipTradeAnalyzer.Utils;
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
 
-public abstract class ShipsWaresStatsBaseModel : INotifyPropertyChanged
+public abstract class StatsShipsWaresBaseModel : INotifyPropertyChanged
 {
   public ObservableCollection<ISeries> Series { get; } = new();
   public ObservableCollection<LegendItem> Legend { get; } = new();
@@ -67,7 +67,7 @@ public abstract class ShipsWaresStatsBaseModel : INotifyPropertyChanged
   }
   public double ChartMinWidth => Labels.Count * 56 + 200;
 
-  protected ShipsWaresStatsBaseModel()
+  protected StatsShipsWaresBaseModel()
   {
     XAxes = new[]
     {

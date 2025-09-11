@@ -254,8 +254,8 @@
             </Border>
           </Grid>
         </TabItem>
-        <TabItem Header="Ships by Wares Stats" x:Name="TransactionsShipsWaresStatsTab">
-          <Grid DataContext="{Binding TransactionsShipsWaresStats}">
+        <TabItem Header="Ships by Wares Stats" x:Name="TransactionsStatsShipsWaresTab">
+          <Grid DataContext="{Binding TransactionsStatsShipsWares}">
             <Grid.RowDefinitions>
               <RowDefinition Height="34" />
               <RowDefinition />
@@ -327,8 +327,8 @@
             </Grid>
           </Grid>
         </TabItem>
-        <TabItem Header="Wares by Ships Stats" x:Name="TransactionsWaresShipsStatsTab">
-          <Grid DataContext="{Binding TransactionsWaresShipsStats}">
+        <TabItem Header="Wares by Ships Stats" x:Name="TransactionsStatsWaresShipsTab">
+          <Grid DataContext="{Binding TransactionsStatsWaresShips}">
             <Grid.RowDefinitions>
               <RowDefinition Height="34" />
               <RowDefinition />
@@ -639,8 +639,8 @@
             </Border>
           </Grid>
         </TabItem>
-        <TabItem Header="Ships by Wares Stats" x:Name="TradesShipsWaresStatsTab">
-          <Grid DataContext="{Binding TradesShipsWaresStats}">
+        <TabItem Header="Ships by Wares Stats" x:Name="TradesStatsShipsWaresTab">
+          <Grid DataContext="{Binding TradesStatsShipsWares}">
             <Grid.RowDefinitions>
               <RowDefinition Height="34" />
               <RowDefinition />
@@ -708,8 +708,8 @@
             </Grid>
           </Grid>
         </TabItem>
-        <TabItem Header="Wares by Ships Stats" x:Name="TradesWaresShipsStatsTab">
-          <Grid DataContext="{Binding TradesWaresShipsStats}">
+        <TabItem Header="Wares by Ships Stats" x:Name="TradesStatsWaresShipsTab">
+          <Grid DataContext="{Binding TradesStatsWaresShips}">
             <Grid.RowDefinitions>
               <RowDefinition Height="34" />
               <RowDefinition />
