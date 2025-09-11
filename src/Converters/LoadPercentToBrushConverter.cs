@@ -14,15 +14,8 @@ public sealed class LoadPercentToBrushConverter : IValueConverter
   {
     if (value is decimal percent)
     {
-      return percent switch
-      {
-        < 10 => Brushes.Red,
-        < 30 => Brushes.OrangeRed,
-        < 50 => Brushes.DarkOrange,
-        < 70 => Brushes.Goldenrod,
-        < 90 => Brushes.OliveDrab,
-        _ => Brushes.Green,
-      };
+      int bucket = Utils.LoadPercentPalette.ToBucket(percent);
+      return Utils.LoadPercentPalette.GetBrush(bucket);
     }
 
     if (

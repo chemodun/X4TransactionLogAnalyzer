@@ -327,6 +327,71 @@
             </Grid>
           </Grid>
         </TabItem>
+        <TabItem Header="Ships Load Distribution" x:Name="TransactionsStatsShipsLoadTab">
+          <Grid DataContext="{Binding TransactionsStatsShipsLoad}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="34" />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" >
+              <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" Margin="0">
+                <TextBlock Text="Transport:" VerticalAlignment="Center"/>
+                <RadioButton Content="All" GroupName="TxLoadTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=All}"/>
+                <RadioButton Content="Container" GroupName="TxLoadTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Container}"/>
+                <RadioButton Content="Solid" GroupName="TxLoadTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Solid}"/>
+                <RadioButton Content="Liquid" GroupName="TxLoadTransport"
+                            IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Liquid}"/>
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8" Margin="0">
+                <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                <CheckBox Content="Reverse Order" IsChecked="{Binding ReverseSort}" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Grid>
+            <Grid Grid.Row="1" ColumnDefinitions="340,*" RowDefinitions="*,34">
+              <!-- Sidebar -->
+              <Border Grid.Column="0" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Width="340" Padding="0">
+                <Grid ColumnDefinitions="12,168,8,140,12" RowDefinitions="36,Auto,*">
+                  <TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="5" Text="Selected Ship:" FontWeight="Bold" HorizontalAlignment="Center"/>
+                  <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PressedShipName}" ToolTip.Tip="{Binding PressedShipName}" FontWeight="SemiBold"/>
+                  <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding PressedShipTotal}" FontWeight="Bold" Classes="RightAligned"/>
+                  <ListBox Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="5" ItemsSource="{Binding ShipBucketsList}" BorderThickness="0">
+                    <ListBox.Styles>
+                      <Style Selector="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                      </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="4,168,8,140,4">
+                          <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="{Binding FontWeight}" Margin="0" Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                          <TextBlock Grid.Column="3" Text="{Binding Percent, StringFormat=N2}%" FontWeight="Bold" Classes="RightAligned" Margin="0" Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                        </Grid>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </Grid>
+              </Border>
+              <!-- Chart -->
+              <Border Grid.Column="1" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                  <Border MinWidth="{Binding ChartMinWidth}">
+                    <lvc:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" x:Name="TransactionsShipsLoadChart" TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}" LegendPosition="Hidden"/>
+                  </Border>
+                </ScrollViewer>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+                  <TextBlock Text="Display Tooltip:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                  <CheckBox IsChecked="{Binding ShowToolTip}" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Grid>
+        </TabItem>
         <TabItem Header="Wares by Ships Stats" x:Name="TransactionsStatsWaresShipsTab">
           <Grid DataContext="{Binding TransactionsStatsWaresShips}">
             <Grid.RowDefinitions>
@@ -704,6 +769,63 @@
                                         LegendPosition="Hidden"/>
                   </Border>
                 </ScrollViewer>
+              </Border>
+            </Grid>
+          </Grid>
+        </TabItem>
+        <TabItem Header="Ships Load Distribution" x:Name="TradesStatsShipsLoadTab">
+          <Grid DataContext="{Binding TradesStatsShipsLoad}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="34" />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" >
+              <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24" Margin="0">
+                <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8" Margin="0">
+                <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                <CheckBox Content="Reverse Order" IsChecked="{Binding ReverseSort}" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Grid>
+            <Grid Grid.Row="1" ColumnDefinitions="340,*" RowDefinitions="*,34">
+              <!-- Sidebar -->
+              <Border Grid.Column="0" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Width="340" Padding="0">
+                <Grid ColumnDefinitions="12,168,8,140,12" RowDefinitions="36,Auto,*">
+                  <TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="5" Text="Selected Ship:" FontWeight="Bold" HorizontalAlignment="Center"/>
+                  <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PressedShipName}" ToolTip.Tip="{Binding PressedShipName}" FontWeight="SemiBold"/>
+                  <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding PressedShipTotal}" FontWeight="Bold" Classes="RightAligned"/>
+                  <ListBox Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="5" ItemsSource="{Binding ShipBucketsList}" BorderThickness="0">
+                    <ListBox.Styles>
+                      <Style Selector="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                      </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="4,168,8,140,4">
+                          <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="{Binding FontWeight}" Margin="0" Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                          <TextBlock Grid.Column="3" Text="{Binding Percent, StringFormat=N2}%" FontWeight="Bold" Classes="RightAligned" Margin="0" Foreground="{Binding GraphBrush, Converter={StaticResource NullToUnsetBrush}}"/>
+                        </Grid>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </Grid>
+              </Border>
+              <!-- Chart -->
+              <Border Grid.Column="1" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                  <Border MinWidth="{Binding ChartMinWidth}">
+                    <lvc:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" x:Name="TradesShipsLoadChart" TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}" LegendPosition="Hidden"/>
+                  </Border>
+                </ScrollViewer>
+              </Border>
+              <Border Grid.Column="0" Grid.Row="1" BorderBrush="Gray" BorderThickness="0" Padding="0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+                  <TextBlock Text="Display Tooltip:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                  <CheckBox IsChecked="{Binding ShowToolTip}" VerticalAlignment="Center"/>
+                </StackPanel>
               </Border>
             </Grid>
           </Grid>

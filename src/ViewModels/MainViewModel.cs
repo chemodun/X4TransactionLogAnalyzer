@@ -56,6 +56,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
+  private StatsShipsLoadTransactionsModel? _transactionsShipsLoadStats;
+  public StatsShipsLoadTransactionsModel? TransactionsStatsShipsLoad
+  {
+    get => _transactionsShipsLoadStats;
+    set
+    {
+      _transactionsShipsLoadStats = value;
+      OnPropertyChanged();
+    }
+  }
+
   private StatsWaresShipsTransactionsModel? _transactionsWaresShipsStats;
   public StatsWaresShipsTransactionsModel? TransactionsStatsWaresShips
   {
@@ -100,6 +111,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
   }
 
+  private StatsShipsLoadTradesModel? _tradesShipsLoadStats;
+  public StatsShipsLoadTradesModel? TradesStatsShipsLoad
+  {
+    get => _tradesShipsLoadStats;
+    set
+    {
+      _tradesShipsLoadStats = value;
+      OnPropertyChanged();
+    }
+  }
+
   private StatsWaresShipsTradesModel? _tradesWaresShipsStats;
   public StatsWaresShipsTradesModel? TradesStatsWaresShips
   {
@@ -129,10 +151,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
     TransactionsData = new ShipsDataTransactionsModel();
     TransactionsGraphs = new ShipsGraphTransactionsModel();
     TransactionsStatsShipsWares = new StatsShipsWaresTransactionsModel();
+    TransactionsStatsShipsLoad = new StatsShipsLoadTransactionsModel();
     TransactionsStatsWaresShips = new StatsWaresShipsTransactionsModel();
     TradesData = new ShipsDataTradesModel();
     TradesGraphs = new ShipsGraphTradesModel();
     TradesStatsShipsWares = new StatsShipsWaresTradesModel();
+    TradesStatsShipsLoad = new StatsShipsLoadTradesModel();
     TradesStatsWaresShips = new StatsWaresShipsTradesModel();
     Configuration = new ConfigurationViewModel();
   }
@@ -146,14 +170,18 @@ public sealed class MainViewModel : INotifyPropertyChanged
   public void RegisterCharts(Func<string, CartesianChart?> getChart)
   {
     var chart = getChart("TransactionsShipsByWaresChart");
-    if (chart is null)
-      return;
-
-    chart.PointerPressed += OnChartPointerPressed;
+    if (chart != null)
+      chart.PointerPressed += OnChartPointerPressed;
+    chart = getChart("TransactionsShipsLoadChart");
+    if (chart != null)
+      chart.PointerPressed += OnChartPointerPressed;
     chart = getChart("TransactionsWaresByShipsChart");
     if (chart != null)
       chart.PointerPressed += OnChartPointerPressed;
     chart = getChart("TradesShipsByWaresChart");
+    if (chart != null)
+      chart.PointerPressed += OnChartPointerPressed;
+    chart = getChart("TradesShipsLoadChart");
     if (chart != null)
       chart.PointerPressed += OnChartPointerPressed;
     chart = getChart("TradesWaresByShipsChart");
@@ -182,6 +210,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
         if (TransactionsStatsShipsWares != null)
           TransactionsStatsShipsWares.OnChartPointPressed(itemIndex);
         break;
+      case "TransactionsShipsLoadChart":
+        if (TransactionsStatsShipsLoad != null)
+          TransactionsStatsShipsLoad?.OnChartPointPressed(itemIndex);
+        break;
       case "TransactionsWaresByShipsChart":
         if (TransactionsStatsWaresShips != null)
           TransactionsStatsWaresShips.OnChartPointPressed(itemIndex);
@@ -189,6 +221,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
       case "TradesShipsByWaresChart":
         if (TradesStatsShipsWares != null)
           TradesStatsShipsWares.OnChartPointPressed(itemIndex);
+        break;
+      case "TradesShipsLoadChart":
+        if (TradesStatsShipsLoad != null)
+          TradesStatsShipsLoad?.OnChartPointPressed(itemIndex);
         break;
       case "TradesWaresByShipsChart":
         if (TradesStatsWaresShips != null)
@@ -204,10 +240,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
     TransactionsData?.Refresh();
     TransactionsGraphs?.Refresh();
     TransactionsStatsShipsWares?.Refresh();
+    TransactionsStatsShipsLoad?.Refresh();
     TransactionsStatsWaresShips?.Refresh();
     TradesGraphs?.Refresh();
     TradesData?.Refresh();
     TradesStatsShipsWares?.Refresh();
+    TradesStatsShipsLoad?.Refresh();
     TradesStatsWaresShips?.Refresh();
     Configuration?.RefreshStats();
   }
