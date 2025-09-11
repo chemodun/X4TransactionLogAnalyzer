@@ -10,10 +10,11 @@
   Title="X4 Player Ship Trade Analyzer">
   <Window.Resources>
     <conv:NullToUnsetBrushConverter x:Key="NullToUnsetBrush" />
-  <conv:ZeroToRedBrushConverter x:Key="ZeroToRed" />
-  <conv:ZeroToRedIfEnabledConverter x:Key="ZeroToRedIfEnabled" />
-  <conv:EnumEqualsConverter x:Key="EnumEquals" />
-  <conv:BoolToChartPositionConverter x:Key="BoolToChartPos" />
+    <conv:ZeroToRedBrushConverter x:Key="ZeroToRed" />
+    <conv:ZeroToRedIfEnabledConverter x:Key="ZeroToRedIfEnabled" />
+    <conv:EnumEqualsConverter x:Key="EnumEquals" />
+    <conv:BoolToChartPositionConverter x:Key="BoolToChartPos" />
+    <conv:LoadPercentToBrushConverter x:Key="LoadPercentToBrushConverter"/>
   </Window.Resources>
   <Window.Styles>
     <Style Selector="TextBlock.RightAligned">
@@ -137,9 +138,21 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Sector" Binding="{Binding Sector}" Width="180"/>
-                  <DataGridTextColumn Header="Station" Binding="{Binding Station}" Width="400"/>
+                  <DataGridTemplateColumn Header="Station" SortMemberPath="Station" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Station}" ToolTip.Tip="{Binding Station}" Margin="8"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
-                  <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="240"/>
+                  <DataGridTemplateColumn Header="Product" SortMemberPath="Product" Width="200">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Product}" ToolTip.Tip="{Binding Product}" Margin="8"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTemplateColumn Header="Price" SortMemberPath="Price" Width="100">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
@@ -151,6 +164,15 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Quantity, StringFormat=N0}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Load, %" SortMemberPath="LoadPercent" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding LoadPercent, StringFormat=N2}"
+                                    Foreground="{Binding LoadPercent, Converter={StaticResource LoadPercentToBrushConverter}}"
+                                    Classes="RightAlignedPadded" />
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -532,17 +554,19 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Product" Binding="{Binding Product}" Width="200"/>
-                  <DataGridTemplateColumn Header="Bought" SortMemberPath="BoughtVolume" Width="80">
+                  <DataGridTemplateColumn Header="Quantity" SortMemberPath="BoughtQuantity" Width="90">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding BoughtQuantity, StringFormat=N0}" Classes="RightAlignedPadded" />
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Sold" SortMemberPath="SoldVolume" Width="80">
+                  <DataGridTemplateColumn Header="Load, %" SortMemberPath="LoadPercent" Width="90">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
-                        <TextBlock Text="{Binding SoldQuantity, StringFormat=N0}" Classes="RightAlignedPadded" />
+                        <TextBlock Text="{Binding LoadPercent, StringFormat=N2}"
+                                    Foreground="{Binding LoadPercent, Converter={StaticResource LoadPercentToBrushConverter}}"
+                                    Classes="RightAlignedPadded" />
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>

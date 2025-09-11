@@ -72,6 +72,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
           {
             trade.Purchases = purchases.ToArray();
             trade.Sales = sales.ToArray();
+            trade.LoadPercent = Convert.ToDecimal(trade.MaxQuantity > 0 ? trade.BoughtQuantity * 100.0 / trade.MaxQuantity : 100.0);
             trades.Add(trade);
           }
         }
@@ -234,6 +235,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
     public decimal TotalRevenue { get; set; }
     public decimal Profit => TotalRevenue - TotalBuyCost;
     public int MaxQuantity { get; set; }
+    public decimal LoadPercent { get; set; } // 0..100, how full was the ship at peak during this trade
 
     // Ordered lists of legs where the ware was bought/sold by this ship during the segment
     public TradeLeg[] Purchases { get; set; } = Array.Empty<TradeLeg>();

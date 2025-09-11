@@ -24,6 +24,8 @@ public class ShipTransaction
   public int? Quantity { get; set; }
   public decimal? Total { get; set; }
   public decimal? EstimatedProfit { get; set; }
+  public int? MaxQuantity { get; set; }
+  public decimal? LoadPercent { get; set; }
 }
 
 public class GraphShipItem : INotifyPropertyChanged

@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Data.SQLite;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Avalonia;
+using Avalonia.Controls;
 using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Services;
 using X4PlayerShipTradeAnalyzer.Views;
@@ -77,6 +79,8 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
           Quantity = trans.Quantity,
           Total = trans.Total,
           EstimatedProfit = trans.EstimatedProfit,
+          MaxQuantity = trans.MaxQuantity,
+          LoadPercent = Convert.ToDecimal(trans.MaxQuantity > 0 ? trans.Quantity * 100.0 / trans.MaxQuantity : 100.0),
         }
       );
     }
