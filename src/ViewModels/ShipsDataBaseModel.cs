@@ -132,6 +132,25 @@ public abstract class ShipsDataBaseModel : INotifyPropertyChanged
     }
   }
 
+  // Ship Class filter
+  private string _selectedShipClass = "All";
+  public string SelectedShipClass
+  {
+    get => _selectedShipClass;
+    set
+    {
+      if (_selectedShipClass == value)
+        return;
+      _selectedShipClass = value;
+      OnPropertyChanged();
+      LoadData();
+    }
+  }
+
+#pragma warning disable CA1822
+  public System.Collections.Generic.IEnumerable<string> ShipClassOptions => ShipClassFilterUtil.GetShipClassOptions();
+#pragma warning restore CA1822
+
   protected void ResortShips()
   {
     if (ShipList.Count == 0)

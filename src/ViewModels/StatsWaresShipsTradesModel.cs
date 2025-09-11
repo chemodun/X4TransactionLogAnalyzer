@@ -26,9 +26,10 @@ public sealed class StatsWaresShipsTradesModel : StatsWaresShipsBaseModel
 
   protected override List<(int ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData()
   {
-    return MainViewModel
-      .AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft))
-      .GroupBy(t => (t.Ware, t.Product, t.ShipId, t.ShipFullName))
+    var q = MainViewModel.AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft));
+    if (SelectedShipClass != "All")
+      q = q.Where(ft => string.Equals(ft.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
+    return q.GroupBy(t => (t.Ware, t.Product, t.ShipId, t.ShipFullName))
       .Select(g =>
         (
           ShipId: Convert.ToInt32(g.Key.ShipId),

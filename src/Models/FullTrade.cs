@@ -120,6 +120,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
             trade = new FullTrade
             {
               ShipId = currentShip,
+              ShipClass = trans.ShipClass,
               ShipFullName = fullName,
               Ware = currentWare,
               Product = wareName,
@@ -217,6 +218,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
     }
 
     public long ShipId { get; init; }
+    public string ShipClass { get; init; } = string.Empty; // normalized (S,M,L,XL,...)
     public string ShipFullName { get; init; } = string.Empty;
     public string Ware { get; init; } = string.Empty;
     public string Product { get; init; } = string.Empty;

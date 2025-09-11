@@ -69,6 +69,25 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
 
   public double ChartMinWidth => Labels.Count * 56 + 200;
 
+  // Ship class filtering
+  private string _selectedShipClass = "All";
+  public string SelectedShipClass
+  {
+    get => _selectedShipClass;
+    set
+    {
+      if (_selectedShipClass == value)
+        return;
+      _selectedShipClass = value;
+      OnPropertyChanged();
+      Reload();
+    }
+  }
+
+#pragma warning disable CA1822
+  public IEnumerable<string> ShipClassOptions => ShipClassFilterUtil.GetShipClassOptions();
+#pragma warning restore CA1822
+
   protected StatsWaresShipsBaseModel()
   {
     XAxes = new[]

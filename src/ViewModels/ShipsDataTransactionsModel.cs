@@ -43,6 +43,10 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
 
     // Load transactions
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;
+
+    if (SelectedShipClass != "All")
+      q = q.Where(t => string.Equals(t.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
+
     q = Transport switch
     {
       TransportFilter.Container => q.Where(t => t.Transport == "container"),
@@ -50,6 +54,7 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
       TransportFilter.Liquid => q.Where(t => t.Transport == "liquid"),
       _ => q,
     };
+
     foreach (var trans in q.OrderBy(t => t.ShipId).ThenBy(t => t.RawTime))
     {
       // aggregate ships

@@ -34,7 +34,10 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
   {
     ShipList = new ObservableCollection<GraphShipItem>(
       MainViewModel
-        .AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft))
+        .AllTrades.Where(ft =>
+          (WithInternalTrades || !FullTrade.IsInternalTrade(ft))
+          && (SelectedShipClass == "All" || string.Equals(ft.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase))
+        )
         .GroupBy(t => (t.ShipId, t.ShipFullName))
         .Select(g => new GraphShipItem
         {
@@ -59,7 +62,11 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
   {
     decimal sum = 0m;
     return MainViewModel
-      .AllTrades.Where(ft => (WithInternalTrades || !FullTrade.IsInternalTrade(ft)) && ft.ShipId == shipId)
+      .AllTrades.Where(ft =>
+        (WithInternalTrades || !FullTrade.IsInternalTrade(ft))
+        && ft.ShipId == shipId
+        && (SelectedShipClass == "All" || string.Equals(ft.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase))
+      )
       .OrderBy(t => t.EndTime)
       .Select(t =>
       {

@@ -84,6 +84,9 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
       if (!WithInternalTrades && FullTrade.IsInternalTrade(ft))
         continue;
 
+      if (SelectedShipClass != "All" && !string.Equals(ft.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase))
+        continue;
+
       FullTrades.Add(ft);
 
       if (!ships.TryGetValue(ft.ShipId, out var info))

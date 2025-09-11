@@ -43,13 +43,15 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="34" />
+                <RowDefinition Height="36" />
                 <RowDefinition />
                 <RowDefinition Height="34" />
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
               <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0">
+                <TextBlock Text="Class:" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}"  VerticalAlignment="Center"  Margin="8,0,16,0" Width="70"/>
                 <TextBlock Text="Sort:" VerticalAlignment="Center"/>
                 <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
                               IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
@@ -61,7 +63,7 @@
             <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
               <ListBox ItemsSource="{Binding ShipList}"
                       SelectedItem="{Binding SelectedShip, Mode=TwoWay}"
-                      Margin="0" Width="340">
+                      Margin="8" Width="340">
                 <ListBox.ItemTemplate>
                   <DataTemplate>
                     <Grid ColumnDefinitions="*,8,Auto">
@@ -88,7 +90,7 @@
 
                       <!-- Row 0, Column 1: summary values -->
             <Border Grid.Row="0" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="4">
-              <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="24">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="24">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Text="Ship:"/>
                   <TextBlock Text="{Binding SelectedShip.ShipName}" FontWeight="Bold"/>
@@ -204,13 +206,15 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="34" />
+                <RowDefinition Height="36" />
                 <RowDefinition />
                 <RowDefinition Height="34" />
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
               <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0">
+                <TextBlock Text="Class:" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}"  VerticalAlignment="Center"  Margin="8,0,16,0" Width="70"/>
                 <TextBlock Text="Sort:" VerticalAlignment="Center"/>
                 <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
                               IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
@@ -221,7 +225,7 @@
 
             <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
               <ListBox ItemsSource="{Binding ShipList}"
-                      Margin="0" Width="340"
+                      Margin="8" Width="340"
                       DoubleTapped="ShipGraphsList_DoubleTapped">
                 <ListBox.ItemTemplate>
                   <DataTemplate>
@@ -274,7 +278,9 @@
                   <RadioButton Content="Liquid" GroupName="TxTransport"
                               IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Liquid}"/>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8" Margin="0">
+                  <TextBlock Text="Class:" VerticalAlignment="Center"/>
+                  <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                   <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
                 </StackPanel>
@@ -346,6 +352,8 @@
                             IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Liquid}"/>
               </StackPanel>
               <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8" Margin="0">
+                <TextBlock Text="Class:" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                 <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
                 <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
                 <CheckBox Content="Reverse Order" IsChecked="{Binding ReverseSort}" VerticalAlignment="Center"/>
@@ -412,7 +420,9 @@
                   <RadioButton Content="Liquid" GroupName="TxTransport"
                               IsChecked="{Binding Transport, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Liquid}"/>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8" Margin="0">
+                  <TextBlock Text="Class:" VerticalAlignment="Center"/>
+                  <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                   <TextBlock Text="Top N Wares:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
                 </StackPanel>
@@ -479,7 +489,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="34" />
+                <RowDefinition Height="36" />
                 <RowDefinition />
                 <RowDefinition Height="34" />
             </Grid.RowDefinitions>
@@ -522,8 +532,9 @@
             </Border>
 
             <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
-
-              <StackPanel Orientation="Horizontal" Spacing="6" Margin="0" HorizontalAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0">
+                <TextBlock Text="Class:" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}"  VerticalAlignment="Center"  Margin="8,0,16,0" Width="70"/>
                 <TextBlock Text="Sort:" VerticalAlignment="Center"/>
                 <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
                               IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
@@ -549,11 +560,9 @@
             </Border>
 
             <Border Grid.Row="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
-                  <StackPanel Orientation="Horizontal" Spacing="12">
-                    <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
-                  </StackPanel>
-                </StackPanel>
+              <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+                <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
+              </StackPanel>
             </Border>
 
     <!-- Middle: full trades grid -->
@@ -661,16 +670,18 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="34" />
+                <RowDefinition Height="36" />
                 <RowDefinition />
                 <RowDefinition Height="34" />
             </Grid.RowDefinitions>
             <Border Grid.Row="0" Grid.Column="0" BorderBrush="Gray" BorderThickness="0" Padding="0">
-              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0,0,0,0">
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0">
+                <TextBlock Text="Class:" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}"  VerticalAlignment="Center"  Margin="8,0,16,0" Width="70"/>
                 <TextBlock Text="Sort:" VerticalAlignment="Center"/>
-                <RadioButton Content="Name" GroupName="ShipsSortGraphsTr" Margin="8,0,0,0"
+                <RadioButton Content="Name" GroupName="ShipsSort" Margin="8,0,0,0"
                               IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Name}"/>
-                <RadioButton Content="Profit" GroupName="ShipsSortGraphsTr" Margin="8,0,0,0"
+                <RadioButton Content="Profit" GroupName="ShipsSort" Margin="8,0,0,0"
                               IsChecked="{Binding ShipsSortOrder, Mode=TwoWay, Converter={StaticResource EnumEquals}, ConverterParameter=Profit}"/>
               </StackPanel>
             </Border>
@@ -720,7 +731,9 @@
                       </StackPanel>
                     </StackPanel>
                 </Border>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8" Margin="0">
+                  <TextBlock Text="Class:" VerticalAlignment="Center"/>
+                  <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                   <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
                 </StackPanel>
@@ -784,6 +797,8 @@
                 <CheckBox Content="With Internal Trades" IsChecked="{Binding WithInternalTrades, Mode=TwoWay}"/>
               </StackPanel>
               <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8" Margin="0">
+                <TextBlock Text="Class:" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                 <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
                 <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
                 <CheckBox Content="Reverse Order" IsChecked="{Binding ReverseSort}" VerticalAlignment="Center"/>
@@ -846,7 +861,9 @@
                       </StackPanel>
                     </StackPanel>
                 </Border>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4" Margin="0">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8" Margin="0">
+                  <TextBlock Text="Class:" VerticalAlignment="Center"/>
+                  <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                   <TextBlock Text="Top N Wares:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
                 </StackPanel>

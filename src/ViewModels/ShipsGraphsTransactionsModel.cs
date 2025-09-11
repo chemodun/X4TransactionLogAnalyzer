@@ -37,6 +37,8 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
   protected override void LoadShips()
   {
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;
+    if (SelectedShipClass != "All")
+      q = q.Where(t => string.Equals(t.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
     q = Transport switch
     {
       TransportFilter.Container => q.Where(t => t.Transport == "container"),
@@ -63,6 +65,8 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
   {
     decimal sum = 0m;
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;
+    if (SelectedShipClass != "All")
+      q = q.Where(t => string.Equals(t.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
     q = Transport switch
     {
       TransportFilter.Container => q.Where(t => t.Transport == "container"),

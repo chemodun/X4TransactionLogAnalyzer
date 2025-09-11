@@ -100,3 +100,44 @@ public enum ShipSortOrder
   Name,
   Profit,
 }
+
+public enum ShipClassFilter
+{
+  All,
+  XL,
+  L,
+  M,
+  S,
+}
+
+public static class ShipClassFilterUtil
+{
+  private static readonly string[] _ordered = new[]
+  {
+    nameof(ShipClassFilter.All),
+    nameof(ShipClassFilter.XL),
+    nameof(ShipClassFilter.L),
+    nameof(ShipClassFilter.M),
+    nameof(ShipClassFilter.S),
+  };
+
+  public static IEnumerable<string> GetShipClassOptions() => _ordered;
+
+  public static string Normalize(string raw)
+  {
+    if (string.IsNullOrWhiteSpace(raw))
+      return string.Empty;
+    if (raw.StartsWith("ship_", StringComparison.OrdinalIgnoreCase))
+      raw = raw[5..];
+    var up = raw.ToUpperInvariant();
+    // Ensure matches enum names (S,M,L,XL) else fallback to upper raw
+    return up switch
+    {
+      "S" => "S",
+      "M" => "M",
+      "L" => "L",
+      "XL" => "XL",
+      _ => up,
+    };
+  }
+}

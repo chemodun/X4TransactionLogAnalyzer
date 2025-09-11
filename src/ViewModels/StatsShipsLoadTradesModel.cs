@@ -24,6 +24,8 @@ public sealed class StatsShipsLoadTradesModel : StatsShipsLoadBaseModel
   protected override IEnumerable<(int ShipId, string ShipName, int BucketIndex)> LoadEntries()
   {
     IEnumerable<FullTrade> q = MainViewModel.AllTrades;
+    if (SelectedShipClass != "All")
+      q = q.Where(ft => string.Equals(ft.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
     if (!WithInternalTrades)
       q = q.Where(ft => !FullTrade.IsInternalTrade(ft));
     foreach (var t in q)

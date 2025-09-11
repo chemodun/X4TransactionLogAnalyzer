@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using X4PlayerShipTradeAnalyzer.Services;
 using X4PlayerShipTradeAnalyzer.Views;
 
@@ -7,6 +9,7 @@ namespace X4PlayerShipTradeAnalyzer.Models;
 public class Transaction
 {
   public int ShipId { get; set; }
+  public string ShipClass { get; set; } = string.Empty; // normalized (S,M,L,XL,...)
   public long RawTime { get; set; }
   public string FullName { get; set; } = string.Empty; // for display only
   public string Operation { get; set; } = string.Empty;
@@ -32,15 +35,19 @@ public class Transaction
       return;
     using var cmd = conn.CreateCommand();
     cmd.CommandText =
-      "SELECT id, full_name, time, sector, station, counterpart_faction, counterpart_code, operation, ware, ware_name, transport, price, volume, trade_sum, profit, cargo_volume FROM player_ships_transactions_log";
+      "SELECT id, class, full_name, time, sector, station, counterpart_faction, counterpart_code, operation, ware, ware_name, transport, price, volume, trade_sum, profit, cargo_volume FROM player_ships_transactions_log";
     using var rdr = cmd.ExecuteReader();
     trans.Clear();
     while (rdr.Read())
     {
+      int shipId = Convert.ToInt32(rdr["id"]);
+      string rawClass = rdr["class"].ToString() ?? string.Empty;
+      string normClass = ShipClassFilterUtil.Normalize(rawClass);
       trans.Add(
         new Transaction
         {
-          ShipId = Convert.ToInt32(rdr["id"]),
+          ShipId = shipId,
+          ShipClass = normClass,
           RawTime = Convert.ToInt64(rdr["time"]),
           FullName = rdr["full_name"].ToString() ?? string.Empty,
           Sector = rdr["sector"].ToString() ?? string.Empty,

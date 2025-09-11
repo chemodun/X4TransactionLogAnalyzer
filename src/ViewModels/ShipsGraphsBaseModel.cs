@@ -40,6 +40,25 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
     }
   }
 
+  // Ship Class filter
+  private string _selectedShipClass = "All";
+  public string SelectedShipClass
+  {
+    get => _selectedShipClass;
+    set
+    {
+      if (_selectedShipClass == value)
+        return;
+      _selectedShipClass = value;
+      OnPropertyChanged();
+      ReloadShipsAndRebuildActiveSeries();
+    }
+  }
+
+#pragma warning disable CA1822
+  public System.Collections.Generic.IEnumerable<string> ShipClassOptions => ShipClassFilterUtil.GetShipClassOptions();
+#pragma warning restore CA1822
+
   public ShipsGraphsBaseModel()
   {
     XAxes = new[]
@@ -92,6 +111,7 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
   protected void ReloadShipsAndRebuildActiveSeries()
   {
     LoadShips();
+
     var ids = _activeShipIds.ToList();
     Series.Clear();
     _seriesByShipId.Clear();

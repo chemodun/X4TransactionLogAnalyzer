@@ -24,6 +24,8 @@ public sealed class StatsShipsLoadTransactionsModel : StatsShipsLoadBaseModel
   protected override IEnumerable<(int ShipId, string ShipName, int BucketIndex)> LoadEntries()
   {
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;
+    if (SelectedShipClass != "All")
+      q = q.Where(t => string.Equals(t.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
     q = Transport switch
     {
       TransportFilter.Container => q.Where(t => t.Transport == "container"),
