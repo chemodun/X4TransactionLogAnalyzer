@@ -509,7 +509,7 @@ FROM (
   JOIN component AS ship
     ON ship.id = t.seller
   JOIN component AS cp
-    ON cp.id = t.buyer
+    ON cp.id = t.buyer AND cp.type = 'station'
   LEFT JOIN faction AS f
     ON f.id = cp.owner
   LEFT JOIN cluster_sector_name AS sn
@@ -560,7 +560,7 @@ UNION ALL
   JOIN component AS ship
     ON ship.id = t.buyer
   JOIN component AS cp
-    ON cp.id = t.seller
+    ON cp.id = t.seller AND cp.type = 'station'
   LEFT JOIN faction AS f
     ON f.id = cp.owner
   LEFT JOIN cluster_sector_name AS sn
@@ -846,7 +846,7 @@ FROM (
   JOIN component AS ship
     ON ship.id = t.seller
   JOIN component AS cp
-    ON cp.id = t.buyer
+    ON cp.id = t.buyer AND cp.type = 'station'
   LEFT JOIN faction AS f
     ON f.id = cp.owner
   LEFT JOIN cluster_sector_name AS sn
@@ -897,7 +897,7 @@ UNION ALL
   JOIN component AS ship
     ON ship.id = t.buyer
   JOIN component AS cp
-    ON cp.id = t.seller
+    ON cp.id = t.seller AND cp.type = 'station'
   LEFT JOIN faction AS f
     ON f.id = cp.owner
   LEFT JOIN cluster_sector_name AS sn
