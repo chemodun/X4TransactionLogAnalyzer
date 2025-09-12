@@ -24,7 +24,7 @@ public sealed class StatsShipsWaresTradesModel : StatsShipsWaresBaseModel
   public StatsShipsWaresTradesModel()
     : base() { }
 
-  protected override List<(int ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData()
+  protected override List<(long ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData()
   {
     var q = MainViewModel.AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft));
     if (SelectedShipClass != "All")
@@ -32,7 +32,7 @@ public sealed class StatsShipsWaresTradesModel : StatsShipsWaresBaseModel
     return q.GroupBy(t => (t.ShipId, t.ShipFullName, t.Ware, t.Product))
       .Select(g =>
         (
-          ShipId: Convert.ToInt32(g.Key.ShipId),
+          ShipId: g.Key.ShipId,
           ShipName: g.Key.ShipFullName,
           WareId: g.Key.Ware,
           WareName: g.Key.Product,

@@ -130,7 +130,7 @@ public abstract class StatsShipsWaresBaseModel : INotifyPropertyChanged
 
   public void Refresh() => Reload();
 
-  protected abstract List<(int ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData();
+  protected abstract List<(long ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData();
 
   protected void Reload()
   {

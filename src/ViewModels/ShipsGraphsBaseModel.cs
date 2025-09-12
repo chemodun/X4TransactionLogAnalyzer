@@ -22,10 +22,10 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
 
   public ObservableCollection<GraphShipItem> ShipList { get; set; } = new();
 
-  protected readonly HashSet<int> _activeShipIds = new();
-  protected readonly Dictionary<int, ISeries> _seriesByShipId = new();
-  protected readonly Dictionary<int, SKColor> _colorByShipId = new();
-  protected readonly Dictionary<int, GraphShipItem> _shipItemsById = new();
+  protected readonly HashSet<long> _activeShipIds = new();
+  protected readonly Dictionary<long, ISeries> _seriesByShipId = new();
+  protected readonly Dictionary<long, SKColor> _colorByShipId = new();
+  protected readonly Dictionary<long, GraphShipItem> _shipItemsById = new();
   protected ShipSortOrder _shipsSortOrder = ShipSortOrder.Name;
   public ShipSortOrder ShipsSortOrder
   {
@@ -163,7 +163,7 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
     ship.FontWeight = FontWeight.Bold;
   }
 
-  protected abstract List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(int shipId);
+  protected abstract List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(long shipId);
 
   protected abstract void LoadShips();
 
@@ -179,11 +179,11 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
   protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-  protected SKColor GetColorForShip(int shipId)
+  protected SKColor GetColorForShip(long shipId)
   {
     if (_colorByShipId.TryGetValue(shipId, out var color))
       return color;
-    _colorByShipId[shipId] = ChartPalette.PickForInt(shipId);
+    _colorByShipId[shipId] = ChartPalette.PickForLong(shipId);
     return _colorByShipId[shipId];
   }
 }

@@ -39,7 +39,7 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
     ShipList.Clear();
     allTransactions.Clear();
     // Build ships map while reading transactions
-    var ships = new Dictionary<int, ShipInfo>();
+    var ships = new Dictionary<long, ShipInfo>();
 
     // Load transactions
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;

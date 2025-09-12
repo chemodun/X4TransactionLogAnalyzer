@@ -4,14 +4,14 @@ namespace X4PlayerShipTradeAnalyzer.Models;
 
 public class ShipInfo
 {
-  public int ShipId { get; set; }
+  public long ShipId { get; set; }
   public string? ShipName { get; set; }
   public decimal? EstimatedProfit { get; set; }
 }
 
 public class ShipTransaction
 {
-  public int ShipId { get; set; }
+  public long ShipId { get; set; }
 
   // raw numeric fields for aggregation
   public long RawTime { get; set; }
@@ -30,7 +30,7 @@ public class ShipTransaction
 
 public class GraphShipItem : INotifyPropertyChanged
 {
-  public int ShipId { get; init; }
+  public long ShipId { get; init; }
   public string ShipName { get; init; } = string.Empty;
 
   protected decimal _estimatedProfit;

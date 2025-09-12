@@ -8,7 +8,7 @@ namespace X4PlayerShipTradeAnalyzer.Models;
 
 public class Transaction
 {
-  public int ShipId { get; set; }
+  public long ShipId { get; set; }
   public string ShipClass { get; set; } = string.Empty; // normalized (S,M,L,XL,...)
   public long RawTime { get; set; }
   public string FullName { get; set; } = string.Empty; // for display only
@@ -40,7 +40,7 @@ public class Transaction
     trans.Clear();
     while (rdr.Read())
     {
-      int shipId = Convert.ToInt32(rdr["id"]);
+      long shipId = Convert.ToInt64(rdr["id"]);
       string rawClass = rdr["class"].ToString() ?? string.Empty;
       string normClass = ShipClassFilterUtil.Normalize(rawClass);
       trans.Add(

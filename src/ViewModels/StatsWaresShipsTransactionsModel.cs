@@ -24,7 +24,7 @@ public sealed class StatsWaresShipsTransactionsModel : StatsWaresShipsBaseModel
   public StatsWaresShipsTransactionsModel()
     : base() { }
 
-  protected override List<(int ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData()
+  protected override List<(long ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData()
   {
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;
     if (SelectedShipClass != "All")

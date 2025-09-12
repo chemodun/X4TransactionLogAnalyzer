@@ -131,7 +131,7 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
 
   public void Refresh() => Reload();
 
-  protected abstract List<(int ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData();
+  protected abstract List<(long ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData();
 
   protected void Reload()
   {
@@ -266,9 +266,9 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
     OnPropertyChanged(nameof(WareShipsList));
   }
 
-  protected static SKColor GetColorForShip(int shipId)
+  protected static SKColor GetColorForShip(long shipId)
   {
-    var baseColor = ChartPalette.PickForInt(shipId);
+    var baseColor = ChartPalette.PickForLong(shipId);
     return ChartPalette.WithAlpha(baseColor, 200);
   }
 

@@ -21,7 +21,7 @@ public sealed class StatsShipsLoadTransactionsModel : StatsShipsLoadBaseModel
     }
   }
 
-  protected override IEnumerable<(int ShipId, string ShipName, int BucketIndex)> LoadEntries()
+  protected override IEnumerable<(long ShipId, string ShipName, int BucketIndex)> LoadEntries()
   {
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;
     if (SelectedShipClass != "All")

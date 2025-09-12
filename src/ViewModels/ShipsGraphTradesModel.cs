@@ -41,7 +41,7 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
         .GroupBy(t => (t.ShipId, t.ShipFullName))
         .Select(g => new GraphShipItem
         {
-          ShipId = Convert.ToInt32(g.Key.ShipId),
+          ShipId = g.Key.ShipId,
           ShipName = g.Key.ShipFullName,
           EstimatedProfit = g.Sum(t => t.Profit),
         })
@@ -58,7 +58,7 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
     ApplyTradeFilter();
   }
 
-  protected override List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(int shipId)
+  protected override List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(long shipId)
   {
     decimal sum = 0m;
     return MainViewModel

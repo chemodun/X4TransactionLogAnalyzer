@@ -74,5 +74,7 @@ public static class ChartPalette
 
   public static SKColor PickForInt(int key) => PickByHash(key);
 
+  public static SKColor PickForLong(long key) => PickByHash((int)key);
+
   public static SKColor WithAlpha(SKColor c, byte alpha) => new SKColor(c.Red, c.Green, c.Blue, alpha);
 }

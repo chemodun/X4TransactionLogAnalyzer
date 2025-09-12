@@ -131,7 +131,7 @@ public abstract class StatsShipsLoadBaseModel : INotifyPropertyChanged
 
   public void Refresh() => Reload();
 
-  protected abstract IEnumerable<(int ShipId, string ShipName, int BucketIndex)> LoadEntries();
+  protected abstract IEnumerable<(long ShipId, string ShipName, int BucketIndex)> LoadEntries();
 
   protected void Reload()
   {
@@ -271,5 +271,5 @@ public abstract class StatsShipsLoadBaseModel : INotifyPropertyChanged
 
   public sealed record LegendItem(string Name, ISolidColorBrush Brush);
 
-  private sealed record ShipAgg(int ShipId, string ShipName, int Count, double AvgLoad);
+  private sealed record ShipAgg(long ShipId, string ShipName, int Count, double AvgLoad);
 }

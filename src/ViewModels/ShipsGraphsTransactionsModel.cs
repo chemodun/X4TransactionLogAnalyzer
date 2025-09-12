@@ -61,7 +61,7 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
     OnPropertyChanged(nameof(ShipList));
   }
 
-  protected override List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(int shipId)
+  protected override List<LiveChartsCore.Defaults.ObservablePoint> LoadCumulativeProfitPoints(long shipId)
   {
     decimal sum = 0m;
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;
