@@ -132,6 +132,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
               TotalBuyCost = price * volume,
               TotalRevenue = 0,
               MaxQuantity = maxQuantity,
+              Distance = trans.Distance,
             };
             inSegment = true;
             cumVolume = volume;
@@ -166,6 +167,14 @@ namespace X4PlayerShipTradeAnalyzer.Models
             trade.EndTime = time;
             trade.BoughtQuantity += volume;
             trade.TotalBuyCost += price * volume;
+            if (trade.Distance >= 0 && trans.Distance >= 0)
+            {
+              trade.Distance += trans.Distance;
+            }
+            else
+            {
+              trade.Distance = -1;
+            }
             if (volume > 0)
             {
               purchases.Add(
@@ -195,6 +204,14 @@ namespace X4PlayerShipTradeAnalyzer.Models
               trade.EndTime = time;
               trade.SoldQuantity += soldNow;
               trade.TotalRevenue += price * soldNow;
+              if (trade.Distance >= 0 && trans.Distance >= 0)
+              {
+                trade.Distance += trans.Distance;
+              }
+              else
+              {
+                trade.Distance = -1;
+              }
               sales.Add(
                 new TradeLeg
                 {
@@ -238,6 +255,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
     public decimal Profit => TotalRevenue - TotalBuyCost;
     public int MaxQuantity { get; set; }
     public decimal LoadPercent { get; set; } // 0..100, how full was the ship at peak during this trade
+    public int Distance { get; set; } = -1; // total distance between all legs, -1 if unknown
 
     // Ordered lists of legs where the ware was bought/sold by this ship during the segment
     public TradeLeg[] Purchases { get; set; } = Array.Empty<TradeLeg>();

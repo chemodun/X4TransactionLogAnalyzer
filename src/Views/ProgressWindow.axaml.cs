@@ -89,6 +89,7 @@ public partial class ProgressWindow : Window
     Set("ClusterSectorNamesProcessed", update.ClusterSectorNamesProcessed);
     Set("ElementsProcessed", update.ElementsProcessed);
     Set("SectorsProcessed", update.SectorsProcessed);
+    Set("GatesProcessed", update.GatesProcessed);
     Set("StationsProcessed", update.StationsProcessed);
     Set("ShipsProcessed", update.ShipsProcessed);
     Set("RemovedProcessed", update.RemovedProcessed);
@@ -149,6 +150,8 @@ public partial class ProgressWindow : Window
       "ElementsProcessed",
       "LblSectorsProcessed",
       "SectorsProcessed",
+      "LblGatesProcessed",
+      "GatesProcessed",
       "LblStationsProcessed",
       "StationsProcessed",
       "LblShipsProcessed",

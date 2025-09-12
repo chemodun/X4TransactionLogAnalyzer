@@ -86,6 +86,7 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
           EstimatedProfit = trans.EstimatedProfit,
           MaxQuantity = trans.MaxQuantity,
           LoadPercent = Convert.ToDecimal(trans.MaxQuantity > 0 ? trans.Quantity * 100.0 / trans.MaxQuantity : 100.0),
+          Distance = trans.Distance,
         }
       );
     }

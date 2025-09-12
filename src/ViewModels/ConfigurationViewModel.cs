@@ -197,6 +197,20 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
     }
   }
 
+  private int _gatesCount;
+  public int GatesCount
+  {
+    get => _gatesCount;
+    private set
+    {
+      if (_gatesCount != value)
+      {
+        _gatesCount = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
   private int _clusterSectorNamesCount;
   public int ClusterSectorNamesCount
   {
@@ -339,6 +353,7 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
       StationsCount = gameData.Stats.StationsCount;
       RemovedObjectCount = gameData.Stats.RemovedObjectCount;
       TradesCount = gameData.Stats.TradesCount;
+      GatesCount = gameData.Stats.GatesCount;
       FactionsCount = gameData.Stats.FactionsCount;
       ClusterSectorNamesCount = gameData.Stats.ClusterSectorNamesCount;
       StoragesCount = gameData.Stats.StoragesCount;

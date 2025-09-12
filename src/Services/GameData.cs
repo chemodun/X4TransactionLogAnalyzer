@@ -18,6 +18,7 @@ namespace X4PlayerShipTradeAnalyzer.Services;
 public sealed class GameDataStats : INotifyPropertyChanged
 {
   int _waresCount;
+  int _gatesCount;
   public int WaresCount
   {
     get => _waresCount;
@@ -27,6 +28,19 @@ public sealed class GameDataStats : INotifyPropertyChanged
       {
         _waresCount = value;
         OnPropertyChanged(nameof(WaresCount));
+      }
+    }
+  }
+
+  public int GatesCount
+  {
+    get => _gatesCount;
+    set
+    {
+      if (_gatesCount != value)
+      {
+        _gatesCount = value;
+        OnPropertyChanged(nameof(GatesCount));
       }
     }
   }
@@ -250,7 +264,7 @@ public sealed class GameData
   private int _shipStoragesProcessed;
   private int _processedFiles;
   private int _clusterSectorNamesProcessed;
-  private long _dbSchemaVersion = 3;
+  private long _dbSchemaVersion = 4;
 
   public GameData()
   {
@@ -339,6 +353,7 @@ public sealed class GameData
 CREATE TABLE settings (
     current_language INTEGER NOT NULL
 );
+-- Table component
 CREATE TABLE component (
     id      INTEGER PRIMARY KEY,
     type    TEXT NOT NULL,
@@ -350,6 +365,10 @@ CREATE TABLE component (
     nameindex TEXT NOT NULL,
     code    TEXT NOT NULL
 );
+CREATE INDEX idx_component_type           ON component(type);
+CREATE INDEX idx_component_type_owner     ON component(type, owner);
+CREATE INDEX idx_component_type_owner_id  ON component (type, owner, id);
+-- Table trade
 CREATE TABLE trade (
     id         INTEGER PRIMARY KEY,
     seller     INTEGER NOT NULL,
@@ -360,6 +379,12 @@ CREATE TABLE trade (
     time       INTEGER NOT NULL,
     trade_sum   INTEGER GENERATED ALWAYS AS (price * volume) STORED
 );
+CREATE INDEX idx_trade_seller_time        ON trade(seller, time);
+CREATE INDEX idx_trade_buyer_time         ON trade(buyer, time);
+CREATE INDEX idx_trade_ware               ON trade(ware);
+CREATE INDEX idx_trade_seller_time_ware   ON trade(seller, time, ware);
+CREATE INDEX idx_trade_buyer_time_ware    ON trade(buyer, time, ware);
+-- Table ware
 CREATE TABLE ware (
     id         TEXT PRIMARY KEY,
     name       TEXT NOT NULL,
@@ -372,6 +397,8 @@ CREATE TABLE ware (
     component_macro TEXT NOT NULL,
     text       TEXT NOT NULL
 );
+CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
+-- Table text
 CREATE TABLE text (
     id_uniq    INTEGER PRIMARY KEY,
     language   INTEGER NOT NULL,
@@ -379,43 +406,51 @@ CREATE TABLE text (
     id         INTEGER NOT NULL,
     text       TEXT NOT NULL
 );
+CREATE INDEX idx_text_language_page       ON text(language, page);
+CREATE INDEX idx_text_language_page_id    ON text(language, page, id);
+CREATE INDEX idx_text_id                  ON text(id);
+CREATE INDEX idx_text_language_id         ON text(language, id);
+-- Table faction
 CREATE TABLE faction (
     id         TEXT PRIMARY KEY,
     name       TEXT NOT NULL,
     shortname  TEXT NOT NULL,
     prefixname TEXT NOT NULL
 );
+-- Table cluster_sector_name
 CREATE TABLE cluster_sector_name (
     macro      TEXT PRIMARY KEY,
     name       TEXT NOT NULL
 );
+-- Table gate
+CREATE TABLE gate (
+    id         INTEGER PRIMARY KEY,
+    gate_id    INTEGER NOT NULL,
+    code       TEXT NOT NULL,
+    sector     TEXT NOT NULL,
+    connection INTEGER NOT NULL,
+    connected  INTEGER NOT NULL
+);
+CREATE INDEX idx_gate_id                  ON gate(gate_id);
+CREATE INDEX idx_gate_sector              ON gate(sector);
+CREATE INDEX idx_gate_connection          ON gate(connection);
+CREATE INDEX idx_gate_connected           ON gate(connected);
+-- Table storage
 CREATE TABLE IF NOT EXISTS storage (
     id            INTEGER PRIMARY KEY,
     macro         STRING NOT NULL,
     transport     STRING NOT NULL,
     capacity      INTEGER NOT NULL
 );
+CREATE INDEX idx_storage_transport        ON storage(transport);
+CREATE INDEX idx_storage_macro_transport  ON storage(macro, transport);
+CREATE INDEX idx_ship_storage_ship_macro  ON ship_storage(ship_macro);
+-- Table ship_storage
 CREATE TABLE IF NOT EXISTS ship_storage (
     id          INTEGER PRIMARY KEY,
     ship_macro  STRING NOT NULL,
     storage_macro STRING NOT NULL
 );
-CREATE INDEX idx_component_type           ON component(type);
-CREATE INDEX idx_component_type_owner     ON component(type, owner);
-CREATE INDEX idx_component_type_owner_id  ON component (type, owner, id);
-CREATE INDEX idx_trade_seller_time        ON trade(seller, time);
-CREATE INDEX idx_trade_buyer_time         ON trade(buyer, time);
-CREATE INDEX idx_trade_ware               ON trade(ware);
-CREATE INDEX idx_trade_seller_time_ware   ON trade(seller, time, ware);
-CREATE INDEX idx_trade_buyer_time_ware    ON trade(buyer, time, ware);
-CREATE INDEX idx_ware_component_macro     ON ware(component_macro);
-CREATE INDEX idx_text_language_page       ON text(language, page);
-CREATE INDEX idx_text_language_page_id    ON text(language, page, id);
-CREATE INDEX idx_text_id                  ON text(id);
-CREATE INDEX idx_text_language_id         ON text(language, id);
-CREATE INDEX idx_ship_storage_ship_macro  ON ship_storage(ship_macro);
-CREATE INDEX idx_storage_transport        ON storage(transport);
-CREATE INDEX idx_storage_macro_transport  ON storage(macro, transport);
 -- View lang
 CREATE VIEW lang AS
 SELECT t.page, t.id, t.text
@@ -481,6 +516,7 @@ FROM (
       cp.name   AS counterpart_name,
       cp.owner  AS counterpart_faction,
       sn.name   AS sector,
+      sn.macro  AS sector_macro,
       CASE
         WHEN cp.owner = 'player'
           THEN cp.name || ' (' || cp.code || ')'
@@ -532,6 +568,7 @@ UNION ALL
       cp.name   AS counterpart_name,
       cp.owner  AS counterpart_faction,
       sn.name   AS sector,
+      sn.macro  AS sector_macro,
       CASE
         WHEN cp.owner = 'player'
           THEN cp.name || ' (' || cp.code || ')'
@@ -916,19 +953,161 @@ ORDER BY full_name, time;
           // Future updates here
           currentVersion = 3;
         }
+        if (currentVersion == 3)
+        {
+          clearData = true;
+          ReOpenConnection();
+          using (var deleteCmd = _conn.CreateCommand())
+          {
+            deleteCmd.CommandText = @"DROP VIEW IF EXISTS player_ships_transactions_log;";
+            deleteCmd.ExecuteNonQuery();
+          }
+          using (var vacuumCmd = _conn.CreateCommand())
+          {
+            vacuumCmd.CommandText = "VACUUM;";
+            vacuumCmd.ExecuteNonQuery();
+          }
+          using (var cmd = _conn.CreateCommand())
+          {
+            cmd.CommandText =
+              @"-- Table gate
+CREATE TABLE gate (
+    id         INTEGER PRIMARY KEY,
+    gate_id    INTEGER NOT NULL,
+    code       TEXT NOT NULL,
+    sector     TEXT NOT NULL,
+    connection INTEGER NOT NULL,
+    connected  INTEGER NOT NULL
+);
+CREATE INDEX idx_gate_id                  ON gate(gate_id);
+CREATE INDEX idx_gate_sector              ON gate(sector);
+CREATE INDEX idx_gate_connection          ON gate(connection);
+CREATE INDEX idx_gate_connected           ON gate(connected);
+
+-- View player_ships_transactions_log
+CREATE VIEW player_ships_transactions_log AS
+SELECT *
+FROM (
+  SELECT
+      ship.id AS id,
+      ship.code AS code,
+      ship.name AS name,
+      ship.class AS class,
+      ship.name || ' (' || ship.code || ')' AS full_name,
+      cp.code   AS counterpart_code,
+      cp.name   AS counterpart_name,
+      cp.owner  AS counterpart_faction,
+      sn.name   AS sector,
+      sn.macro  AS sector_macro,
+      CASE
+        WHEN cp.owner = 'player'
+          THEN cp.name || ' (' || cp.code || ')'
+        ELSE CASE
+              WHEN f.shortname IS NULL THEN ''
+              ELSE f.shortname
+            END
+            || ' ' || cp.name || cp.nameindex || ' (' || cp.code || ')'
+      END AS station,
+      t.time AS time,
+      'sell' AS operation,
+      t.ware AS ware,
+      w.text AS ware_name,
+      t.price / 100.0 AS price,
+      t.volume AS volume,
+      t.trade_sum / 100.0 AS trade_sum,
+      w.transport AS transport,
+      CASE
+        WHEN w.transport = 'container' THEN
+          (t.trade_sum - w.price_avg * t.volume) / 100.0
+        ELSE
+          t.trade_sum / 100.0
+      END AS profit,
+      tc.total_capacity / w.volume AS cargo_volume
+  FROM trade AS t
+  JOIN component AS ship
+    ON ship.id = t.seller
+  JOIN component AS cp
+    ON cp.id = t.buyer AND cp.type = 'station'
+  LEFT JOIN faction AS f
+    ON f.id = cp.owner
+  LEFT JOIN cluster_sector_name AS sn
+    ON cp.sector = sn.macro
+  JOIN ware AS w
+    ON w.id = t.ware
+  LEFT JOIN ships_macro_transport_capacity AS tc
+    ON ship.macro = tc.ship_macro AND w.transport = tc.transport
+  WHERE ship.type = 'ship'
+    AND ship.owner = 'player'
+UNION ALL
+-- Case 2: player ship is the buyer
+  SELECT
+      ship.id AS id,
+      ship.code AS code,
+      ship.name AS name,
+      ship.class AS class,
+      ship.name || ' (' || ship.code || ')' AS full_name,
+      cp.code   AS counterpart_code,
+      cp.name   AS counterpart_name,
+      cp.owner  AS counterpart_faction,
+      sn.name   AS sector,
+      sn.macro  AS sector_macro,
+      CASE
+        WHEN cp.owner = 'player'
+          THEN cp.name || ' (' || cp.code || ')'
+        ELSE CASE
+              WHEN f.shortname IS NULL THEN ''
+              ELSE f.shortname
+            END
+            || ' ' || cp.name || cp.nameindex || ' (' || cp.code || ')'
+      END AS station,
+      t.time AS time,
+      'buy' AS operation,
+      t.ware AS ware,
+      w.text AS ware_name,
+      t.price / 100.0 AS price,
+      t.volume AS volume,
+      -t.trade_sum/ 100.0 AS trade_sum,
+      w.transport AS transport,
+      CASE
+        WHEN w.transport = 'container' THEN
+          (w.price_avg * t.volume - t.trade_sum) / 100.0
+        ELSE
+          -t.trade_sum / 100.0
+      END AS profit,
+      tc.total_capacity / w.volume AS cargo_volume
+  FROM trade AS t
+  JOIN component AS ship
+    ON ship.id = t.buyer
+  JOIN component AS cp
+    ON cp.id = t.seller AND cp.type = 'station'
+  LEFT JOIN faction AS f
+    ON f.id = cp.owner
+  LEFT JOIN cluster_sector_name AS sn
+    ON cp.sector = sn.macro
+  JOIN ware AS w
+    ON w.id = t.ware
+  LEFT JOIN ships_macro_transport_capacity AS tc
+    ON ship.macro = tc.ship_macro AND w.transport = tc.transport
+  WHERE ship.type = 'ship'
+    AND ship.owner = 'player'
+) AS combined
+ORDER BY full_name, time;
+";
+            cmd.ExecuteNonQuery();
+          }
+          // Future updates here
+          currentVersion = 4;
+        }
       }
       catch (Exception ex)
       {
         // Log or handle the exception as needed
         Console.WriteLine($"Error updating DB schema from version {currentVersion} to {_dbSchemaVersion}: {ex.Message}");
       }
-      finally
+      SetDBSchemaVersion(_dbSchemaVersion);
+      if (clearData)
       {
-        SetDBSchemaVersion(_dbSchemaVersion);
-        if (clearData)
-        {
-          ClearTablesTradeAndComponent();
-        }
+        ClearTablesFromGameSave();
       }
     }
   }
@@ -2173,7 +2352,7 @@ ORDER BY full_name, time;
     return dict;
   }
 
-  private void ClearTablesTradeAndComponent()
+  private void ClearTablesFromGameSave()
   {
     ReOpenConnection();
     // 2) Refine all values and write to DB
@@ -2182,6 +2361,17 @@ ORDER BY full_name, time;
       deleteCmd.CommandText = @"DELETE FROM trade; DELETE FROM component;";
       deleteCmd.ExecuteNonQuery();
     }
+    using (var checkCmd = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='gate';", _conn))
+    {
+      using var reader = checkCmd.ExecuteReader();
+
+      if (reader.Read())
+      {
+        using var deleteCmd = new SQLiteCommand("DELETE FROM gate;", _conn);
+        deleteCmd.ExecuteNonQuery();
+      }
+    }
+
     using (var vacuumCmd = _conn.CreateCommand())
     {
       vacuumCmd.CommandText = "VACUUM;";
@@ -2222,7 +2412,7 @@ ORDER BY full_name, time;
     if (string.IsNullOrWhiteSpace(savePath) || !File.Exists(savePath))
       return;
 
-    ClearTablesTradeAndComponent();
+    ClearTablesFromGameSave();
     ReOpenConnection();
 
     var factoryNames = GetFactoryNamesDict();
@@ -2258,12 +2448,24 @@ ORDER BY full_name, time;
     insertTrade.Parameters.Add("@volume", System.Data.DbType.Int64);
     insertTrade.Parameters.Add("@time", System.Data.DbType.Int64);
 
+    using var insertGate = new SQLiteCommand(
+      "INSERT OR IGNORE INTO gate(gate_id, code, sector, connection, connected) VALUES (@gate_id,@code,@sector,@connection,@connected);",
+      _conn,
+      txn
+    );
+    insertGate.Parameters.Add("@gate_id", System.Data.DbType.Int64);
+    insertGate.Parameters.Add("@code", System.Data.DbType.String);
+    insertGate.Parameters.Add("@sector", System.Data.DbType.String);
+    insertGate.Parameters.Add("@connection", System.Data.DbType.Int64);
+    insertGate.Parameters.Add("@connected", System.Data.DbType.Int64);
+
     long elementsProcessed = 0;
     int itemsForTransaction = 0,
       sectorCount = 0,
       removedCount = 0,
       stationsProcessed = 0,
       shipsProcessed = 0,
+      gatesProcessed = 0,
       tradeCount = 0;
 
     DateTime startTime = DateTime.Now;
@@ -2395,6 +2597,80 @@ ORDER BY full_name, time;
               continue;
             }
             zonesToSectors[id] = currentSector;
+            continue;
+          }
+          if (componentClass == "gate" && !string.IsNullOrEmpty(currentSector))
+          {
+            long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
+            if (id <= 0)
+            {
+              continue;
+            }
+            string code = xr.GetAttribute("code") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(code))
+            {
+              continue;
+            }
+            if (xr.GetAttribute("known") != "1")
+            {
+              continue;
+            }
+            long connectionId = 0;
+            long connectedId = 0;
+            int depth = xr.Depth;
+            while (xr.Read())
+            {
+              if (xr.NodeType == XmlNodeType.Element && string.Equals(xr.Name, "connection", StringComparison.Ordinal))
+              {
+                connectionId = ParseId(xr.GetAttribute("id") ?? string.Empty);
+                if (connectionId <= 0)
+                {
+                  continue;
+                }
+                int depthConn = xr.Depth;
+                while (xr.Read())
+                {
+                  if (xr.NodeType == XmlNodeType.Element && string.Equals(xr.Name, "connected", StringComparison.Ordinal))
+                  {
+                    connectedId = ParseId(xr.GetAttribute("connection") ?? string.Empty);
+                    if (connectedId <= 0)
+                    {
+                      continue;
+                    }
+                    insertGate.Parameters["@gate_id"].Value = id;
+                    insertGate.Parameters["@code"].Value = code;
+                    insertGate.Parameters["@sector"].Value = currentSector;
+                    insertGate.Parameters["@connection"].Value = connectionId;
+                    insertGate.Parameters["@connected"].Value = connectedId;
+                    insertGate.ExecuteNonQuery();
+                    itemsForTransaction++;
+                    gatesProcessed++;
+                    if (gatesProcessed % 10 == 0)
+                    {
+                      progress?.Invoke(new ProgressUpdate { GatesProcessed = gatesProcessed });
+                    }
+                    connectedId = 0;
+                  }
+                  else if (
+                    xr.NodeType == XmlNodeType.EndElement
+                    && string.Equals(xr.Name, "connection", StringComparison.Ordinal)
+                    && xr.Depth == depthConn
+                  )
+                  {
+                    connectionId = 0;
+                    break;
+                  }
+                }
+              }
+              else if (
+                xr.NodeType == XmlNodeType.EndElement
+                && string.Equals(xr.Name, "component", StringComparison.Ordinal)
+                && xr.Depth == depth
+              )
+              {
+                break;
+              }
+            }
             continue;
           }
           if (!(componentClass == "station") && !componentClass.StartsWith("ship_"))
@@ -2696,6 +2972,7 @@ ORDER BY full_name, time;
             progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
             progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
             progress?.Invoke(new ProgressUpdate { SectorsProcessed = sectorCount });
+            progress?.Invoke(new ProgressUpdate { GatesProcessed = gatesProcessed });
           }
           if (removedEntries && xr.Name == "removed")
           {
@@ -2735,6 +3012,8 @@ ORDER BY full_name, time;
     {
       // trade count
       Stats.TradesCount = ExecuteScalarInt("SELECT COUNT(1) FROM trade");
+      // gates count (connections) if gate table present
+      Stats.GatesCount = TableExists("gate") ? ExecuteScalarInt("SELECT COUNT(1) FROM gate") : 0;
       // player ships via view (if exists)
       Stats.PlayerShipsCount = ViewExists("player_ships")
         ? ExecuteScalarInt("SELECT COUNT(1) FROM player_ships")

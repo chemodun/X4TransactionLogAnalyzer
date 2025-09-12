@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using X4PlayerShipTradeAnalyzer.Services;
 
 namespace X4PlayerShipTradeAnalyzer.Models;
 

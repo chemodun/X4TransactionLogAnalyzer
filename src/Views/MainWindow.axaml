@@ -139,8 +139,14 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Sector" Binding="{Binding Sector}" Width="180"/>
-                  <DataGridTemplateColumn Header="Station" SortMemberPath="Station" Width="Auto">
+                  <DataGridTemplateColumn Header="Sector" SortMemberPath="Sector" Width="180">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Sector}" ToolTip.Tip="{Binding Sector}" Margin="8"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Station" SortMemberPath="Station" Width="180">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Station}" ToolTip.Tip="{Binding Station}" Margin="8"/>
@@ -148,7 +154,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="100"/>
-                  <DataGridTemplateColumn Header="Product" SortMemberPath="Product" Width="200">
+                  <DataGridTemplateColumn Header="Product" SortMemberPath="Product" Width="140">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Product}" ToolTip.Tip="{Binding Product}" Margin="8"/>
@@ -178,7 +184,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Total" SortMemberPath="Total" Width="100">
+                  <DataGridTemplateColumn Header="Total" SortMemberPath="Total" Width="140">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Total, StringFormat=N2}" Classes="RightAlignedPadded" />
@@ -189,6 +195,13 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding EstimatedProfit, StringFormat=N2}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Dist." SortMemberPath="Distance" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Distance, StringFormat=N0}" Classes="RightAlignedPadded" />
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -613,6 +626,13 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="Dist." SortMemberPath="Distance" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Distance, StringFormat=N0}" Classes="RightAlignedPadded" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </Border>
@@ -1020,6 +1040,10 @@
             <StackPanel Orientation="Horizontal" Spacing="6">
               <TextBlock Text="Stations:" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
               <TextBlock Text="{Binding StationsCount}" FontWeight="Bold" Foreground="{Binding StationsCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Gates Connections:" Foreground="{Binding GatesCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding GatesCount}" FontWeight="Bold" Foreground="{Binding GatesCount, Converter={StaticResource ZeroToRed}}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="6">
               <TextBlock Text="Removed objects:">

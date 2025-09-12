@@ -26,6 +26,7 @@ public class ShipTransaction
   public decimal? EstimatedProfit { get; set; }
   public int? MaxQuantity { get; set; }
   public decimal? LoadPercent { get; set; }
+  public int? Distance { get; set; } // distance from previous transaction sector, -1 if unknown
 }
 
 public class GraphShipItem : INotifyPropertyChanged

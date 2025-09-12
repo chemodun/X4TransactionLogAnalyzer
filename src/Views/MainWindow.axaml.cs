@@ -140,6 +140,7 @@ public partial class MainWindow : Window
       || s.ClusterSectorNamesCount == 0
       || s.PlayerShipsCount == 0
       || s.StationsCount == 0
+      || s.GatesCount == 0
       || s.StoragesCount == 0
       || s.ShipStoragesCount == 0
       || (removedRequired && s.RemovedObjectCount == 0)

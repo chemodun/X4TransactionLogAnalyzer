@@ -18,6 +18,7 @@ public sealed class ProgressUpdate
   // Save import metrics
   public int? ElementsProcessed { get; init; }
   public int? SectorsProcessed { get; init; }
+  public int? GatesProcessed { get; init; }
   public int? StationsProcessed { get; init; }
   public int? ShipsProcessed { get; init; }
   public int? RemovedProcessed { get; init; }
