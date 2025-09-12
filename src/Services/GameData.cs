@@ -435,6 +435,19 @@ CREATE INDEX idx_gate_id                  ON gate(gate_id);
 CREATE INDEX idx_gate_sector              ON gate(sector);
 CREATE INDEX idx_gate_connection          ON gate(connection);
 CREATE INDEX idx_gate_connected           ON gate(connected);
+-- Table superhighway
+CREATE TABLE superhighway (
+    id         INTEGER PRIMARY KEY,
+    macro      TEXT NOT NULL,
+    entrygate  INTEGER NOT NULL,
+    sector_from TEXT NOT NULL,
+    exitgate   INTEGER NOT NULL,
+    sector_to  TEXT NOT NULL
+);
+CREATE INDEX idx_superhighway_entrygate   ON superhighway(entrygate);
+CREATE INDEX idx_superhighway_exitgate    ON superhighway(exitgate);
+CREATE INDEX idx_superhighway_sector_from ON superhighway(sector_from);
+CREATE INDEX idx_superhighway_sector_to   ON superhighway(sector_to);
 -- Table storage
 CREATE TABLE IF NOT EXISTS storage (
     id            INTEGER PRIMARY KEY,
@@ -983,7 +996,19 @@ CREATE INDEX idx_gate_id                  ON gate(gate_id);
 CREATE INDEX idx_gate_sector              ON gate(sector);
 CREATE INDEX idx_gate_connection          ON gate(connection);
 CREATE INDEX idx_gate_connected           ON gate(connected);
-
+-- Table superhighway
+CREATE TABLE superhighway (
+    id         INTEGER PRIMARY KEY,
+    macro      TEXT NOT NULL,
+    entrygate  INTEGER NOT NULL,
+    sector_from TEXT NOT NULL,
+    exitgate   INTEGER NOT NULL,
+    sector_to  TEXT NOT NULL
+);
+CREATE INDEX idx_superhighway_entrygate   ON superhighway(entrygate);
+CREATE INDEX idx_superhighway_exitgate    ON superhighway(exitgate);
+CREATE INDEX idx_superhighway_sector_from ON superhighway(sector_from);
+CREATE INDEX idx_superhighway_sector_to   ON superhighway(sector_to);
 -- View player_ships_transactions_log
 CREATE VIEW player_ships_transactions_log AS
 SELECT *
@@ -2371,7 +2396,16 @@ ORDER BY full_name, time;
         deleteCmd.ExecuteNonQuery();
       }
     }
+    using (var checkCmd = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='superhighway';", _conn))
+    {
+      using var reader = checkCmd.ExecuteReader();
 
+      if (reader.Read())
+      {
+        using var deleteCmd = new SQLiteCommand("DELETE FROM superhighway;", _conn);
+        deleteCmd.ExecuteNonQuery();
+      }
+    }
     using (var vacuumCmd = _conn.CreateCommand())
     {
       vacuumCmd.CommandText = "VACUUM;";
@@ -2459,6 +2493,18 @@ ORDER BY full_name, time;
     insertGate.Parameters.Add("@connection", System.Data.DbType.Int64);
     insertGate.Parameters.Add("@connected", System.Data.DbType.Int64);
 
+    using var insertSuperhighway = new SQLiteCommand(
+      "INSERT OR IGNORE INTO superhighway(id, macro, sector_from, entrygate, sector_to, exitgate) VALUES (@id, @macro, @sector_from, @entrygate, @sector_to, @exitgate);",
+      _conn,
+      txn
+    );
+    insertSuperhighway.Parameters.Add("@id", System.Data.DbType.Int64);
+    insertSuperhighway.Parameters.Add("@macro", System.Data.DbType.String);
+    insertSuperhighway.Parameters.Add("@sector_from", System.Data.DbType.String);
+    insertSuperhighway.Parameters.Add("@entrygate", System.Data.DbType.Int64);
+    insertSuperhighway.Parameters.Add("@sector_to", System.Data.DbType.String);
+    insertSuperhighway.Parameters.Add("@exitgate", System.Data.DbType.Int64);
+
     long elementsProcessed = 0;
     int itemsForTransaction = 0,
       sectorCount = 0,
@@ -2466,6 +2512,7 @@ ORDER BY full_name, time;
       stationsProcessed = 0,
       shipsProcessed = 0,
       gatesProcessed = 0,
+      superhighwaysProcessed = 0,
       tradeCount = 0;
 
     DateTime startTime = DateTime.Now;
@@ -2491,6 +2538,8 @@ ORDER BY full_name, time;
     GameComponent? currentStation = null;
     Dictionary<string, string> wareComponentNames = GetWareComponentNamesDict();
     Dictionary<long, string> zonesToSectors = new();
+    List<SuperHighway> superhighwayBuffer = new();
+    Dictionary<long, HighWayGate> gatesBuffer = new();
 
     while (xr.Read())
     {
@@ -2578,6 +2627,107 @@ ORDER BY full_name, time;
 
           string componentClass = xr.GetAttribute("class") ?? string.Empty;
 
+          if (componentClass == "highway")
+          {
+            long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
+            if (id <= 0)
+            {
+              continue;
+            }
+            string macro = xr.GetAttribute("macro") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(macro))
+            {
+              continue;
+            }
+            int depth = xr.Depth;
+            bool isSuperHighway = false;
+            SuperHighway superHighway = new()
+            {
+              Id = id,
+              Macro = macro,
+              SectorFrom = "",
+              EntryGate = 0,
+              SectorTo = "",
+              ExitGate = 0,
+            };
+            while (xr.Read())
+            {
+              if (xr.NodeType == XmlNodeType.Element)
+              {
+                if (string.Equals(xr.Name, "highway", StringComparison.Ordinal))
+                {
+                  isSuperHighway = xr.GetAttribute("superhighway") == "1";
+                  if (!isSuperHighway)
+                    break;
+                  continue;
+                }
+                if (string.Equals(xr.Name, "connection", StringComparison.Ordinal))
+                {
+                  if (xr.GetAttribute("connection") == "entrygate")
+                  {
+                    long entryGateId = ParseId(xr.GetAttribute("id") ?? string.Empty);
+                    if (entryGateId <= 0)
+                    {
+                      break;
+                    }
+                    superHighway.EntryGate = entryGateId;
+                    continue;
+                  }
+                  if (xr.GetAttribute("connection") == "exitgate")
+                  {
+                    long exitGateId = ParseId(xr.GetAttribute("id") ?? string.Empty);
+                    if (exitGateId <= 0)
+                    {
+                      break;
+                    }
+                    superHighway.ExitGate = exitGateId;
+                    continue;
+                  }
+                }
+              }
+              else if (
+                xr.NodeType == XmlNodeType.EndElement
+                && string.Equals(xr.Name, "component", StringComparison.Ordinal)
+                && xr.Depth == depth
+              )
+              {
+                break;
+              }
+            }
+            if (isSuperHighway && superHighway.IsPrepared)
+            {
+              if (gatesBuffer.TryGetValue(superHighway.EntryGate, out var entryGate) && entryGate.Type == "highwayentrygate")
+              {
+                superHighway.SectorFrom = entryGate.Sector;
+                gatesBuffer.Remove(superHighway.EntryGate);
+              }
+              if (gatesBuffer.TryGetValue(superHighway.ExitGate, out var exitGate) && exitGate.Type == "highwayexitgate")
+              {
+                superHighway.SectorTo = exitGate.Sector;
+                gatesBuffer.Remove(superHighway.ExitGate);
+              }
+              if (superHighway.IsReady)
+              {
+                insertSuperhighway.Parameters["@id"].Value = superHighway.Id;
+                insertSuperhighway.Parameters["@macro"].Value = superHighway.Macro;
+                insertSuperhighway.Parameters["@sector_from"].Value = superHighway.SectorFrom;
+                insertSuperhighway.Parameters["@entrygate"].Value = superHighway.EntryGate;
+                insertSuperhighway.Parameters["@sector_to"].Value = superHighway.SectorTo;
+                insertSuperhighway.Parameters["@exitgate"].Value = superHighway.ExitGate;
+                insertSuperhighway.ExecuteNonQuery();
+                itemsForTransaction++;
+                superhighwaysProcessed++;
+                progress?.Invoke(new ProgressUpdate { SuperhighwaysProcessed = superhighwaysProcessed });
+              }
+              else
+              {
+                // still missing gate info - keep in buffer for later processing
+                superhighwayBuffer.Add(superHighway);
+              }
+            }
+            continue;
+          }
+
           if (componentClass == "sector")
           {
             currentSector = xr.GetAttribute("macro") ?? string.Empty;
@@ -2611,10 +2761,10 @@ ORDER BY full_name, time;
             {
               continue;
             }
-            if (xr.GetAttribute("known") != "1")
-            {
-              continue;
-            }
+            // if (xr.GetAttribute("known") != "1")
+            // {
+            //   continue;
+            // }
             long connectionId = 0;
             long connectedId = 0;
             int depth = xr.Depth;
@@ -2670,6 +2820,92 @@ ORDER BY full_name, time;
               {
                 break;
               }
+            }
+            continue;
+          }
+          if (componentClass == "highwayentrygate" || componentClass == "highwayexitgate")
+          {
+            long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
+            if (id <= 0)
+            {
+              continue;
+            }
+            int depth = xr.Depth;
+            long connectedId = 0;
+            while (xr.Read())
+            {
+              if (xr.NodeType == XmlNodeType.Element && string.Equals(xr.Name, "connected", StringComparison.Ordinal))
+              {
+                connectedId = ParseId(xr.GetAttribute("connection") ?? string.Empty);
+                if (connectedId <= 0)
+                {
+                  continue;
+                }
+                break;
+              }
+              else if (
+                xr.NodeType == XmlNodeType.EndElement
+                && string.Equals(xr.Name, "component", StringComparison.Ordinal)
+                && xr.Depth == depth
+              )
+              {
+                break;
+              }
+            }
+            if (connectedId <= 0)
+            {
+              continue;
+            }
+            SuperHighway? sh = null;
+            if (componentClass == "highwayentrygate")
+            {
+              sh = superhighwayBuffer.FirstOrDefault(h => h.EntryGate == connectedId);
+              if (sh != null)
+              {
+                sh.SectorFrom = currentSector;
+              }
+              else
+              {
+                // Gate first, highway later - remember gate for later processing
+                gatesBuffer[connectedId] = new HighWayGate
+                {
+                  Id = connectedId,
+                  Sector = currentSector,
+                  Type = componentClass,
+                };
+              }
+            }
+            else
+            {
+              sh = superhighwayBuffer.FirstOrDefault(h => h.ExitGate == connectedId);
+              if (sh != null)
+              {
+                sh.SectorTo = currentSector;
+              }
+              else
+              {
+                // Gate first, highway later - remember gate for later processing
+                gatesBuffer[connectedId] = new HighWayGate
+                {
+                  Id = connectedId,
+                  Sector = currentSector,
+                  Type = componentClass,
+                };
+              }
+            }
+            if (sh != null && sh.IsReady)
+            {
+              insertSuperhighway.Parameters["@id"].Value = sh.Id;
+              insertSuperhighway.Parameters["@macro"].Value = sh.Macro;
+              insertSuperhighway.Parameters["@sector_from"].Value = sh.SectorFrom;
+              insertSuperhighway.Parameters["@entrygate"].Value = sh.EntryGate;
+              insertSuperhighway.Parameters["@sector_to"].Value = sh.SectorTo;
+              insertSuperhighway.Parameters["@exitgate"].Value = sh.ExitGate;
+              insertSuperhighway.ExecuteNonQuery();
+              itemsForTransaction++;
+              superhighwaysProcessed++;
+              progress?.Invoke(new ProgressUpdate { SuperhighwaysProcessed = superhighwaysProcessed });
+              superhighwayBuffer.Remove(sh);
             }
             continue;
           }

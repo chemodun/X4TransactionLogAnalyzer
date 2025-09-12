@@ -42,6 +42,7 @@ public class Transaction
     trans.Clear();
     long shipIdCurrent = 0;
     string lastSectorMacro = string.Empty;
+    SectorToSectorConnection.ClearCaches();
     while (rdr.Read())
     {
       long shipId = Convert.ToInt64(rdr["id"]);
