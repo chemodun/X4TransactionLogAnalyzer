@@ -283,6 +283,7 @@
                   <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                   <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                  <CheckBox Content="Reverse Order" IsChecked="{Binding ReverseSort}" VerticalAlignment="Center"/>
                 </StackPanel>
               </Grid>
             </Border>
@@ -425,6 +426,7 @@
                   <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                   <TextBlock Text="Top N Wares:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                  <CheckBox Content="Reverse Order" IsChecked="{Binding ReverseSort}" VerticalAlignment="Center"/>
                 </StackPanel>
               </Grid>
             </Border>
@@ -736,6 +738,7 @@
                   <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                   <TextBlock Text="Top N Ships:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                  <CheckBox Content="Reverse Order" IsChecked="{Binding ReverseSort}" VerticalAlignment="Center"/>
                 </StackPanel>
               </Grid>
             </Border>
@@ -866,6 +869,7 @@
                   <ComboBox ItemsSource="{Binding ShipClassOptions}" SelectedItem="{Binding SelectedShipClass}" Width="70"/>
                   <TextBlock Text="Top N Wares:" VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding TopNOptions}" SelectedItem="{Binding TopN}" />
+                  <CheckBox Content="Reverse Order" IsChecked="{Binding ReverseSort}" VerticalAlignment="Center"/>
                 </StackPanel>
               </Grid>
             </Border>

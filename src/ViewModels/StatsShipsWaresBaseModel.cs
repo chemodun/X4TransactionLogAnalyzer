@@ -65,6 +65,22 @@ public abstract class StatsShipsWaresBaseModel : INotifyPropertyChanged
       Reload();
     }
   }
+
+  private bool _reverseSort; // default false
+
+  public bool ReverseSort
+  {
+    get => _reverseSort;
+    set
+    {
+      if (_reverseSort == value)
+        return;
+      _reverseSort = value;
+      OnPropertyChanged();
+      Reload();
+    }
+  }
+
   public double ChartMinWidth => Labels.Count * 56 + 200;
 
   // Ship class filtering
@@ -119,7 +135,7 @@ public abstract class StatsShipsWaresBaseModel : INotifyPropertyChanged
   protected void Reload()
   {
     var rows = LoadData();
-    // Sort ships by total profit desc
+    // Select
     var shipOrder = rows.GroupBy(r => (r.ShipId, r.ShipName))
       .Select(g => new
       {
@@ -127,11 +143,13 @@ public abstract class StatsShipsWaresBaseModel : INotifyPropertyChanged
         g.Key.ShipName,
         TotalProfit = g.Sum(x => x.Profit),
       })
-      .OrderByDescending(x => x.TotalProfit)
       .ToList();
 
+    // Sort by total profit
+    var ordered = _reverseSort ? shipOrder.OrderBy(x => x.TotalProfit) : shipOrder.OrderByDescending(x => x.TotalProfit);
+
     // Apply TopN filter
-    var topShips = shipOrder.Take((int)TopN).Select(x => x.ShipName).ToList();
+    var topShips = ordered.Take((int)TopN).Select(x => x.ShipName).ToList();
 
     // Filter rows to only those ships
     rows = rows.Where(r => topShips.Contains(r.ShipName))
