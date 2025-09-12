@@ -132,7 +132,7 @@
                         IsReadOnly="True"
                         Margin="8">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Time" SortMemberPath="Time" Width="90">
+                  <DataGridTemplateColumn Header="Time" SortMemberPath="RawTime" Width="90">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Time}" Classes="RightAlignedPadded"/>
@@ -588,7 +588,7 @@
                         IsReadOnly="True"
                         Margin="8">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Time" SortMemberPath="Time" Width="90">
+                  <DataGridTemplateColumn Header="Time" SortMemberPath="EndTime" Width="90">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Time}" Classes="RightAlignedPadded"/>
@@ -644,7 +644,7 @@
                         IsReadOnly="True"
                         Margin="8">
                 <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Time" SortMemberPath="Time" Width="90">
+                <DataGridTemplateColumn Header="Time" SortMemberPath="TimeRaw" Width="90">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                       <TextBlock Text="{Binding Time}" Classes="RightAlignedPadded"/>
