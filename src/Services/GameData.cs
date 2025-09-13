@@ -2575,18 +2575,21 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
     Dictionary<long, string> zonesToSectors = new();
     List<SuperHighway> superhighwayBuffer = new();
     Dictionary<long, HighWayGate> gatesBuffer = new();
+    List<Subordinate> subordinateBuffer = new();
+    List<(long id, int groupId, string name)> commanderGroupsBuffer = new();
+    Dictionary<long, int> subordinateIdToGroupId = new();
 
-    bool ProcessStationOrShip(string owner, string componentClass)
+    long ProcessStationOrShip(string owner, string componentClass)
     {
       long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
       if (id <= 0)
       {
-        return true;
+        return 0;
       }
       string type = componentClass == "station" ? "station" : "ship";
       if (type == "ship" && owner != "player")
       {
-        return true;
+        return 0;
       }
       string name = xr.GetAttribute("name") ?? "";
       if (string.IsNullOrWhiteSpace(name))
@@ -2596,7 +2599,7 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
       string code = xr.GetAttribute("code") ?? "";
       if (string.IsNullOrWhiteSpace(code))
       {
-        return true;
+        return 0;
       }
       string nameIndex = _nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
       string macro = "";
@@ -2660,9 +2663,126 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
       }
       if (!detectNameViaProduction && owner != "player")
       {
-        return true;
+        return 0;
       }
-      return false;
+      return id;
+    }
+
+    void ProcessSubordinates(long currentId)
+    {
+      int subordinateGroup = 0;
+      if (xr.Name == "subordinates")
+      {
+        int depthSub = xr.Depth;
+        while (xr.Read())
+        {
+          if (xr.NodeType == XmlNodeType.Element && xr.Name == "group")
+          {
+            int groupIdx = ParseInt(xr.GetAttribute("index") ?? string.Empty);
+            string groupName = xr.GetAttribute("assignmment") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(groupName))
+            {
+              groupName = xr.GetAttribute("assignment") ?? string.Empty;
+            }
+            commanderGroupsBuffer.Add((currentId, groupIdx, groupName));
+          }
+          else if (
+            xr.NodeType == XmlNodeType.EndElement
+            && string.Equals(xr.Name, "subordinates", StringComparison.Ordinal)
+            && xr.Depth == depthSub
+          )
+          {
+            break;
+          }
+        }
+        return;
+      }
+      if (xr.Name == "subordinate")
+      {
+        subordinateGroup = ParseInt(xr.GetAttribute("group") ?? string.Empty);
+        if (subordinateGroup <= 0)
+        {
+          return;
+        }
+        subordinateIdToGroupId[currentId] = subordinateGroup;
+        return;
+      }
+      if (xr.Name == "connection")
+      {
+        if (xr.GetAttribute("connection") == "subordinates")
+        {
+          long subordinateConnectionId = ParseId(xr.GetAttribute("id") ?? string.Empty);
+          if (subordinateConnectionId <= 0)
+          {
+            return;
+          }
+          var subordinate = subordinateBuffer.FirstOrDefault(s =>
+            s.CommanderConnectionId == subordinateConnectionId && s.SubordinateId > 0
+          );
+          if (subordinate != null)
+          {
+            subordinate.CommanderId = currentId;
+            int subordinateGroupId = subordinateIdToGroupId[subordinate.SubordinateId];
+            subordinate.Group =
+              commanderGroupsBuffer.FirstOrDefault(g => g.id == currentId && g.groupId == subordinateGroupId).name ?? string.Empty;
+            return;
+          }
+          subordinateBuffer.Add(
+            new Subordinate
+            {
+              CommanderId = currentId,
+              CommanderConnectionId = subordinateConnectionId,
+              SubordinateId = 0,
+              Group = string.Empty,
+            }
+          );
+        }
+        if (xr.GetAttribute("connection") == "commander")
+        {
+          int depthConn = xr.Depth;
+          while (xr.Read())
+          {
+            if (xr.NodeType == XmlNodeType.Element && xr.Name == "connected")
+            {
+              long commanderConnectionId = ParseId(xr.GetAttribute("connection") ?? string.Empty);
+              if (commanderConnectionId <= 0)
+              {
+                continue;
+              }
+              var commander = subordinateBuffer.FirstOrDefault(s => s.CommanderId > 0 && s.CommanderConnectionId == commanderConnectionId);
+              if (commander != null)
+              {
+                commander.SubordinateId = currentId;
+
+                int subordinateGroupId = subordinateIdToGroupId[currentId];
+                commander.Group =
+                  commanderGroupsBuffer.FirstOrDefault(g => g.id == commander.CommanderId && g.groupId == subordinateGroupId).name
+                  ?? string.Empty;
+                continue;
+              }
+              subordinateBuffer.Add(
+                new Subordinate
+                {
+                  CommanderId = 0,
+                  CommanderConnectionId = commanderConnectionId,
+                  SubordinateId = currentId,
+                  Group = string.Empty,
+                }
+              );
+              continue;
+            }
+            else if (
+              xr.NodeType == XmlNodeType.EndElement
+              && string.Equals(xr.Name, "connection", StringComparison.Ordinal)
+              && xr.Depth == depthConn
+            )
+            {
+              break;
+            }
+          }
+        }
+        return;
+      }
     }
 
     while (xr.Read())
@@ -2996,7 +3116,8 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
           try
           {
             string owner = xr.GetAttribute("owner") ?? "";
-            if (ProcessStationOrShip(owner, componentClass))
+            long currentId = ProcessStationOrShip(owner, componentClass);
+            if (currentId == 0)
             {
               // skip further processing for this component
               continue;
@@ -3083,13 +3204,34 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
                     continue;
                   }
                   // process docked ship
-                  if (ProcessStationOrShip(shipOwner, currentClass))
+                  long shipId = ProcessStationOrShip(shipOwner, currentClass);
+                  if (shipId == 0)
                   {
                     // skip further processing for this component
                     continue;
                   }
+                  int depthShip = xr.Depth;
+                  while (xr.Read())
+                  {
+                    if (xr.NodeType == XmlNodeType.Element)
+                    {
+                      ProcessSubordinates(shipId);
+                    }
+                    else if (
+                      xr.NodeType == XmlNodeType.EndElement
+                      && string.Equals(xr.Name, "component", StringComparison.Ordinal)
+                      && xr.Depth == depthShip
+                    )
+                    {
+                      break;
+                    }
+                  }
                 }
-                continue;
+                if (owner != "player")
+                {
+                  continue;
+                }
+                ProcessSubordinates(currentId);
               }
               else if (
                 xr.NodeType == XmlNodeType.EndElement
