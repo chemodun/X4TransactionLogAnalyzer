@@ -666,6 +666,13 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Dist." SortMemberPath="Distance" Width="90">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Distance, StringFormat=N0}" Classes="RightAlignedPadded" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Sector" SortMemberPath="Sector" Width="140">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>

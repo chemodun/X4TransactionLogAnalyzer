@@ -50,12 +50,14 @@ namespace X4PlayerShipTradeAnalyzer.Models
             var purchasesNew = new List<TradeLeg>();
             trade.BoughtQuantity = 0;
             trade.TotalBuyCost = 0m;
+            trade.Distance = 0;
             while (boughtIndex >= 0 && trade.BoughtQuantity != trade.SoldQuantity)
             {
               var leg = purchases[boughtIndex];
               purchasesNew.Insert(0, leg);
               trade.BoughtQuantity += leg.Volume;
               trade.TotalBuyCost += leg.Volume * leg.Price;
+              trade.Distance += leg.Distance;
               boughtIndex--;
             }
             if (trade.BoughtQuantity != trade.SoldQuantity)
@@ -144,6 +146,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
                   StationCode = stationCode,
                   StationOwner = stationOwner,
                   StationName = stationName,
+                  Distance = trans.Distance,
                   Volume = volume,
                   Price = price,
                   Time = time,
@@ -167,14 +170,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
             trade.EndTime = time;
             trade.BoughtQuantity += volume;
             trade.TotalBuyCost += price * volume;
-            if (trade.Distance >= 0 && trans.Distance >= 0)
-            {
-              trade.Distance += trans.Distance;
-            }
-            else
-            {
-              trade.Distance = -1;
-            }
+            trade.Distance += trans.Distance;
             if (volume > 0)
             {
               purchases.Add(
@@ -183,6 +179,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
                   StationCode = stationCode,
                   StationOwner = stationOwner,
                   StationName = stationName,
+                  Distance = trans.Distance,
                   Volume = volume,
                   Price = price,
                   Time = time,
@@ -204,20 +201,14 @@ namespace X4PlayerShipTradeAnalyzer.Models
               trade.EndTime = time;
               trade.SoldQuantity += soldNow;
               trade.TotalRevenue += price * soldNow;
-              if (trade.Distance >= 0 && trans.Distance >= 0)
-              {
-                trade.Distance += trans.Distance;
-              }
-              else
-              {
-                trade.Distance = -1;
-              }
+              trade.Distance += trans.Distance;
               sales.Add(
                 new TradeLeg
                 {
                   StationCode = stationCode,
                   StationOwner = stationOwner,
                   StationName = stationName,
+                  Distance = trans.Distance,
                   Volume = soldNow,
                   Price = price,
                   Time = time,
@@ -271,6 +262,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
 
     // Sector human-readable name where the counterpart is located (if resolved)
     public string Sector { get; init; } = string.Empty;
+    public int Distance { get; init; }
     public long Volume { get; init; }
     public decimal Price { get; init; }
     public int Time { get; init; }
@@ -283,6 +275,7 @@ namespace X4PlayerShipTradeAnalyzer.Models
     public string Operation { get; init; } = string.Empty; // buy/sell
     public string Station { get; init; } = string.Empty;
     public string Sector { get; init; } = string.Empty;
+    public int Distance { get; init; }
     public decimal Price { get; init; }
     public long Volume { get; init; }
   }

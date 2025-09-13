@@ -191,6 +191,7 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
           Operation = "buy",
           Station = string.IsNullOrWhiteSpace(p.StationName) ? p.StationCode : p.StationName,
           Sector = p.Sector,
+          Distance = p.Distance,
           Price = p.Price,
           Volume = p.Volume,
         }
@@ -205,6 +206,7 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
           Time = Services.TimeFormatter.FormatHms(s.Time, groupHours: true),
           Operation = "sell",
           Station = string.IsNullOrWhiteSpace(s.StationName) ? s.StationCode : s.StationName,
+          Distance = s.Distance,
           Sector = s.Sector,
           Price = s.Price,
           Volume = s.Volume,
