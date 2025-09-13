@@ -264,7 +264,7 @@ public sealed class GameData
   private int _shipStoragesProcessed;
   private int _processedFiles;
   private int _clusterSectorNamesProcessed;
-  private long _dbSchemaVersion = 4;
+  private long _dbSchemaVersion = 5;
 
   public GameData()
   {
@@ -368,6 +368,16 @@ CREATE TABLE component (
 CREATE INDEX idx_component_type           ON component(type);
 CREATE INDEX idx_component_type_owner     ON component(type, owner);
 CREATE INDEX idx_component_type_owner_id  ON component (type, owner, id);
+-- Table subordinate
+CREATE TABLE subordinate (
+    id         INTEGER PRIMARY KEY,
+    parent_id  INTEGER NOT NULL,
+    child_id   INTEGER NOT NULL,
+    group      TEXT NOT NULL
+);
+CREATE INDEX idx_subordinate_parent_id   ON subordinate(parent_id);
+CREATE INDEX idx_subordinate_child_id    ON subordinate(child_id);
+CREATE INDEX idx_subordinate_group       ON subordinate(group);
 -- Table trade
 CREATE TABLE trade (
     id         INTEGER PRIMARY KEY,
@@ -1122,6 +1132,40 @@ ORDER BY full_name, time;
           }
           // Future updates here
           currentVersion = 4;
+        }
+        if (currentVersion == 3)
+        {
+          clearData = true;
+          ReOpenConnection();
+          // using (var deleteCmd = _conn.CreateCommand())
+          // {
+          //   deleteCmd.CommandText = @"DROP VIEW IF EXISTS player_ships_transactions_log;";
+          //   deleteCmd.ExecuteNonQuery();
+          // }
+          // using (var vacuumCmd = _conn.CreateCommand())
+          // {
+          //   vacuumCmd.CommandText = "VACUUM;";
+          //   vacuumCmd.ExecuteNonQuery();
+          // }
+          using (var cmd = _conn.CreateCommand())
+          {
+            cmd.CommandText =
+              @"
+-- Table subordinate
+CREATE TABLE subordinate (
+    id         INTEGER PRIMARY KEY,
+    parent_id  INTEGER NOT NULL,
+    child_id   INTEGER NOT NULL,
+    group      TEXT NOT NULL
+);
+CREATE INDEX idx_subordinate_parent_id   ON subordinate(parent_id);
+CREATE INDEX idx_subordinate_child_id    ON subordinate(child_id);
+CREATE INDEX idx_subordinate_group       ON subordinate(group);
+";
+            cmd.ExecuteNonQuery();
+          }
+          // Future updates here
+          currentVersion = 5;
         }
       }
       catch (Exception ex)
@@ -2403,6 +2447,16 @@ ORDER BY full_name, time;
       if (reader.Read())
       {
         using var deleteCmd = new SQLiteCommand("DELETE FROM superhighway;", _conn);
+        deleteCmd.ExecuteNonQuery();
+      }
+    }
+    using (var checkCmd = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='subordinate';", _conn))
+    {
+      using var reader = checkCmd.ExecuteReader();
+
+      if (reader.Read())
+      {
+        using var deleteCmd = new SQLiteCommand("DELETE FROM subordinate;", _conn);
         deleteCmd.ExecuteNonQuery();
       }
     }
