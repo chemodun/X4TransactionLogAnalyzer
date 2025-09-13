@@ -2576,6 +2576,95 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
     List<SuperHighway> superhighwayBuffer = new();
     Dictionary<long, HighWayGate> gatesBuffer = new();
 
+    bool ProcessStationOrShip(string owner, string componentClass)
+    {
+      long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
+      if (id <= 0)
+      {
+        return true;
+      }
+      string type = componentClass == "station" ? "station" : "ship";
+      if (type == "ship" && owner != "player")
+      {
+        return true;
+      }
+      string name = xr.GetAttribute("name") ?? "";
+      if (string.IsNullOrWhiteSpace(name))
+      {
+        name = xr.GetAttribute("basename") ?? "";
+      }
+      string code = xr.GetAttribute("code") ?? "";
+      if (string.IsNullOrWhiteSpace(code))
+      {
+        return true;
+      }
+      string nameIndex = _nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
+      string macro = "";
+      if (componentClass == "station")
+      {
+        if (string.IsNullOrEmpty(name))
+        {
+          currentStation = new GameComponent
+          {
+            Id = id,
+            Type = type,
+            ComponentClass = componentClass,
+            Macro = macro,
+            Owner = owner,
+            Sector = currentSector,
+            NameIndex = nameIndex,
+            Code = code,
+          };
+          detectNameViaProduction = true;
+          // continue;
+        }
+        else
+        {
+          detectNameViaProduction = false;
+        }
+        stationsProcessed++;
+        if (stationsProcessed % 50 == 0)
+        {
+          progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
+        }
+      }
+      else
+      {
+        shipsProcessed++;
+        if (shipsProcessed % 50 == 0)
+        {
+          progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
+        }
+        macro = xr.GetAttribute("macro") ?? string.Empty;
+        if (string.IsNullOrEmpty(name))
+        {
+          if (!string.IsNullOrEmpty(macro))
+          {
+            name = wareComponentNames.TryGetValue(macro.ToLowerInvariant(), out var n) ? n : string.Empty;
+          }
+        }
+      }
+      if (!detectNameViaProduction)
+      {
+        insertComp.Parameters["@id"].Value = id;
+        insertComp.Parameters["@type"].Value = type;
+        insertComp.Parameters["@class"].Value = componentClass;
+        insertComp.Parameters["@macro"].Value = macro;
+        insertComp.Parameters["@sector"].Value = currentSector;
+        insertComp.Parameters["@owner"].Value = owner;
+        insertComp.Parameters["@code"].Value = code;
+        insertComp.Parameters["@nameindex"].Value = nameIndex;
+        insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
+        insertComp.ExecuteNonQuery();
+        itemsForTransaction++;
+      }
+      if (!detectNameViaProduction && owner != "player")
+      {
+        return true;
+      }
+      return false;
+    }
+
     while (xr.Read())
     {
       if (xr.NodeType != XmlNodeType.Element && xr.NodeType != XmlNodeType.EndElement)
@@ -2906,86 +2995,10 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
           }
           try
           {
-            long id = ParseId(xr.GetAttribute("id") ?? string.Empty);
-            if (id <= 0)
-            {
-              continue;
-            }
-            string type = componentClass == "station" ? "station" : "ship";
             string owner = xr.GetAttribute("owner") ?? "";
-            if (type == "ship" && owner != "player")
+            if (ProcessStationOrShip(owner, componentClass))
             {
-              continue;
-            }
-            string name = xr.GetAttribute("name") ?? "";
-            if (string.IsNullOrWhiteSpace(name))
-            {
-              name = xr.GetAttribute("basename") ?? "";
-            }
-            string code = xr.GetAttribute("code") ?? "";
-            if (string.IsNullOrWhiteSpace(code))
-            {
-              continue;
-            }
-            string nameIndex = _nameIndex[int.Parse(xr.GetAttribute("nameindex") ?? "0")] ?? "";
-            string macro = "";
-            if (componentClass == "station")
-            {
-              if (string.IsNullOrEmpty(name))
-              {
-                currentStation = new GameComponent
-                {
-                  Id = id,
-                  Type = type,
-                  ComponentClass = componentClass,
-                  Macro = macro,
-                  Owner = owner,
-                  Sector = currentSector,
-                  NameIndex = nameIndex,
-                  Code = code,
-                };
-                detectNameViaProduction = true;
-                // continue;
-              }
-              else
-              {
-                detectNameViaProduction = false;
-              }
-              stationsProcessed++;
-              if (stationsProcessed % 50 == 0)
-              {
-                progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
-              }
-            }
-            else
-            {
-              shipsProcessed++;
-              if (shipsProcessed % 50 == 0)
-              {
-                progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
-              }
-              macro = xr.GetAttribute("macro") ?? string.Empty;
-              if (string.IsNullOrEmpty(name))
-              {
-                if (!string.IsNullOrEmpty(macro))
-                {
-                  name = wareComponentNames.TryGetValue(macro.ToLowerInvariant(), out var n) ? n : string.Empty;
-                }
-              }
-            }
-            if (!detectNameViaProduction)
-            {
-              insertComp.Parameters["@id"].Value = id;
-              insertComp.Parameters["@type"].Value = type;
-              insertComp.Parameters["@class"].Value = componentClass;
-              insertComp.Parameters["@macro"].Value = macro;
-              insertComp.Parameters["@sector"].Value = currentSector;
-              insertComp.Parameters["@owner"].Value = owner;
-              insertComp.Parameters["@code"].Value = code;
-              insertComp.Parameters["@nameindex"].Value = nameIndex;
-              insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
-              insertComp.ExecuteNonQuery();
-              itemsForTransaction++;
+              // skip further processing for this component
               continue;
             }
             int depth = xr.Depth;
@@ -3007,7 +3020,8 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
                     continue;
                   }
                 }
-                if (detectNameViaProduction && xr.Name == "component" && xr.GetAttribute("class") == "production" && currentStation != null)
+                string currentClass = xr.GetAttribute("class") ?? string.Empty;
+                if (detectNameViaProduction && xr.Name == "component" && currentClass == "production" && currentStation != null)
                 {
                   // Use production macro to detect station name
                   string productionMacro = xr.GetAttribute("macro") ?? string.Empty;
@@ -3059,6 +3073,21 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
                     currentStation = null;
                   }
                   break;
+                }
+
+                if (xr.Name == "component" && currentClass.StartsWith("ship_", StringComparison.Ordinal))
+                {
+                  string shipOwner = xr.GetAttribute("owner") ?? "";
+                  if (shipOwner != "player")
+                  {
+                    continue;
+                  }
+                  // process docked ship
+                  if (ProcessStationOrShip(shipOwner, currentClass))
+                  {
+                    // skip further processing for this component
+                    continue;
+                  }
                 }
                 continue;
               }
