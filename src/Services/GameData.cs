@@ -2613,50 +2613,6 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
         }
         if (!connectionsProcessed && xr.Name == "component")
         {
-          if (detectNameViaProduction && xr.Name == "component" && xr.GetAttribute("class") == "production" && currentStation != null)
-          {
-            // Use production macro to detect station name
-            string macro = xr.GetAttribute("macro") ?? string.Empty;
-            if (!string.IsNullOrWhiteSpace(macro))
-            {
-              try
-              {
-                var macroParts = macro.Split('_');
-                if (macroParts.Length == 4)
-                {
-                  currentStation.Name = factoryNames.TryGetValue(macroParts[2], out var n) ? n : macro;
-                }
-                else
-                {
-                  currentStation.Name = macro;
-                }
-                // Insert the station now
-                insertComp.Parameters["@id"].Value = currentStation.Id;
-                insertComp.Parameters["@type"].Value = currentStation.Type;
-                insertComp.Parameters["@class"].Value = currentStation.ComponentClass;
-                insertComp.Parameters["@macro"].Value = macro;
-                insertComp.Parameters["@sector"].Value = currentStation.Sector;
-                insertComp.Parameters["@owner"].Value = currentStation.Owner;
-                insertComp.Parameters["@code"].Value = currentStation.Code;
-                insertComp.Parameters["@nameindex"].Value = currentStation.NameIndex;
-                insertComp.Parameters["@name"].Value = currentStation.Name;
-                insertComp.ExecuteNonQuery();
-                itemsForTransaction++;
-                stationsProcessed++;
-                if (stationsProcessed % 50 == 0)
-                {
-                  progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
-                }
-              }
-              finally
-              {
-                detectNameViaProduction = false;
-                currentStation = null;
-              }
-            }
-            continue;
-          }
-
           if (xr.GetAttribute("knownto") != "player")
             continue;
 
@@ -2989,7 +2945,7 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
                   Code = code,
                 };
                 detectNameViaProduction = true;
-                continue;
+                // continue;
               }
               else
               {
@@ -3017,18 +2973,106 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
                 }
               }
             }
-
-            insertComp.Parameters["@id"].Value = id;
-            insertComp.Parameters["@type"].Value = type;
-            insertComp.Parameters["@class"].Value = componentClass;
-            insertComp.Parameters["@macro"].Value = macro;
-            insertComp.Parameters["@sector"].Value = currentSector;
-            insertComp.Parameters["@owner"].Value = owner;
-            insertComp.Parameters["@code"].Value = code;
-            insertComp.Parameters["@nameindex"].Value = nameIndex;
-            insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
-            insertComp.ExecuteNonQuery();
-            itemsForTransaction++;
+            if (!detectNameViaProduction)
+            {
+              insertComp.Parameters["@id"].Value = id;
+              insertComp.Parameters["@type"].Value = type;
+              insertComp.Parameters["@class"].Value = componentClass;
+              insertComp.Parameters["@macro"].Value = macro;
+              insertComp.Parameters["@sector"].Value = currentSector;
+              insertComp.Parameters["@owner"].Value = owner;
+              insertComp.Parameters["@code"].Value = code;
+              insertComp.Parameters["@nameindex"].Value = nameIndex;
+              insertComp.Parameters["@name"].Value = GetTextItem(name, ref factoryBaseNames, ref processedPageIds);
+              insertComp.ExecuteNonQuery();
+              itemsForTransaction++;
+              continue;
+            }
+            int depth = xr.Depth;
+            bool stationNameSet = false;
+            while (xr.Read())
+            {
+              if (xr.NodeType == XmlNodeType.Element)
+              {
+                if (detectNameViaProduction && xr.Name == "production" && currentStation != null)
+                {
+                  string product = xr.GetAttribute("originalproduct") ?? string.Empty;
+                  if (!string.IsNullOrWhiteSpace(product))
+                  {
+                    currentStation.Name = factoryNames.TryGetValue(product, out var n) ? n : product;
+                    stationNameSet = true;
+                  }
+                  else
+                  {
+                    continue;
+                  }
+                }
+                if (detectNameViaProduction && xr.Name == "component" && xr.GetAttribute("class") == "production" && currentStation != null)
+                {
+                  // Use production macro to detect station name
+                  string productionMacro = xr.GetAttribute("macro") ?? string.Empty;
+                  if (!string.IsNullOrWhiteSpace(productionMacro))
+                  {
+                    var macroParts = productionMacro.Split('_');
+                    if (macroParts.Length == 4)
+                    {
+                      currentStation.Name = factoryNames.TryGetValue(macroParts[2], out var n) ? n : productionMacro;
+                    }
+                    else
+                    {
+                      currentStation.Name = productionMacro;
+                    }
+                    currentStation.Macro = productionMacro;
+                    stationNameSet = true;
+                  }
+                  else
+                  {
+                    continue;
+                  }
+                }
+                if (detectNameViaProduction && stationNameSet && currentStation != null)
+                {
+                  try
+                  {
+                    // Insert the station now
+                    insertComp.Parameters["@id"].Value = currentStation.Id;
+                    insertComp.Parameters["@type"].Value = currentStation.Type;
+                    insertComp.Parameters["@class"].Value = currentStation.ComponentClass;
+                    insertComp.Parameters["@macro"].Value = currentStation.Macro;
+                    insertComp.Parameters["@sector"].Value = currentStation.Sector;
+                    insertComp.Parameters["@owner"].Value = currentStation.Owner;
+                    insertComp.Parameters["@code"].Value = currentStation.Code;
+                    insertComp.Parameters["@nameindex"].Value = currentStation.NameIndex;
+                    insertComp.Parameters["@name"].Value = currentStation.Name;
+                    insertComp.ExecuteNonQuery();
+                    itemsForTransaction++;
+                    stationsProcessed++;
+                    if (stationsProcessed % 50 == 0)
+                    {
+                      progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
+                    }
+                  }
+                  finally
+                  {
+                    detectNameViaProduction = false;
+                    stationNameSet = false;
+                    currentStation = null;
+                  }
+                  break;
+                }
+                continue;
+              }
+              else if (
+                xr.NodeType == XmlNodeType.EndElement
+                && string.Equals(xr.Name, "component", StringComparison.Ordinal)
+                && xr.Depth == depth
+              )
+              {
+                break;
+              }
+            }
+            detectNameViaProduction = false;
+            currentStation = null;
           }
           catch
           {
@@ -3174,39 +3218,6 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
           catch
           {
             // skip malformed trade entries
-          }
-          continue;
-        }
-        if (detectNameViaProduction && xr.Name == "production" && currentStation != null)
-        {
-          string product = xr.GetAttribute("originalproduct") ?? string.Empty;
-          if (!string.IsNullOrWhiteSpace(product))
-          {
-            try
-            {
-              insertComp.Parameters["@id"].Value = currentStation.Id;
-              insertComp.Parameters["@type"].Value = currentStation.Type;
-              insertComp.Parameters["@class"].Value = currentStation.ComponentClass;
-              insertComp.Parameters["@macro"].Value = currentStation.Macro;
-              insertComp.Parameters["@sector"].Value = currentStation.Sector;
-              insertComp.Parameters["@owner"].Value = currentStation.Owner;
-              insertComp.Parameters["@code"].Value = currentStation.Code;
-              insertComp.Parameters["@nameindex"].Value = currentStation.NameIndex;
-              insertComp.Parameters["@name"].Value = factoryNames.TryGetValue(product, out var n) ? n : product;
-              insertComp.ExecuteNonQuery();
-              itemsForTransaction++;
-              stationsProcessed++;
-              detectNameViaProduction = false;
-              currentStation = null;
-            }
-            catch
-            {
-              // skip malformed production entries
-            }
-            finally
-            {
-              detectNameViaProduction = false;
-            }
           }
           continue;
         }
