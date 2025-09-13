@@ -1903,25 +1903,6 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
     txn.Commit();
   }
 
-  private static int? TryReadLanguageAttribute(string filePath)
-  {
-    try
-    {
-      using var fs = File.OpenRead(filePath);
-      var settings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
-      using var xr = XmlReader.Create(fs, settings);
-      while (xr.Read())
-      {
-        if (xr.NodeType == XmlNodeType.Element && xr.Name.Equals("language", StringComparison.OrdinalIgnoreCase))
-        {
-          return ParseInt(xr.GetAttribute("id"));
-        }
-      }
-    }
-    catch { }
-    return null;
-  }
-
   private static int ParseInt(string? s)
   {
     return int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : 0;
