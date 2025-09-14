@@ -8,6 +8,7 @@ using Avalonia.Media;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using LiveChartsCore.SkiaSharpView.VisualElements;
 using SkiaSharp;
 using X4PlayerShipTradeAnalyzer.Models;
 
@@ -17,6 +18,7 @@ public abstract class StatsShipsLoadBaseModel : INotifyPropertyChanged
 {
   public ObservableCollection<ISeries> Series { get; } = new();
   public ObservableCollection<LegendItem> Legend { get; } = new();
+  public ObservableCollection<RectangularSection> Sections { get; } = new();
   public ObservableCollection<GraphBucketItem> ShipBucketsList { get; set; } = new();
   public string PressedShipName { get; set; } = string.Empty;
   public string PressedShipTotal
@@ -177,6 +179,7 @@ public abstract class StatsShipsLoadBaseModel : INotifyPropertyChanged
     _shipLabels = shipOrder;
     Series.Clear();
     Legend.Clear();
+    Sections.Clear();
 
     // Precompute per ship total counts
     var totalsByShip = entries.GroupBy(e => e.ShipName).ToDictionary(g => g.Key, g => g.Count());
@@ -244,6 +247,17 @@ public abstract class StatsShipsLoadBaseModel : INotifyPropertyChanged
     if (shipIndex < 0 || shipIndex >= Labels.Count)
       return;
     PressedShipName = Labels[shipIndex];
+    Sections.Clear();
+    Sections.Add(
+      new RectangularSection
+      {
+        Xi = shipIndex - 0.5,
+        Xj = shipIndex + 0.5,
+        // Neutral grey highlight
+        Fill = new SolidColorPaint(new SKColor(128, 128, 128, 60)),
+        Stroke = new SolidColorPaint(new SKColor(96, 96, 96)) { StrokeThickness = 2 },
+      }
+    );
     List<GraphBucketItem> bucketList = new();
     // Iterate series from top so higher buckets appear first similar to other stats sidebars
     for (int i = Series.Count - 1; i >= 0; i--)

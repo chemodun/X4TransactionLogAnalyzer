@@ -281,7 +281,8 @@
             <Border Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" BorderBrush="Gray" BorderThickness="0" Padding="8">
               <lvc:CartesianChart Series="{Binding Series}"
                                   XAxes="{Binding XAxes}"
-                                  YAxes="{Binding YAxes}"/>
+                                  YAxes="{Binding YAxes}"
+                                  Sections="{Binding Sections}"/>
             </Border>
           </Grid>
         </TabItem>
@@ -347,7 +348,7 @@
               <Border Grid.Column="1" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="8">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                   <Border MinWidth="{Binding ChartMinWidth}">
-                    <lvc:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" x:Name="TransactionsShipsLoadChart" TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}" LegendPosition="Hidden"/>
+                    <lvc:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" Sections="{Binding Sections}" x:Name="TransactionsShipsLoadChart" TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}" LegendPosition="Hidden"/>
                   </Border>
                 </ScrollViewer>
               </Border>
@@ -435,6 +436,7 @@
                                         Series="{Binding Series}"
                                         XAxes="{Binding XAxes}"
                                         YAxes="{Binding YAxes}"
+                                        Sections="{Binding Sections}"
                                         x:Name="TransactionsShipsByWaresChart"
                                         TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}"
                                         LegendPosition="Hidden"/>
@@ -519,6 +521,7 @@
                                         Series="{Binding Series}"
                                         XAxes="{Binding XAxes}"
                                         YAxes="{Binding YAxes}"
+                                        Sections="{Binding Sections}"
                                         x:Name="TransactionsWaresByShipsChart"
                                         TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}"
                                         LegendPosition="Hidden"/>
@@ -864,7 +867,7 @@
               <Border Grid.Column="1" Grid.Row="0" BorderBrush="Gray" BorderThickness="0" Padding="8">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                   <Border MinWidth="{Binding ChartMinWidth}">
-                    <lvc:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" x:Name="TradesShipsLoadChart" TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}" LegendPosition="Hidden"/>
+                    <lvc:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" Sections="{Binding Sections}" x:Name="TradesShipsLoadChart" TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}" LegendPosition="Hidden"/>
                   </Border>
                 </ScrollViewer>
               </Border>
@@ -948,6 +951,7 @@
                                         Series="{Binding Series}"
                                         XAxes="{Binding XAxes}"
                                         YAxes="{Binding YAxes}"
+                                        Sections="{Binding Sections}"
                                         x:Name="TradesShipsByWaresChart"
                                         TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}"
                                         LegendPosition="Hidden"/>
@@ -1028,6 +1032,7 @@
                                         Series="{Binding Series}"
                                         XAxes="{Binding XAxes}"
                                         YAxes="{Binding YAxes}"
+                                        Sections="{Binding Sections}"
                                         x:Name="TradesWaresByShipsChart"
                                         TooltipPosition="{Binding ShowToolTip, Converter={StaticResource BoolToChartPos}}"
                                         LegendPosition="Hidden"/>

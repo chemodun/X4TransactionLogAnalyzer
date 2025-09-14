@@ -9,6 +9,7 @@ using Avalonia.Media;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using LiveChartsCore.SkiaSharpView.VisualElements;
 using SkiaSharp;
 using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Utils;
@@ -19,6 +20,9 @@ public abstract class StatsShipsWaresBaseModel : INotifyPropertyChanged
 {
   public ObservableCollection<ISeries> Series { get; } = new();
   public ObservableCollection<LegendItem> Legend { get; } = new();
+
+  // Sections allow us to highlight the last pressed stacked column (ship)
+  public ObservableCollection<RectangularSection> Sections { get; } = new();
   public Axis[] XAxes { get; }
   public Axis[] YAxes { get; }
 
@@ -180,6 +184,7 @@ public abstract class StatsShipsWaresBaseModel : INotifyPropertyChanged
 
     Series.Clear();
     Legend.Clear();
+    Sections.Clear();
     foreach (var (wareId, wareName) in wares)
     {
       var values = new List<double?>(ships.Count);
@@ -224,6 +229,18 @@ public abstract class StatsShipsWaresBaseModel : INotifyPropertyChanged
   {
     if (shipIndex < 0 || shipIndex >= Labels.Count)
       return;
+    // highlight selected bar via section spanning that X index
+    Sections.Clear();
+    Sections.Add(
+      new RectangularSection
+      {
+        Xi = shipIndex - 0.5,
+        Xj = shipIndex + 0.5,
+        // Use a neutral grey highlight (semi-transparent fill, solid stroke)
+        Fill = new SolidColorPaint(new SKColor(128, 128, 128, 60)),
+        Stroke = new SolidColorPaint(new SKColor(96, 96, 96)) { StrokeThickness = 2 },
+      }
+    );
     List<GraphWareItem> wareList = new();
     PressedShipName = Labels[shipIndex];
     for (int i = Series.Count - 1; i >= 0; i--)

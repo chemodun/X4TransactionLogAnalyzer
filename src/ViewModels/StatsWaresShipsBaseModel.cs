@@ -8,6 +8,7 @@ using Avalonia.Media;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using LiveChartsCore.SkiaSharpView.VisualElements;
 using SkiaSharp;
 using X4PlayerShipTradeAnalyzer.Models;
 using X4PlayerShipTradeAnalyzer.Utils;
@@ -18,6 +19,7 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
 {
   public ObservableCollection<ISeries> Series { get; } = new();
   public ObservableCollection<LegendItem> Legend { get; } = new();
+  public ObservableCollection<RectangularSection> Sections { get; } = new();
 
   public Axis[] XAxes { get; }
   public Axis[] YAxes { get; }
@@ -181,6 +183,7 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
 
     Series.Clear();
     Legend.Clear();
+    Sections.Clear();
 
     foreach (var (shipId, shipName) in ships)
     {
@@ -238,6 +241,17 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
       return;
     List<GraphShipItem> shipList = new();
     PressedWareName = Labels[shipIndex];
+    Sections.Clear();
+    Sections.Add(
+      new RectangularSection
+      {
+        Xi = shipIndex - 0.5,
+        Xj = shipIndex + 0.5,
+        // Neutral grey highlight
+        Fill = new SolidColorPaint(new SKColor(128, 128, 128, 60)),
+        Stroke = new SolidColorPaint(new SKColor(96, 96, 96)) { StrokeThickness = 2 },
+      }
+    );
     for (int i = Series.Count - 1; i >= 0; i--)
     {
       var series = Series[i];
