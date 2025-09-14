@@ -92,6 +92,7 @@ public partial class MainWindow : Window
     _configurationTab = this.FindControl<TabItem>("ConfigurationTab");
     _readmeTab = this.FindControl<TabItem>("ReadmeTab");
     this.Opened += (_, __) => LoadReadme();
+    ApplyThemeOnCharts();
   }
 
   private void InitializeComponent()
@@ -100,6 +101,19 @@ public partial class MainWindow : Window
   }
 
   public CartesianChart? FindChart(string name) => this.FindControl<CartesianChart>(name);
+
+  public void ApplyThemeOnCharts()
+  {
+    if (DataContext is MainViewModel vm)
+    {
+      if (_configurationTab == null)
+        return;
+      vm.ApplyThemeOnCharts(
+        _configurationTab.Foreground as Avalonia.Media.SolidColorBrush,
+        _configurationTab.Background as Avalonia.Media.SolidColorBrush
+      );
+    }
+  }
 
   private void MainWindow_Opened(object? sender, System.EventArgs e)
   {

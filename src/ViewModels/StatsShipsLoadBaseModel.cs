@@ -121,7 +121,7 @@ public abstract class StatsShipsLoadBaseModel : INotifyPropertyChanged
   protected List<string> _shipLabels = new();
   public IReadOnlyList<string> Labels => _shipLabels;
 
-  protected StatsShipsLoadBaseModel()
+  protected StatsShipsLoadBaseModel(SKColor? foreground = null, SKColor? background = null)
   {
     XAxes = new[]
     {
@@ -129,8 +129,9 @@ public abstract class StatsShipsLoadBaseModel : INotifyPropertyChanged
       {
         Name = "Ships",
         LabelsRotation = 90,
-        LabelsPaint = new SolidColorPaint(SKColors.Black),
-        SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)) { StrokeThickness = 1 },
+        NamePaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        LabelsPaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        SeparatorsPaint = new SolidColorPaint(background ?? SKColors.White) { StrokeThickness = 1 },
       },
     };
     YAxes = new[]
@@ -141,7 +142,9 @@ public abstract class StatsShipsLoadBaseModel : INotifyPropertyChanged
         Labeler = v => v.ToString("N2"),
         MinLimit = 0,
         MaxLimit = 100,
-        SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)) { StrokeThickness = 1 },
+        NamePaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        LabelsPaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        SeparatorsPaint = new SolidColorPaint(background ?? SKColors.White) { StrokeThickness = 1 },
       },
     };
     Reload();

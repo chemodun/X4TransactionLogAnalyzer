@@ -74,7 +74,7 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
     }
   }
 
-  public ShipsGraphsBaseModel()
+  public ShipsGraphsBaseModel(SKColor? foreground = null, SKColor? background = null)
   {
     XAxes = new[]
     {
@@ -83,7 +83,9 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
         Name = "Time",
         Labeler = value => FormatTimeLabel(value),
         LabelsRotation = 0,
-        SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)) { StrokeThickness = 1 },
+        NamePaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        LabelsPaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        SeparatorsPaint = new SolidColorPaint(background ?? SKColors.White) { StrokeThickness = 1 },
       },
     };
     YAxes = new[]
@@ -92,7 +94,9 @@ public abstract class ShipsGraphsBaseModel : INotifyPropertyChanged
       {
         Name = "Cumulative Profit",
         Labeler = value => value.ToString("N2"),
-        SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)) { StrokeThickness = 1 },
+        NamePaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        LabelsPaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        SeparatorsPaint = new SolidColorPaint(background ?? SKColors.White) { StrokeThickness = 1 },
       },
     };
 

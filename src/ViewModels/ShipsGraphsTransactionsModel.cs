@@ -36,8 +36,8 @@ public class ShipsGraphTransactionsModel : ShipsGraphsBaseModel
 #pragma warning restore CA1822
 
 
-  public ShipsGraphTransactionsModel()
-    : base() { }
+  public ShipsGraphTransactionsModel(SkiaSharp.SKColor? foreground = null, SkiaSharp.SKColor? background = null)
+    : base(foreground, background) { }
 
   protected override void LoadShips()
   {

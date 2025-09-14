@@ -21,8 +21,8 @@ public sealed class StatsWaresShipsTradesModel : StatsWaresShipsBaseModel
     }
   }
 
-  public StatsWaresShipsTradesModel()
-    : base() { }
+  public StatsWaresShipsTradesModel(SkiaSharp.SKColor? foreground = null, SkiaSharp.SKColor? background = null)
+    : base(foreground, background) { }
 
   protected override List<(long ShipId, string ShipName, string WareId, string WareName, double Profit)> LoadData()
   {

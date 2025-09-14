@@ -21,6 +21,9 @@ public sealed class StatsShipsLoadTransactionsModel : StatsShipsLoadBaseModel
     }
   }
 
+  public StatsShipsLoadTransactionsModel(SkiaSharp.SKColor? foreground = null, SkiaSharp.SKColor? background = null)
+    : base(foreground, background) { }
+
   protected override IEnumerable<(long ShipId, string ShipName, int BucketIndex)> LoadEntries()
   {
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;

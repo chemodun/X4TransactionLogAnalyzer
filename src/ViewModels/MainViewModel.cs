@@ -150,15 +150,33 @@ public sealed class MainViewModel : INotifyPropertyChanged
     LoadData();
     TransactionsData = new ShipsDataTransactionsModel();
     TransactionsGraphs = new ShipsGraphTransactionsModel();
-    TransactionsStatsShipsWares = new StatsShipsWaresTransactionsModel();
     TransactionsStatsShipsLoad = new StatsShipsLoadTransactionsModel();
+    TransactionsStatsShipsWares = new StatsShipsWaresTransactionsModel();
     TransactionsStatsWaresShips = new StatsWaresShipsTransactionsModel();
     TradesData = new ShipsDataTradesModel();
     TradesGraphs = new ShipsGraphTradesModel();
-    TradesStatsShipsWares = new StatsShipsWaresTradesModel();
     TradesStatsShipsLoad = new StatsShipsLoadTradesModel();
+    TradesStatsShipsWares = new StatsShipsWaresTradesModel();
     TradesStatsWaresShips = new StatsWaresShipsTradesModel();
     Configuration = new ConfigurationViewModel();
+  }
+
+  public void ApplyThemeOnCharts(Avalonia.Media.SolidColorBrush? foreground, Avalonia.Media.SolidColorBrush? background)
+  {
+    var colorForeground = SKColors.Black; // default
+    if (foreground is Avalonia.Media.SolidColorBrush scbForeground)
+      colorForeground = new SKColor(scbForeground.Color.R, scbForeground.Color.G, scbForeground.Color.B, scbForeground.Color.A);
+    var colorBackground = SKColors.White; // default
+    if (background is Avalonia.Media.SolidColorBrush scbBackground)
+      colorBackground = new SKColor(scbBackground.Color.R, scbBackground.Color.G, scbBackground.Color.B, scbBackground.Color.A);
+    TransactionsGraphs = new ShipsGraphTransactionsModel(colorForeground, colorBackground);
+    TransactionsStatsShipsLoad = new StatsShipsLoadTransactionsModel(colorForeground, colorBackground);
+    TransactionsStatsShipsWares = new StatsShipsWaresTransactionsModel(colorForeground, colorBackground);
+    TransactionsStatsWaresShips = new StatsWaresShipsTransactionsModel(colorForeground, colorBackground);
+    TradesGraphs = new ShipsGraphTradesModel(colorForeground, colorBackground);
+    TradesStatsShipsLoad = new StatsShipsLoadTradesModel(colorForeground, colorBackground);
+    TradesStatsShipsWares = new StatsShipsWaresTradesModel(colorForeground, colorBackground);
+    TradesStatsWaresShips = new StatsWaresShipsTradesModel(colorForeground, colorBackground);
   }
 
   public static void LoadData()

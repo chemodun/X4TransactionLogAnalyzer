@@ -411,6 +411,7 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
       {
         // Ensure on UI thread
         Dispatcher.UIThread.Post(win.LoadReadme);
+        Dispatcher.UIThread.Post(win.ApplyThemeOnCharts);
       }
     }
     catch { }

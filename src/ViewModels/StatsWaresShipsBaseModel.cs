@@ -120,15 +120,16 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
   public IEnumerable<string> ShipClassOptions => ShipClassFilterUtil.GetShipClassOptions();
 #pragma warning restore CA1822
 
-  protected StatsWaresShipsBaseModel()
+  protected StatsWaresShipsBaseModel(SKColor? foreground = null, SKColor? background = null)
   {
     XAxes = new[]
     {
       new Axis
       {
         Name = "Wares",
-        LabelsPaint = new SolidColorPaint(SKColors.Black),
-        SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)) { StrokeThickness = 1 },
+        NamePaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        LabelsPaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        SeparatorsPaint = new SolidColorPaint(background ?? SKColors.White) { StrokeThickness = 1 },
         LabelsRotation = 90,
       },
     };
@@ -139,7 +140,9 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
       {
         Name = "Total Profit",
         Labeler = v => v.ToString("N2"),
-        SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)) { StrokeThickness = 1 },
+        NamePaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        LabelsPaint = new SolidColorPaint(foreground ?? SKColors.Black), // or any color you want
+        SeparatorsPaint = new SolidColorPaint(background ?? SKColors.White) { StrokeThickness = 1 },
       },
     };
 

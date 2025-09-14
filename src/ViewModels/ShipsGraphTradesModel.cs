@@ -56,8 +56,8 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
     OnPropertyChanged(nameof(ShipList));
   }
 
-  public ShipsGraphTradesModel()
-    : base() { }
+  public ShipsGraphTradesModel(SkiaSharp.SKColor? foreground = null, SkiaSharp.SKColor? background = null)
+    : base(foreground, background) { }
 
   protected override void LoadShips()
   {
