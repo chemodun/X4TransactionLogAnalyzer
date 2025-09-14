@@ -88,11 +88,14 @@
         <TextBlock Grid.Row="10" Grid.Column="0" x:Name="LblShipsProcessed" Text="Ships processed:"/>
         <TextBlock Grid.Row="10" Grid.Column="2" x:Name="ShipsProcessed"/>
 
-        <TextBlock Grid.Row="12" Grid.Column="0" x:Name="LblRemovedProcessed" Text="Removed processed:"/>
-        <TextBlock Grid.Row="12" Grid.Column="2" x:Name="RemovedProcessed"/>
+        <TextBlock Grid.Row="12" Grid.Column="0" x:Name="LblSubordinatesProcessed" Text="Subordinate connections processed:"/>
+        <TextBlock Grid.Row="12" Grid.Column="2" x:Name="SubordinatesProcessed"/>
 
-        <TextBlock Grid.Row="14" Grid.Column="0" x:Name="LblTradesProcessed" Text="Trades processed:"/>
-        <TextBlock Grid.Row="14" Grid.Column="2" x:Name="TradesProcessed"/>
+        <TextBlock Grid.Row="14" Grid.Column="0" x:Name="LblRemovedProcessed" Text="Removed processed:"/>
+        <TextBlock Grid.Row="14" Grid.Column="2" x:Name="RemovedProcessed"/>
+
+        <TextBlock Grid.Row="16" Grid.Column="0" x:Name="LblTradesProcessed" Text="Trades processed:"/>
+        <TextBlock Grid.Row="16" Grid.Column="2" x:Name="TradesProcessed"/>
     </Grid>
 
     <!-- Bottom delimiter -->

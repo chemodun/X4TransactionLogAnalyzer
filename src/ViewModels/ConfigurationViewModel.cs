@@ -211,6 +211,20 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
     }
   }
 
+  private int _subordinateCount;
+  public int SubordinateCount
+  {
+    get => _subordinateCount;
+    private set
+    {
+      if (_subordinateCount != value)
+      {
+        _subordinateCount = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
   private int _clusterSectorNamesCount;
   public int ClusterSectorNamesCount
   {
@@ -354,6 +368,7 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
       RemovedObjectCount = gameData.Stats.RemovedObjectCount;
       TradesCount = gameData.Stats.TradesCount;
       GatesCount = gameData.Stats.GatesCount;
+      SubordinateCount = gameData.Stats.SubordinateCount;
       FactionsCount = gameData.Stats.FactionsCount;
       ClusterSectorNamesCount = gameData.Stats.ClusterSectorNamesCount;
       StoragesCount = gameData.Stats.StoragesCount;

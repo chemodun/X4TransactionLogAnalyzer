@@ -22,6 +22,7 @@ public sealed class ProgressUpdate
   public int? SuperhighwaysProcessed { get; init; }
   public int? StationsProcessed { get; init; }
   public int? ShipsProcessed { get; init; }
+  public int? SubordinatesProcessed { get; init; }
   public int? RemovedProcessed { get; init; }
   public int? TradesProcessed { get; init; }
 }

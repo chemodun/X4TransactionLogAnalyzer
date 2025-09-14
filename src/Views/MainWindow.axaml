@@ -952,23 +952,23 @@
     <TabItem Header="Configuration" x:Name="ConfigurationTab">
       <Grid DataContext="{Binding Configuration}" Margin="12">
         <Grid.RowDefinitions>
-          <!-- Game folder row -->
+          <!-- 0: Game folder row -->
           <RowDefinition Height="Auto"/>
-          <!-- Small gap below game folder -->
-          <RowDefinition Height="8"/>
-          <!-- Game-data statistics row -->
+          <!-- 1: gap -->
+            <RowDefinition Height="8"/>
+          <!-- 2: Game-data statistics row -->
           <RowDefinition Height="Auto"/>
-          <!-- Big separation between blocks -->
+          <!-- 3: big separation -->
           <RowDefinition Height="32"/>
-          <!-- Game save path row -->
+          <!-- 4: Game save path row -->
           <RowDefinition Height="Auto"/>
-          <!-- Small gap below save path -->
+          <!-- 5: gap -->
           <RowDefinition Height="8"/>
-          <!-- Save-data statistics row -->
+          <!-- 6: Save-data statistics row -->
           <RowDefinition Height="Auto"/>
-          <!-- Gap before theme selector -->
+          <!-- 7: gap -->
           <RowDefinition Height="8"/>
-          <!-- Theme selector row -->
+          <!-- 8: Theme selector row -->
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -976,7 +976,6 @@
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="12"/>
-          <!-- New column for Load Only Game Language checkbox -->
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="12"/>
           <ColumnDefinition Width="Auto"/>
@@ -984,7 +983,14 @@
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Wares + Language statistics row (each stat on its own line) -->
+        <!-- 0: Game Folder (X4.exe) -->
+        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="Game Folder"/>
+        <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding GameFolderExePath}"/>
+        <Button Grid.Row="0" Grid.Column="2" Content="Set" Click="SetGameFolder_Click"/>
+        <CheckBox Grid.Row="0" Grid.Column="4" Content="Load Only Game Language" IsChecked="{Binding LoadOnlyGameLanguage, Mode=TwoWay}" VerticalAlignment="Center"/>
+        <Button Grid.Row="0" Grid.Column="6" Content="Load Game Data" IsEnabled="{Binding CanReloadGameData}" Click="ReloadGameData_Click"/>
+
+        <!-- 2: Game-data statistics (each stat on its own line) -->
         <Border Grid.Row="2" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="0 0 0 8">
           <StackPanel Orientation="Vertical" Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -1021,23 +1027,14 @@
           </StackPanel>
         </Border>
 
-        <!-- Game Folder (X4.exe) -->
-        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="Game Folder"/>
-        <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding GameFolderExePath}"/>
-        <Button Grid.Row="0" Grid.Column="2" Content="Set" Click="SetGameFolder_Click"/>
-  <CheckBox Grid.Row="0" Grid.Column="4" Content="Load Only Game Language" IsChecked="{Binding LoadOnlyGameLanguage, Mode=TwoWay}" VerticalAlignment="Center"/>
-  <Button Grid.Row="0" Grid.Column="6" Content="Load Game Data" IsEnabled="{Binding CanReloadGameData}" Click="ReloadGameData_Click"/>
+        <!-- 4: Game Save Path -->
+        <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Game Save Path"/>
+        <TextBlock Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding GameSavePath}"/>
+        <Button Grid.Row="4" Grid.Column="2" Content="Set" Click="SetSaveFolder_Click"/>
+        <CheckBox Grid.Row="4" Grid.Column="4" Content="Load removed objects" IsChecked="{Binding LoadRemovedObjects, Mode=TwoWay}" VerticalAlignment="Center"/>
+        <Button Grid.Row="4" Grid.Column="6" Content="Load Save Data" IsEnabled="{Binding CanReloadSaveData}" Click="ReloadSaveData_Click"/>
 
-        <!-- Theme selector -->
-        <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Text="Theme"/>
-        <ComboBox Grid.Row="8" Grid.Column="1" Width="200"
-            SelectedItem="{Binding AppTheme, Mode=TwoWay}">
-          <x:String>System</x:String>
-          <x:String>Light</x:String>
-          <x:String>Dark</x:String>
-        </ComboBox>
-
-  <!-- Save-data statistics table (each stat on its own line) -->
+        <!-- 6: Save-data statistics (each stat on its own line) -->
         <Border Grid.Row="6" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="8 0 0 8">
           <StackPanel Orientation="Vertical" Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -1074,16 +1071,20 @@
               <TextBlock Text="Trades:" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
               <TextBlock Text="{Binding TradesCount}" FontWeight="Bold" Foreground="{Binding TradesCount, Converter={StaticResource ZeroToRed}}"/>
             </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Subordinate connections:" Foreground="{Binding SubordinateCount, Converter={StaticResource ZeroToRed}}"/>
+              <TextBlock Text="{Binding SubordinateCount}" FontWeight="Bold" Foreground="{Binding SubordinateCount, Converter={StaticResource ZeroToRed}}"/>
+            </StackPanel>
           </StackPanel>
         </Border>
 
-              <!-- Game Save Path -->
-  <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Game Save Path"/>
-  <TextBlock Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding GameSavePath}"/>
-  <Button Grid.Row="4" Grid.Column="2" Content="Set" Click="SetSaveFolder_Click"/>
-  <!-- Option checkbox before Load Save button -->
-  <CheckBox Grid.Row="4" Grid.Column="4" Content="Load removed objects" IsChecked="{Binding LoadRemovedObjects, Mode=TwoWay}" VerticalAlignment="Center"/>
-  <Button Grid.Row="4" Grid.Column="6" Content="Load Save Data" IsEnabled="{Binding CanReloadSaveData}" Click="ReloadSaveData_Click"/>
+        <!-- 8: Theme selector -->
+        <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Text="Theme"/>
+        <ComboBox Grid.Row="8" Grid.Column="1" Width="200" SelectedItem="{Binding AppTheme, Mode=TwoWay}">
+          <x:String>System</x:String>
+          <x:String>Light</x:String>
+          <x:String>Dark</x:String>
+        </ComboBox>
       </Grid>
     </TabItem>
 

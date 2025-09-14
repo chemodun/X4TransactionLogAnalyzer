@@ -19,6 +19,7 @@ public sealed class GameDataStats : INotifyPropertyChanged
 {
   int _waresCount;
   int _gatesCount;
+  int _subordinateCount;
   public int WaresCount
   {
     get => _waresCount;
@@ -41,6 +42,19 @@ public sealed class GameDataStats : INotifyPropertyChanged
       {
         _gatesCount = value;
         OnPropertyChanged(nameof(GatesCount));
+      }
+    }
+  }
+
+  public int SubordinateCount
+  {
+    get => _subordinateCount;
+    set
+    {
+      if (_subordinateCount != value)
+      {
+        _subordinateCount = value;
+        OnPropertyChanged(nameof(SubordinateCount));
       }
     }
   }
@@ -370,14 +384,14 @@ CREATE INDEX idx_component_type_owner     ON component(type, owner);
 CREATE INDEX idx_component_type_owner_id  ON component (type, owner, id);
 -- Table subordinate
 CREATE TABLE subordinate (
-    id         INTEGER PRIMARY KEY,
-    parent_id  INTEGER NOT NULL,
-    child_id   INTEGER NOT NULL,
-    group      TEXT NOT NULL
+    id              INTEGER PRIMARY KEY,
+    parent_id       INTEGER NOT NULL,
+    subordinate_id  INTEGER NOT NULL,
+    assignment      TEXT NOT NULL
 );
 CREATE INDEX idx_subordinate_parent_id   ON subordinate(parent_id);
-CREATE INDEX idx_subordinate_child_id    ON subordinate(child_id);
-CREATE INDEX idx_subordinate_group       ON subordinate(group);
+CREATE INDEX idx_subordinate_child_id    ON subordinate(subordinate_id);
+CREATE INDEX idx_subordinate_assignment  ON subordinate(assignment);
 -- Table trade
 CREATE TABLE trade (
     id         INTEGER PRIMARY KEY,
@@ -1133,7 +1147,7 @@ ORDER BY full_name, time;
           // Future updates here
           currentVersion = 4;
         }
-        if (currentVersion == 3)
+        if (currentVersion == 4)
         {
           clearData = true;
           ReOpenConnection();
@@ -1153,14 +1167,14 @@ ORDER BY full_name, time;
               @"
 -- Table subordinate
 CREATE TABLE subordinate (
-    id         INTEGER PRIMARY KEY,
-    parent_id  INTEGER NOT NULL,
-    child_id   INTEGER NOT NULL,
-    group      TEXT NOT NULL
+    id              INTEGER PRIMARY KEY,
+    parent_id       INTEGER NOT NULL,
+    subordinate_id  INTEGER NOT NULL,
+    assignment      TEXT NOT NULL
 );
 CREATE INDEX idx_subordinate_parent_id   ON subordinate(parent_id);
-CREATE INDEX idx_subordinate_child_id    ON subordinate(child_id);
-CREATE INDEX idx_subordinate_group       ON subordinate(group);
+CREATE INDEX idx_subordinate_child_id    ON subordinate(subordinate_id);
+CREATE INDEX idx_subordinate_assignment  ON subordinate(assignment);
 ";
             cmd.ExecuteNonQuery();
           }
@@ -2540,12 +2554,22 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
     insertSuperhighway.Parameters.Add("@sector_to", System.Data.DbType.String);
     insertSuperhighway.Parameters.Add("@exitgate", System.Data.DbType.Int64);
 
+    using var insertSubordinate = new SQLiteCommand(
+      "INSERT OR IGNORE INTO subordinate(parent_id, subordinate_id, assignment) VALUES (@parent_id, @subordinate_id, @assignment);",
+      _conn,
+      txn
+    );
+    insertSubordinate.Parameters.Add("@parent_id", System.Data.DbType.Int64);
+    insertSubordinate.Parameters.Add("@subordinate_id", System.Data.DbType.Int64);
+    insertSubordinate.Parameters.Add("@assignment", System.Data.DbType.String);
+
     long elementsProcessed = 0;
     int itemsForTransaction = 0,
       sectorCount = 0,
       removedCount = 0,
       stationsProcessed = 0,
       shipsProcessed = 0,
+      subordinatesProcessed = 0,
       gatesProcessed = 0,
       superhighwaysProcessed = 0,
       tradeCount = 0;
@@ -2578,6 +2602,24 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
     List<Subordinate> subordinateBuffer = new();
     List<(long id, int groupId, string name)> commanderGroupsBuffer = new();
     Dictionary<long, int> subordinateIdToGroupId = new();
+
+    void InsertSubordinate(Subordinate sub)
+    {
+      if (sub.CommanderId > 0 && sub.SubordinateId > 0)
+      {
+        insertSubordinate.Parameters["@parent_id"].Value = sub.CommanderId;
+        insertSubordinate.Parameters["@subordinate_id"].Value = sub.SubordinateId;
+        insertSubordinate.Parameters["@assignment"].Value = sub.Group;
+        insertSubordinate.ExecuteNonQuery();
+        itemsForTransaction++;
+        subordinatesProcessed++;
+        if (subordinatesProcessed % 10 == 0)
+        {
+          progress?.Invoke(new ProgressUpdate { SubordinatesProcessed = subordinatesProcessed });
+        }
+        subordinateBuffer.Remove(sub);
+      }
+    }
 
     long ProcessStationOrShip(string owner, string componentClass)
     {
@@ -2725,6 +2767,10 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
             int subordinateGroupId = subordinateIdToGroupId[subordinate.SubordinateId];
             subordinate.Group =
               commanderGroupsBuffer.FirstOrDefault(g => g.id == currentId && g.groupId == subordinateGroupId).name ?? string.Empty;
+            if (subordinate.IsValid)
+            {
+              InsertSubordinate(subordinate);
+            }
             return;
           }
           subordinateBuffer.Add(
@@ -2758,6 +2804,10 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
                 commander.Group =
                   commanderGroupsBuffer.FirstOrDefault(g => g.id == commander.CommanderId && g.groupId == subordinateGroupId).name
                   ?? string.Empty;
+                if (commander.IsValid)
+                {
+                  InsertSubordinate(commander);
+                }
                 continue;
               }
               subordinateBuffer.Add(
@@ -3424,8 +3474,10 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
             connectionsProcessed = true;
             progress?.Invoke(new ProgressUpdate { StationsProcessed = stationsProcessed });
             progress?.Invoke(new ProgressUpdate { ShipsProcessed = shipsProcessed });
+            progress?.Invoke(new ProgressUpdate { SubordinatesProcessed = subordinatesProcessed });
             progress?.Invoke(new ProgressUpdate { SectorsProcessed = sectorCount });
             progress?.Invoke(new ProgressUpdate { GatesProcessed = gatesProcessed });
+            progress?.Invoke(new ProgressUpdate { SuperhighwaysProcessed = superhighwaysProcessed });
           }
           if (removedEntries && xr.Name == "removed")
           {
@@ -3467,6 +3519,8 @@ CREATE INDEX idx_subordinate_group       ON subordinate(group);
       Stats.TradesCount = ExecuteScalarInt("SELECT COUNT(1) FROM trade");
       // gates count (connections) if gate table present
       Stats.GatesCount = TableExists("gate") ? ExecuteScalarInt("SELECT COUNT(1) FROM gate") : 0;
+      // subordinate relations count
+      Stats.SubordinateCount = TableExists("subordinate") ? ExecuteScalarInt("SELECT COUNT(1) FROM subordinate") : 0;
       // player ships via view (if exists)
       Stats.PlayerShipsCount = ViewExists("player_ships")
         ? ExecuteScalarInt("SELECT COUNT(1) FROM player_ships")
