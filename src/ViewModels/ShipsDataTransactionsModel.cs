@@ -18,18 +18,22 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
   private List<ShipTransaction> allTransactions = new();
 
   private TransportFilter _transport = TransportFilter.Container;
-  public TransportFilter Transport
+  public string Transport
   {
-    get => _transport;
+    get => _transport.ToString();
     set
     {
-      if (_transport == value)
+      if (_transport.ToString() == value)
         return;
-      _transport = value;
+      _transport = (TransportFilter)Enum.Parse(typeof(TransportFilter), value);
       OnPropertyChanged();
       LoadData();
     }
   }
+
+#pragma warning disable CA1822
+  public List<string> TransportOptions => System.Enum.GetNames(typeof(TransportFilter)).ToList();
+#pragma warning restore CA1822
 
   public ShipsDataTransactionsModel() => LoadData();
 
@@ -47,13 +51,13 @@ public class ShipsDataTransactionsModel : ShipsDataBaseModel
     if (SelectedShipClass != "All")
       q = q.Where(t => string.Equals(t.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
 
-    q = Transport switch
+    if (SelectedStation != null && SelectedStation.Id != 0)
     {
-      TransportFilter.Container => q.Where(t => t.Transport == "container"),
-      TransportFilter.Solid => q.Where(t => t.Transport == "solid"),
-      TransportFilter.Liquid => q.Where(t => t.Transport == "liquid"),
-      _ => q,
-    };
+      HashSet<long> subordinateIds = Subordinate.GetSubordinateIdsForCommander(SelectedStation.Id);
+      q = q.Where(t => subordinateIds.Contains(t.ShipId));
+    }
+    if (Transport != "All")
+      q = q.Where(t => t.Transport.Equals(Transport, StringComparison.InvariantCultureIgnoreCase));
 
     foreach (var trans in q.OrderBy(t => t.ShipId).ThenBy(t => t.RawTime))
     {

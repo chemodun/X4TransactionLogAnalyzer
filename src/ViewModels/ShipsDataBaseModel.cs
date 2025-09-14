@@ -147,6 +147,22 @@ public abstract class ShipsDataBaseModel : INotifyPropertyChanged
     }
   }
 
+  // Expose stations as a property (binding requires property, not field)
+  public List<StationShort> Stations { get; } = StationShort.StationList;
+  private StationShort? _selectedStation = StationShort.StationList.FirstOrDefault();
+  public StationShort? SelectedStation
+  {
+    get => _selectedStation;
+    set
+    {
+      if (_selectedStation == value)
+        return;
+      _selectedStation = value;
+      OnPropertyChanged();
+      LoadData();
+    }
+  }
+
 #pragma warning disable CA1822
   public System.Collections.Generic.IEnumerable<string> ShipClassOptions => ShipClassFilterUtil.GetShipClassOptions();
 #pragma warning restore CA1822
@@ -161,7 +177,9 @@ public abstract class ShipsDataBaseModel : INotifyPropertyChanged
       ShipList.Add(ship);
   }
 
-  protected virtual System.Collections.Generic.IEnumerable<ShipInfo> SortShips(System.Collections.Generic.IEnumerable<ShipInfo> ships)
+  private protected virtual System.Collections.Generic.IEnumerable<ShipInfo> SortShips(
+    System.Collections.Generic.IEnumerable<ShipInfo> ships
+  )
   {
     return ShipsSortOrder switch
     {

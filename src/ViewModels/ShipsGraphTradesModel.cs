@@ -32,11 +32,17 @@ public class ShipsGraphTradesModel : ShipsGraphsBaseModel
 
   private void ApplyTradeFilter()
   {
+    HashSet<long> subordinateIds = new();
+    if (SelectedStation != null && SelectedStation.Id != 0)
+    {
+      subordinateIds = Subordinate.GetSubordinateIdsForCommander(SelectedStation.Id);
+    }
     ShipList = new ObservableCollection<GraphShipItem>(
       MainViewModel
         .AllTrades.Where(ft =>
           (WithInternalTrades || !FullTrade.IsInternalTrade(ft))
           && (SelectedShipClass == "All" || string.Equals(ft.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase))
+          && (SelectedStation == null || SelectedStation.Id == 0 || subordinateIds.Contains(ft.ShipId))
         )
         .GroupBy(t => (t.ShipId, t.ShipFullName))
         .Select(g => new GraphShipItem

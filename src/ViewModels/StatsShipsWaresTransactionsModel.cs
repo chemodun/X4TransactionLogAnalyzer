@@ -29,7 +29,11 @@ public sealed class StatsShipsWaresTransactionsModel : StatsShipsWaresBaseModel
     IEnumerable<Transaction> q = MainViewModel.AllTransactions;
     if (SelectedShipClass != "All")
       q = q.Where(t => string.Equals(t.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
-
+    if (SelectedStation != null && SelectedStation.Id != 0)
+    {
+      HashSet<long> subordinateIds = Subordinate.GetSubordinateIdsForCommander(SelectedStation.Id);
+      q = q.Where(t => subordinateIds.Contains(t.ShipId));
+    }
     q = Transport switch
     {
       TransportFilter.Container => q.Where(t => t.Transport == "container"),

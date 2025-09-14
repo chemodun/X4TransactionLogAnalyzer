@@ -99,6 +99,21 @@ public abstract class StatsWaresShipsBaseModel : INotifyPropertyChanged
     }
   }
 
+  // Expose stations as a property (binding requires property, not field)
+  public List<StationShort> Stations { get; } = StationShort.StationList;
+  private StationShort? _selectedStation = StationShort.StationList.FirstOrDefault();
+  public StationShort? SelectedStation
+  {
+    get => _selectedStation;
+    set
+    {
+      if (_selectedStation == value)
+        return;
+      _selectedStation = value;
+      OnPropertyChanged();
+      Reload();
+    }
+  }
 #pragma warning disable CA1822
   public IEnumerable<string> ShipClassOptions => ShipClassFilterUtil.GetShipClassOptions();
 #pragma warning restore CA1822

@@ -77,7 +77,11 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
     TradeSteps.Clear();
     SelectedShip = null;
     SelectedFullTrade = null;
-
+    HashSet<long> subordinateIds = new();
+    if (SelectedStation != null && SelectedStation.Id != 0)
+    {
+      subordinateIds = Subordinate.GetSubordinateIdsForCommander(SelectedStation.Id);
+    }
     var ships = new Dictionary<long, ShipInfo>();
     foreach (var ft in MainViewModel.AllTrades)
     {
@@ -85,6 +89,9 @@ public sealed class ShipsDataTradesModel : ShipsDataBaseModel
         continue;
 
       if (SelectedShipClass != "All" && !string.Equals(ft.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase))
+        continue;
+
+      if (SelectedStation != null && SelectedStation.Id != 0 && !subordinateIds.Contains(ft.ShipId))
         continue;
 
       FullTrades.Add(ft);

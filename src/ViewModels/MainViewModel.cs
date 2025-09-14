@@ -163,6 +163,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
   public static void LoadData()
   {
+    Subordinate.LoadAllSubordinates();
+    StationShort.RefreshStationsWithTradeOrMiningSubordinates();
     Transaction.GetAllTransactions(ref AllTransactions);
     FullTrade.GetFullTrades(ref AllTrades, AllTransactions);
   }

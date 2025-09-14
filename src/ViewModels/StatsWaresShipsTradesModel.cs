@@ -29,6 +29,11 @@ public sealed class StatsWaresShipsTradesModel : StatsWaresShipsBaseModel
     var q = MainViewModel.AllTrades.Where(ft => WithInternalTrades || !FullTrade.IsInternalTrade(ft));
     if (SelectedShipClass != "All")
       q = q.Where(ft => string.Equals(ft.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
+    if (SelectedStation != null && SelectedStation.Id != 0)
+    {
+      HashSet<long> subordinateIds = Subordinate.GetSubordinateIdsForCommander(SelectedStation.Id);
+      q = q.Where(t => subordinateIds.Contains(t.ShipId));
+    }
     return q.GroupBy(t => (t.Ware, t.Product, t.ShipId, t.ShipFullName))
       .Select(g =>
         (

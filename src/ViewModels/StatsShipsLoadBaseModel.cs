@@ -100,6 +100,22 @@ public abstract class StatsShipsLoadBaseModel : INotifyPropertyChanged
   public IEnumerable<string> ShipClassOptions => ShipClassFilterUtil.GetShipClassOptions();
 #pragma warning restore CA1822
 
+  // Expose stations as a property (binding requires property, not field)
+  public List<StationShort> Stations { get; } = StationShort.StationList;
+  private StationShort? _selectedStation = StationShort.StationList.FirstOrDefault();
+  public StationShort? SelectedStation
+  {
+    get => _selectedStation;
+    set
+    {
+      if (_selectedStation == value)
+        return;
+      _selectedStation = value;
+      OnPropertyChanged();
+      Reload();
+    }
+  }
+
   protected List<string> _shipLabels = new();
   public IReadOnlyList<string> Labels => _shipLabels;
 

@@ -26,6 +26,11 @@ public sealed class StatsShipsLoadTradesModel : StatsShipsLoadBaseModel
     IEnumerable<FullTrade> q = MainViewModel.AllTrades;
     if (SelectedShipClass != "All")
       q = q.Where(ft => string.Equals(ft.ShipClass, SelectedShipClass, StringComparison.OrdinalIgnoreCase));
+    if (SelectedStation != null && SelectedStation.Id != 0)
+    {
+      HashSet<long> subordinateIds = Subordinate.GetSubordinateIdsForCommander(SelectedStation.Id);
+      q = q.Where(t => subordinateIds.Contains(t.ShipId));
+    }
     if (!WithInternalTrades)
       q = q.Where(ft => !FullTrade.IsInternalTrade(ft));
     foreach (var t in q)

@@ -385,12 +385,12 @@ CREATE INDEX idx_component_type_owner_id  ON component (type, owner, id);
 -- Table subordinate
 CREATE TABLE subordinate (
     id              INTEGER PRIMARY KEY,
-    parent_id       INTEGER NOT NULL,
+    commander_id    INTEGER NOT NULL,
     subordinate_id  INTEGER NOT NULL,
     assignment      TEXT NOT NULL
 );
-CREATE INDEX idx_subordinate_parent_id   ON subordinate(parent_id);
-CREATE INDEX idx_subordinate_child_id    ON subordinate(subordinate_id);
+CREATE INDEX idx_subordinate_commander_id ON subordinate(commander_id);
+CREATE INDEX idx_subordinate_child_id     ON subordinate(subordinate_id);
 CREATE INDEX idx_subordinate_assignment  ON subordinate(assignment);
 -- Table trade
 CREATE TABLE trade (
@@ -1168,13 +1168,13 @@ ORDER BY full_name, time;
 -- Table subordinate
 CREATE TABLE subordinate (
     id              INTEGER PRIMARY KEY,
-    parent_id       INTEGER NOT NULL,
+    commander_id    INTEGER NOT NULL,
     subordinate_id  INTEGER NOT NULL,
     assignment      TEXT NOT NULL
 );
-CREATE INDEX idx_subordinate_parent_id   ON subordinate(parent_id);
-CREATE INDEX idx_subordinate_child_id    ON subordinate(subordinate_id);
-CREATE INDEX idx_subordinate_assignment  ON subordinate(assignment);
+CREATE INDEX idx_subordinate_commander_id ON subordinate(commander_id);
+CREATE INDEX idx_subordinate_child_id     ON subordinate(subordinate_id);
+CREATE INDEX idx_subordinate_assignment   ON subordinate(assignment);
 ";
             cmd.ExecuteNonQuery();
           }
@@ -2555,11 +2555,11 @@ CREATE INDEX idx_subordinate_assignment  ON subordinate(assignment);
     insertSuperhighway.Parameters.Add("@exitgate", System.Data.DbType.Int64);
 
     using var insertSubordinate = new SQLiteCommand(
-      "INSERT OR IGNORE INTO subordinate(parent_id, subordinate_id, assignment) VALUES (@parent_id, @subordinate_id, @assignment);",
+      "INSERT OR IGNORE INTO subordinate(commander_id, subordinate_id, assignment) VALUES (@commander_id, @subordinate_id, @assignment);",
       _conn,
       txn
     );
-    insertSubordinate.Parameters.Add("@parent_id", System.Data.DbType.Int64);
+    insertSubordinate.Parameters.Add("@commander_id", System.Data.DbType.Int64);
     insertSubordinate.Parameters.Add("@subordinate_id", System.Data.DbType.Int64);
     insertSubordinate.Parameters.Add("@assignment", System.Data.DbType.String);
 
@@ -2599,15 +2599,15 @@ CREATE INDEX idx_subordinate_assignment  ON subordinate(assignment);
     Dictionary<long, string> zonesToSectors = new();
     List<SuperHighway> superhighwayBuffer = new();
     Dictionary<long, HighWayGate> gatesBuffer = new();
-    List<Subordinate> subordinateBuffer = new();
+    List<SubordinateOnInput> subordinateBuffer = new();
     List<(long id, int groupId, string name)> commanderGroupsBuffer = new();
     Dictionary<long, int> subordinateIdToGroupId = new();
 
-    void InsertSubordinate(Subordinate sub)
+    void InsertSubordinate(SubordinateOnInput sub)
     {
       if (sub.CommanderId > 0 && sub.SubordinateId > 0)
       {
-        insertSubordinate.Parameters["@parent_id"].Value = sub.CommanderId;
+        insertSubordinate.Parameters["@commander_id"].Value = sub.CommanderId;
         insertSubordinate.Parameters["@subordinate_id"].Value = sub.SubordinateId;
         insertSubordinate.Parameters["@assignment"].Value = sub.Group;
         insertSubordinate.ExecuteNonQuery();
@@ -2774,7 +2774,7 @@ CREATE INDEX idx_subordinate_assignment  ON subordinate(assignment);
             return;
           }
           subordinateBuffer.Add(
-            new Subordinate
+            new SubordinateOnInput
             {
               CommanderId = currentId,
               CommanderConnectionId = subordinateConnectionId,
@@ -2811,7 +2811,7 @@ CREATE INDEX idx_subordinate_assignment  ON subordinate(assignment);
                 continue;
               }
               subordinateBuffer.Add(
-                new Subordinate
+                new SubordinateOnInput
                 {
                   CommanderId = 0,
                   CommanderConnectionId = commanderConnectionId,

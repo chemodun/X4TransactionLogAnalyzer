@@ -47,6 +47,22 @@ public abstract class StatsShipsWaresBaseModel : INotifyPropertyChanged
     }
   }
 
+  // Expose stations as a property (binding requires property, not field)
+  public List<StationShort> Stations { get; } = StationShort.StationList;
+  private StationShort? _selectedStation = StationShort.StationList.FirstOrDefault();
+  public StationShort? SelectedStation
+  {
+    get => _selectedStation;
+    set
+    {
+      if (_selectedStation == value)
+        return;
+      _selectedStation = value;
+      OnPropertyChanged();
+      Reload();
+    }
+  }
+
   protected List<string> _labels = new();
   public IReadOnlyList<string> Labels => _labels;
 #pragma warning disable CA1822 // Mark members as static
