@@ -26,6 +26,7 @@ public sealed class ConfigurationService
   public bool LoadOnlyGameLanguage { get; set; } = true;
   public bool LoadRemovedObjects { get; set; }
   public string AppTheme { get; set; } = "System"; // System | Light | Dark
+  public AutoReloadGameSaveMode AutoReloadMode { get; set; } = AutoReloadGameSaveMode.None; // None | SelectedFile | AnyFile
 
   public void Save()
   {
@@ -36,6 +37,7 @@ public sealed class ConfigurationService
       LoadOnlyGameLanguage = LoadOnlyGameLanguage,
       LoadRemovedObjects = LoadRemovedObjects,
       AppTheme = AppTheme,
+      AutoReloadMode = AutoReloadMode,
     };
     var json = JsonSerializer.Serialize(dto, _jsonSerializerOptions);
     File.WriteAllText(_configPath, json);
@@ -54,6 +56,7 @@ public sealed class ConfigurationService
       LoadOnlyGameLanguage = dto?.LoadOnlyGameLanguage ?? true; // default to true for backward compatibility
       LoadRemovedObjects = dto?.LoadRemovedObjects ?? false; // default to false
       AppTheme = string.IsNullOrWhiteSpace(dto?.AppTheme) ? "System" : dto!.AppTheme!;
+      AutoReloadMode = dto?.AutoReloadMode ?? AutoReloadGameSaveMode.None; // default None
     }
     catch
     {
@@ -68,5 +71,6 @@ public sealed class ConfigurationService
     public bool? LoadOnlyGameLanguage { get; set; }
     public bool? LoadRemovedObjects { get; set; }
     public string? AppTheme { get; set; }
+    public AutoReloadGameSaveMode? AutoReloadMode { get; set; }
   }
 }

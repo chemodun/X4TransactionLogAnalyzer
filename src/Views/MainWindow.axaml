@@ -1059,6 +1059,8 @@
           <RowDefinition Height="Auto"/>
           <!-- 5: gap -->
           <RowDefinition Height="8"/>
+          <!-- 6: Auto reload game save row -->
+          <RowDefinition Height="Auto"/>
           <!-- 6: Save-data statistics row -->
           <RowDefinition Height="Auto"/>
           <!-- 7: gap -->
@@ -1086,7 +1088,7 @@
         <Button Grid.Row="0" Grid.Column="6" Content="Load Game Data" IsEnabled="{Binding CanReloadGameData}" Click="ReloadGameData_Click"/>
 
         <!-- 2: Game-data statistics (each stat on its own line) -->
-        <Border Grid.Row="2" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="0 0 0 8">
+        <Border Grid.Row="2" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="8 0 0 8">
           <StackPanel Orientation="Vertical" Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <TextBlock Text="Languages:" />
@@ -1129,8 +1131,16 @@
         <CheckBox Grid.Row="4" Grid.Column="4" Content="Load removed objects" IsChecked="{Binding LoadRemovedObjects, Mode=TwoWay}" VerticalAlignment="Center"/>
         <Button Grid.Row="4" Grid.Column="6" Content="Load Save Data" IsEnabled="{Binding CanReloadSaveData}" Click="ReloadSaveData_Click"/>
 
-        <!-- 6: Save-data statistics (each stat on its own line) -->
-        <Border Grid.Row="6" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="8 0 0 8">
+        <!-- 6: Auto reload game save selection -->
+        <StackPanel Grid.Row="6" Grid.ColumnSpan="7" Orientation="Horizontal" Spacing="12" Margin="0 0 0 4">
+          <TextBlock Text="Auto reload game save:" VerticalAlignment="Center"/>
+          <RadioButton Content="No" IsChecked="{Binding AutoReloadNone}" GroupName="AutoReloadSaveMode"/>
+          <RadioButton Content="Selected Save file" IsChecked="{Binding AutoReloadSelectedFile}" GroupName="AutoReloadSaveMode"/>
+          <RadioButton Content="Any Save file" IsChecked="{Binding AutoReloadAnyFile}" GroupName="AutoReloadSaveMode"/>
+        </StackPanel>
+
+        <!-- 7: Save-data statistics (each stat on its own line) -->
+        <Border Grid.Row="7" Grid.ColumnSpan="7" BorderBrush="Gray" BorderThickness="0 0 0 1" Padding="8 0 0 8">
           <StackPanel Orientation="Vertical" Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <TextBlock Text="Player ships:" Foreground="{Binding PlayerShipsCount, Converter={StaticResource ZeroToRed}}"/>
@@ -1174,8 +1184,8 @@
         </Border>
 
         <!-- 8: Theme selector -->
-        <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Text="Theme"/>
-        <ComboBox Grid.Row="8" Grid.Column="1" Width="200" SelectedItem="{Binding AppTheme, Mode=TwoWay}">
+        <TextBlock Grid.Row="9" Grid.Column="0" VerticalAlignment="Center" Text="Theme"/>
+        <ComboBox Grid.Row="9" Grid.Column="1" Width="200" SelectedItem="{Binding AppTheme, Mode=TwoWay}">
           <x:String>System</x:String>
           <x:String>Light</x:String>
           <x:String>Dark</x:String>

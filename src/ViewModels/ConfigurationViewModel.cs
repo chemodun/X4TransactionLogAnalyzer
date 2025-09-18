@@ -8,6 +8,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using X4PlayerShipTradeAnalyzer.Services;
+using X4PlayerShipTradeAnalyzer.Utils; // added for ResilientFileWatcher
 using X4PlayerShipTradeAnalyzer.Views;
 
 namespace X4PlayerShipTradeAnalyzer.ViewModels;
@@ -15,6 +16,10 @@ namespace X4PlayerShipTradeAnalyzer.ViewModels;
 public sealed class ConfigurationViewModel : INotifyPropertyChanged
 {
   private readonly ConfigurationService _cfg = ConfigurationService.Instance;
+  private ResilientFileWatcher? _saveWatcher; // watcher for auto reload
+  private DateTime _lastAutoLoadUtc = DateTime.MinValue; // debounce auto loads
+  private string? _lastLoadedFile; // track last loaded save file
+  private readonly TimeSpan _autoLoadDebounce = TimeSpan.FromSeconds(2);
 
   private string? _gameFolderExePath;
   public string? GameFolderExePath
@@ -40,11 +45,17 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
     {
       if (_GameSavePath == value)
         return;
+      var oldFolder = string.IsNullOrWhiteSpace(_GameSavePath) ? null : Path.GetDirectoryName(_GameSavePath);
       _GameSavePath = value;
       _cfg.GameSavePath = value;
       _cfg.Save();
       OnPropertyChanged();
       OnPropertyChanged(nameof(CanReloadSaveData));
+      if (oldFolder != Path.GetDirectoryName(_GameSavePath) && _autoReloadMode != AutoReloadGameSaveMode.None)
+      {
+        // Save folder changed; restart watcher if needed
+        RestartSaveWatcherIfNeeded();
+      }
     }
   }
 
@@ -316,10 +327,11 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
     LoadOnlyGameLanguage = _cfg.LoadOnlyGameLanguage;
     LoadRemovedObjects = _cfg.LoadRemovedObjects;
     _appTheme = _cfg.AppTheme;
+    _autoReloadMode = _cfg.AutoReloadMode;
     // apply saved theme on startup
     ApplyTheme(_appTheme);
-    // Initial stats
-    // TryUpdateStats(MainWindow.GameData);
+    // Setup watcher if needed based on loaded config
+    RestartSaveWatcherIfNeeded();
   }
 
   // Helpers invoked from code-behind button clicks
@@ -415,5 +427,187 @@ public sealed class ConfigurationViewModel : INotifyPropertyChanged
       }
     }
     catch { }
+  }
+
+  // Auto reload game save mode
+  private AutoReloadGameSaveMode _autoReloadMode;
+  public AutoReloadGameSaveMode AutoReloadMode
+  {
+    get => _autoReloadMode;
+    set
+    {
+      if (_autoReloadMode == value)
+        return;
+      var oldMode = _autoReloadMode;
+      _autoReloadMode = value;
+      _cfg.AutoReloadMode = value;
+      _cfg.Save();
+      OnPropertyChanged();
+      // update convenience properties
+      OnPropertyChanged(nameof(AutoReloadNone));
+      OnPropertyChanged(nameof(AutoReloadSelectedFile));
+      OnPropertyChanged(nameof(AutoReloadAnyFile));
+      // Restart watcher if needed based on new mode
+      if ((oldMode == AutoReloadGameSaveMode.None || value == AutoReloadGameSaveMode.None) && _GameSavePath != null)
+      {
+        RestartSaveWatcherIfNeeded();
+      }
+    }
+  }
+
+  // Convenience boolean properties for RadioButtons binding
+  public bool AutoReloadNone
+  {
+    get => AutoReloadMode == AutoReloadGameSaveMode.None;
+    set
+    {
+      if (value)
+        AutoReloadMode = AutoReloadGameSaveMode.None;
+    }
+  }
+  public bool AutoReloadSelectedFile
+  {
+    get => AutoReloadMode == AutoReloadGameSaveMode.SelectedFile;
+    set
+    {
+      if (value)
+        AutoReloadMode = AutoReloadGameSaveMode.SelectedFile;
+    }
+  }
+  public bool AutoReloadAnyFile
+  {
+    get => AutoReloadMode == AutoReloadGameSaveMode.AnyFile;
+    set
+    {
+      if (value)
+        AutoReloadMode = AutoReloadGameSaveMode.AnyFile;
+    }
+  }
+
+  private void RestartSaveWatcherIfNeeded()
+  {
+    // Stop existing always first
+    _saveWatcher?.Stop();
+    _saveWatcher?.Dispose();
+    _saveWatcher = null;
+
+    if (_autoReloadMode == AutoReloadGameSaveMode.None)
+      return; // nothing to watch
+
+    if (string.IsNullOrWhiteSpace(GameSavePath))
+      return; // no path
+
+    try
+    {
+      var dir = Path.GetDirectoryName(GameSavePath);
+      if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir))
+        return;
+
+      // watch *.xml.gz in save folder
+      _saveWatcher = new ResilientFileWatcher(dir, "*.xml.gz", includeSubdirectories: false, debounceMilliseconds: 500);
+      _saveWatcher.Renamed += OnSaveFileChanged;
+      // _saveWatcher.Created += OnSaveFileChanged;
+      // _saveWatcher.Changed += OnSaveFileChanged; // some systems modify in-place
+      _saveWatcher.Start();
+    }
+    catch
+    {
+      // swallow - watcher optional
+    }
+  }
+
+  private void OnSaveFileChanged(object? sender, FileSystemEventArgs e)
+  {
+    // Ensure we are allowed to reload and avoid rapid re-imports
+    if (!CanReloadSaveData)
+      return;
+
+    // We only care about .xml.gz already by filter, but double-check
+    if (!e.FullPath.EndsWith(".xml.gz", StringComparison.OrdinalIgnoreCase))
+      return;
+
+    var fileName = Path.GetFileName(e.FullPath);
+
+    // Determine if this file should trigger reload
+    bool shouldReload = false;
+
+    if (_autoReloadMode == AutoReloadGameSaveMode.SelectedFile)
+    {
+      var target = Path.GetFileName(GameSavePath ?? string.Empty);
+      if (!string.IsNullOrEmpty(target) && string.Equals(target, fileName, StringComparison.OrdinalIgnoreCase))
+        shouldReload = true;
+    }
+    else if (_autoReloadMode == AutoReloadGameSaveMode.AnyFile)
+    {
+      // quicksave.xml.gz OR autosave_01..03.xml.gz OR save_001..010.xml.gz
+      if (string.Equals(fileName, "quicksave.xml.gz", StringComparison.OrdinalIgnoreCase))
+      {
+        shouldReload = true;
+      }
+      else if (
+        fileName.StartsWith("autosave_", StringComparison.OrdinalIgnoreCase)
+        && fileName.EndsWith(".xml.gz", StringComparison.OrdinalIgnoreCase)
+      )
+      {
+        // extract number between autosave_ and .xml.gz
+        var middle = fileName.Substring(9, fileName.Length - 9 - 7); // autosave_ = 9 chars, .xml.gz = 7
+        if (int.TryParse(middle, out var autoNum) && autoNum >= 1 && autoNum <= 3)
+          shouldReload = true;
+      }
+      else if (
+        fileName.StartsWith("save_", StringComparison.OrdinalIgnoreCase) && fileName.EndsWith(".xml.gz", StringComparison.OrdinalIgnoreCase)
+      )
+      {
+        var middle = fileName.Substring(5, fileName.Length - 5 - 7); // save_ = 5
+        if (int.TryParse(middle, out var saveNum) && saveNum >= 1 && saveNum <= 10)
+          shouldReload = true;
+      }
+
+      if (shouldReload)
+      {
+        // Update GameSavePath if a different file triggered it
+        if (!string.Equals(GameSavePath, e.FullPath, StringComparison.OrdinalIgnoreCase))
+        {
+          // Set without recursion causing duplicate watcher restart (watcher already will be recreated but safe)
+          GameSavePath = e.FullPath; // this will persist config
+        }
+      }
+    }
+
+    if (!shouldReload)
+      return;
+
+    var now = DateTime.UtcNow;
+    if (_lastLoadedFile == e.FullPath && (now - _lastAutoLoadUtc) < _autoLoadDebounce)
+      return; // debounce same file rapid events
+
+    _lastLoadedFile = e.FullPath;
+    _lastAutoLoadUtc = now;
+
+    // Perform reload on UI thread
+    Dispatcher.UIThread.Post(() =>
+    {
+      try
+      {
+        if (!CanReloadSaveData)
+          return; // re-check after dispatch delay
+        // Call the MainWindow handler to reuse progress UI logic
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime life && life.MainWindow is MainWindow win)
+        {
+          // Simulate button click pathway (sender null, event args empty)
+          var mi = typeof(MainWindow).GetMethod(
+            "ReloadSaveData_Click",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic
+          );
+          mi?.Invoke(win, new object?[] { null, new Avalonia.Interactivity.RoutedEventArgs() });
+        }
+        else
+        {
+          // Fallback: direct reload (should rarely execute)
+          ReloadSaveData(MainWindow.GameData, null);
+        }
+      }
+      catch { }
+    });
   }
 }
